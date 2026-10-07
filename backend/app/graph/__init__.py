@@ -8,11 +8,19 @@ import uuid
 from dataclasses import dataclass
 from typing import Protocol
 
-from sqlalchemy import text
+from sqlalchemy import select, text, tuple_
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.matching.scoring import TWO_HOP_DISCOUNT, TrustPath
+from app.models import Connection
 
 Adjacency = dict[uuid.UUID, dict[uuid.UUID, float]]  # member -> {neighbour: strength}
+
+
+@dataclass(frozen=True)
+class Tie:
+    strength: float
+    source: str  # how they know each other, e.g. "mentored", "worked_together"
 
 
 @dataclass(frozen=True)
@@ -27,6 +35,14 @@ class GraphStore(Protocol):
     async def paths(
         self, session, start: uuid.UUID, goal: uuid.UUID, max_hops: int = 2
     ) -> list[Path]: ...
+
+    async def ties(
+        self, session, pairs: list[tuple[uuid.UUID, uuid.UUID]]
+    ) -> dict[frozenset[uuid.UUID], Tie]: ...
+
+    async def connect(
+        self, session, a: uuid.UUID, b: uuid.UUID, strength: float, source: str
+    ) -> None: ...
 
 
 class PostgresGraph:
@@ -63,6 +79,25 @@ class PostgresGraph:
             {"start": start, "goal": goal, "max_hops": max_hops},
         )
         return [Path(list(p), w) for p, w in rows]
+
+    async def ties(self, session, pairs):
+        """The direct tie for each pair (either order), keyed by frozenset({a, b})."""
+        if not pairs:
+            return {}
+        ordered = list({(min(a, b), max(a, b)) for a, b in pairs})
+        rows = await session.execute(
+            select(Connection.member_a, Connection.member_b, Connection.strength, Connection.source)
+            .where(tuple_(Connection.member_a, Connection.member_b).in_(ordered))
+        )  # fmt: skip
+        return {frozenset((a, b)): Tie(s, src) for a, b, s, src in rows}
+
+    async def connect(self, session, a, b, strength, source):
+        """Add a tie unless the two are already connected (keeps the existing one)."""
+        await session.execute(
+            pg_insert(Connection)
+            .values(member_a=min(a, b), member_b=max(a, b), strength=strength, source=source)
+            .on_conflict_do_nothing(constraint="uq_connections_pair")
+        )
 
 
 def best_trust_path(adj: Adjacency, a: uuid.UUID, b: uuid.UUID) -> TrustPath | None:

@@ -42,7 +42,11 @@ MEMBER_ROLES = ("student", "founder", "mentor", "investor", "partner_admin")
 STARTUP_SOURCES = ("seed", "crawler", "user")
 OWNER_TYPES = ("member", "startup")
 CANDIDATE_TYPES = ("member", "startup", "job")  # students are matched to jobs
-INTRO_STATUSES = ("pending", "accepted", "declined", "expired", "completed")
+# pending: waiting for the mutual (or, for a direct request, the target);
+# forwarded: the mutual passed it on and it waits for the target.
+INTRO_STATUSES = (
+    "pending", "forwarded", "accepted", "declined", "expired", "completed", "withdrawn"
+)  # fmt: skip
 CIRCUIT_STATUSES = ("proposed", "active", "declined", "expired", "completed")
 CONSENT_STATES = ("pending", "accepted", "declined")
 CLAIM_STATUSES = ("pending", "verified", "expired", "superseded")
@@ -403,6 +407,7 @@ class IntroRequest(Base):
         CheckConstraint(_in("status", INTRO_STATUSES), name="status"),
         CheckConstraint("outcome_rating BETWEEN 1 AND 5", name="outcome_rating"),
         Index("ix_intro_requests_to_member_status", "to_member", "status"),
+        Index("ix_intro_requests_created_at", "created_at"),  # weekly capacity windows
     )
 
     id: Mapped[uuid.UUID] = _uuid_pk()
@@ -420,6 +425,7 @@ class IntroRequest(Base):
     is_bridge: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     outcome_rating: Mapped[int | None] = mapped_column(SmallInteger)
     created_at: Mapped[datetime] = _created_at()
+    forwarded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     responded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 

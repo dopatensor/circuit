@@ -545,3 +545,72 @@ class RecomputeOut(BaseModel):
     members: int
     results: int
     embedded: int
+
+
+# --- warm intros (F5) ---------------------------------------------------------------------
+
+IntroStatus = Literal[
+    "pending", "forwarded", "accepted", "declined", "expired", "completed", "withdrawn"
+]
+IntroAction = Literal["forward", "accept", "decline", "withdraw", "rate"]
+
+
+class Capacity(BaseModel):
+    """Intro requests a member takes on per week (received plus passed on)."""
+
+    slots: int
+    used: int
+    next_free_at: datetime | None  # when a slot frees up, if they are full
+
+
+class IntroPath(BaseModel):
+    """How a request to this person would travel."""
+
+    target: MemberSummary
+    # mutual: through someone who knows you both; direct: you already know each other;
+    # none: no connection within two hops, so the request goes to them directly.
+    kind: Literal["mutual", "direct", "none"]
+    via: MemberSummary | None
+    strengths: list[float]  # tie strengths along the path (0-1), you first
+    sentence: str  # one line for the UI
+    alternatives: list[MemberSummary]  # other mutuals, best first
+    can_request: bool
+    blocked_reason: str | None  # why not, politely
+    open_request_id: uuid.UUID | None  # your request to them that is still open
+
+
+class IntroRequestIn(BaseModel):
+    to_member_id: uuid.UUID
+    reason: str = Field(min_length=10, max_length=500)
+    # Optional: pick one of the alternatives from the path. By default the best mutual.
+    via_member_id: uuid.UUID | None = None
+
+
+class IntroOut(BaseModel):
+    id: uuid.UUID
+    status: IntroStatus
+    sender: MemberSummary
+    target: MemberSummary
+    via: MemberSummary | None
+    reason: str
+    is_bridge: bool
+    outcome_rating: int | None
+    created_at: datetime
+    forwarded_at: datetime | None
+    responded_at: datetime | None
+    completed_at: datetime | None
+    my_role: Literal["sender", "mutual", "target"]
+    actions: list[IntroAction]  # what you can do with it now
+
+
+class IntroInbox(BaseModel):
+    sent: list[IntroOut]
+    to_forward: list[IntroOut]  # you are the mutual and haven't decided yet
+    received: list[IntroOut]  # requests that reached you
+    capacity: Capacity
+    sent_this_week: int
+    sent_limit: int
+
+
+class IntroRatingIn(BaseModel):
+    rating: int = Field(ge=1, le=5)

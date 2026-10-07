@@ -136,23 +136,17 @@ async def story3_student(ctx: Ctx) -> str:
 
 
 async def story4_warm_intro(ctx: Ctx) -> str:
-    rohan, lakshmi, vikram = member_id("rohan"), member_id("lakshmi"), member_id("vikram")
-    direct = await ctx.session.scalar(
-        text("SELECT count(*) FROM connections WHERE (member_a, member_b) IN ((:a, :b), (:b, :a))"),
-        {"a": rohan, "b": vikram},
+    lakshmi, vikram = member_id("lakshmi"), member_id("vikram")
+    # Read-only: the path endpoint says how a request would travel without sending one.
+    path = await ctx.get("rohan", f"/api/intros/path/{vikram}")
+    expect(path["kind"] != "direct", "Rohan and Vikram are directly connected (no intro needed)")
+    expect(
+        path["kind"] == "mutual" and path["via"]["id"] == str(lakshmi),
+        f"the intro path doesn't go through Lakshmi (kind={path['kind']})",
     )
-    expect(direct == 0, "Rohan and Vikram are directly connected (no intro needed)")
-    weakest = await ctx.session.scalar(
-        text(
-            """
-            SELECT LEAST(c1.strength, c2.strength) FROM connections c1, connections c2
-            WHERE (c1.member_a, c1.member_b) IN ((:r, :l), (:l, :r))
-              AND (c2.member_a, c2.member_b) IN ((:l, :v), (:v, :l))
-            """
-        ),
-        {"r": rohan, "l": lakshmi, "v": vikram},
-    )
-    expect(weakest is not None and weakest >= 0.8, "no strong Rohan → Lakshmi → Vikram path")
+    weakest = min(path["strengths"])
+    expect(weakest >= 0.8, f"Rohan → Lakshmi → Vikram ties are weak ({path['strengths']})")
+    expect(path["can_request"], f"Rohan can't ask for the intro: {path['blocked_reason']}")
     lakshmi_profile = await ctx.get("rohan", f"/api/members/{lakshmi}")
     expect(lakshmi_profile["verification_level"] == 3, "Lakshmi isn't verified level 3")
     matches = (await ctx.get("rohan", "/api/matches", limit=5))["items"]
@@ -164,7 +158,8 @@ async def story4_warm_intro(ctx: Ctx) -> str:
     expect(not terra["claimed"], "TerraGrid is already claimed (run reset-demo)")
     expect(stats["interested_students"] >= 10, "TerraGrid has too little student interest")
     return (
-        f"Rohan → Lakshmi → Vikram (weakest tie {weakest}); TerraGrid unclaimed with "
+        f"Rohan → Lakshmi → Vikram via the intro API (weakest tie {weakest}, Rohan can ask); "
+        f"TerraGrid unclaimed with "
         f"{stats['interested_students']} interested students"
     )
 
