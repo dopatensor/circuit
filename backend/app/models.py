@@ -44,6 +44,7 @@ OWNER_TYPES = ("member", "startup")
 INTRO_STATUSES = ("pending", "accepted", "declined", "expired", "completed")
 CIRCUIT_STATUSES = ("proposed", "active", "declined", "expired", "completed")
 CONSENT_STATES = ("pending", "accepted", "declined")
+CLAIM_STATUSES = ("pending", "verified", "expired", "superseded")
 
 
 def _in(column: str, values: tuple[str, ...]) -> str:
@@ -174,6 +175,35 @@ class StartupMember(Base):
         ForeignKey("members.id", ondelete="CASCADE"), primary_key=True, index=True
     )
     title: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+
+
+class StartupClaim(Base):
+    """A founder's attempt to claim a startup by proving they have an email on its domain.
+
+    We never store the email address or the code itself: only the email's domain (to
+    show which domain was verified) and a hash of the code.
+    """
+
+    __tablename__ = "startup_claims"
+    __table_args__ = (
+        CheckConstraint(_in("status", CLAIM_STATUSES), name="status"),
+        Index("ix_startup_claims_startup_member", "startup_id", "member_id"),
+    )
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    startup_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("startups.id", ondelete="CASCADE"), nullable=False
+    )
+    member_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("members.id", ondelete="CASCADE"), nullable=False
+    )
+    email_domain: Mapped[str] = mapped_column(String(253), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    attempts: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = _created_at()
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 # --- Needs, offers, traits, skills ----------------------------------------------------

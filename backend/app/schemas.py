@@ -328,3 +328,76 @@ class OnboardingConfirmIn(BaseModel):
     trait_ids: Annotated[list[TraitId], AfterValidator(_dedupe)] = Field(
         default_factory=list, max_length=10
     )
+
+
+# --- map (F2) -----------------------------------------------------------------------------
+
+
+class RoleFitOut(BaseModel):
+    title: str
+    score: int  # 0..100
+    matched: list[str]
+    missing: list[str]
+
+
+class SkillMatchOut(BaseModel):
+    """'Match to my skills' for students. Based on skills only, never on college."""
+
+    score: int  # 0..100
+    best_role: RoleFitOut | None
+    matched: list[str]
+    missing: list[str]
+
+
+class MapStartup(BaseModel):
+    id: uuid.UUID
+    name: str
+    sector: str
+    stage: str | None
+    hiring: bool
+    location: LatLng
+    distance_km: float | None
+    open_roles: list[OpenRoleIO]
+    claimed: bool
+    interest_count: int
+    interested: bool  # has the current user pressed "I'm interested"?
+    match: SkillMatchOut | None  # only for students
+
+
+class MapResult(BaseModel):
+    center: LatLng | None
+    radius_km: float | None
+    total: int
+    items: list[MapStartup]
+
+
+# --- views, interest, claim (F2/F3) -------------------------------------------------------
+
+
+class StartupStats(BaseModel):
+    view_count: int
+    student_viewers_30d: int
+    interested_students: int
+    interested_total: int
+
+
+class InterestOut(BaseModel):
+    interested: bool
+    interest_count: int
+
+
+class ClaimStartIn(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+
+
+class ClaimStartOut(BaseModel):
+    claim_id: uuid.UUID
+    sent_to_domain: str
+    expires_at: datetime
+    # Only in development or a public demo: the code we would have emailed.
+    dev_code: str | None = None
+
+
+class ClaimVerifyIn(BaseModel):
+    claim_id: uuid.UUID
+    code: str = Field(pattern=r"^\d{6}$")

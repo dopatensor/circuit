@@ -4,9 +4,9 @@ A startup ecosystem platform that matches people on what they **need** and what 
 can **offer**, across sectors, with exchange circuits and a map of who is hiring nearby.
 See [CLAUDE.md](CLAUDE.md) for the full MVP spec and build phases.
 
-**Status:** Phase 2 (auth + profiles) — login via a JWT provider or demo personas,
-member/startup profiles, needs and offers, smart onboarding (F1) and verification
-levels (F7). Browse the API at http://localhost:8000/docs.
+**Status:** Phase 3 (map + claim) — map endpoints with a student skill-match score,
+view and interest tracking, and claiming a startup via an email on its domain, on top
+of auth, profiles and smart onboarding. Browse the API at http://localhost:8000/docs.
 
 ## Layout
 
@@ -107,6 +107,24 @@ from our fixed lists, and is filtered again on our side. Without `ANTHROPIC_API_
 (or if the call fails) the response is `"source": "manual"` and the UI shows manual
 pickers. `POST /api/onboarding/confirm` saves the chosen chips. The pasted text is
 never logged or stored by the suggest step.
+
+## Startup map and claiming (F2, F3)
+
+- `GET /api/map/startups/nearby?radius_km=10&hiring=true&capability=...&sort=match`:
+  startups within the radius (a hard filter) of your profile location (or `lat`/`lng`,
+  or the city centre). `GET /api/map/startups/bbox?min_lat=...` returns what's inside
+  the visible map. Each pin has hiring status, sector, open roles, interest count and,
+  for students, a **skill match score** (0–100) computed from skills and levels only,
+  never from college (`app/skill_match.py`).
+- Opening a startup page counts a view (once per person per day; the team doesn't
+  count). `POST /api/startups/{id}/interest` is the "I'm interested" button.
+  `GET /api/startups/{id}/stats` shows views and interested students to everyone.
+- **Claiming**: a founder sends an email on the startup's domain to
+  `POST /api/startups/{id}/claim`, then the 6-digit code to `.../claim/verify`. Email
+  is simulated: outside production (or with `DEMO_PUBLIC=true`) the code is returned
+  as `dev_code`. Only the email's domain and a hash of the code are stored. After
+  claiming, the founder can edit the page and see who is interested
+  (`GET /api/startups/{id}/interested`).
 
 ## Logs
 
