@@ -3,6 +3,10 @@ import { defineConfig } from "@playwright/test";
 // End-to-end tests drive the real app (built, with its service worker) against a real
 // API on a freshly reset demo database (TEST_DATABASE_URL, fake embeddings for speed).
 // Every test runs at phone width (375px) and laptop width (1280px).
+// Let tests block the service worker's own network requests too (Chromium), so the
+// offline tests really are offline. Without it, those requests sometimes slip through.
+process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= "1";
+
 const API_PORT = 8011;
 const WEB_PORT = 4183;
 const testDb =

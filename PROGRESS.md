@@ -313,6 +313,9 @@ are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per st
   pagination.
 - **Lighthouse only audits `/welcome`** (signed out). Signed-in screens need a login step
   in the script; add it when the real screens exist (Phase 9+).
+- **Offline e2e tests need `PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1`**, which
+  `playwright.config.ts` sets. Without it, Playwright's offline switch and routes
+  sometimes miss the service worker's own requests, and the cache test flakes.
 - **The update bar can't easily be tested automatically** (it needs two deployed
   versions). Check it by hand: build, preview, change a file, rebuild, reload.
 - **On a Mac, run `npx playwright install chromium` once** (the cloud container has

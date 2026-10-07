@@ -82,12 +82,16 @@ test("jobs, matches and applications stay readable offline; tokens and other peo
   });
   expect(allCached.some((u) => u.includes("/api/auth"))).toBe(false);
 
+  // Offline: the API can't be reached, also not by the service worker. (setOffline
+  // alone doesn't always cover the worker's own requests, so block them too.)
+  await context.route("**/api/**", (route) => route.abort("internetdisconnected"));
   await context.setOffline(true);
   const offline = await fetchJobs();
   expect(offline.ok).toBe(true);
   expect(offline.body).toBe(online.body); // the last-loaded copy
   expect(offline.date).toBe(online.date); // so the app can say "Last updated <time>"
   await context.setOffline(false);
+  await context.unroute("**/api/**");
 
   // Switching person clears the previous person's cached data. (Meera's own matches
   // may be cached again straight away; Ravi's jobs must be gone.)
