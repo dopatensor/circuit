@@ -6,13 +6,14 @@ import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import health
+from app.api import admin, auth, catalog, health, members, needs, onboarding, startups
 from app.config import Settings, get_settings
 from app.db import get_engine
 from app.logging import RequestLoggingMiddleware, configure_logging
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
+    explicit_settings = settings is not None
     settings = settings or get_settings()
     configure_logging(settings.log_level)
 
@@ -33,7 +34,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     # Added last so it is the outermost layer and also times CORS handling.
     app.add_middleware(RequestLoggingMiddleware)
-    app.include_router(health.router)
+    for module in (health, auth, catalog, members, needs, startups, onboarding, admin):
+        app.include_router(module.router)
+    if explicit_settings:
+        # Tests (and scripts) can run the app with their own settings.
+        app.dependency_overrides[get_settings] = lambda: settings
     return app
 
 

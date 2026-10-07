@@ -4,8 +4,9 @@ A startup ecosystem platform that matches people on what they **need** and what 
 can **offer**, across sectors, with exchange circuits and a map of who is hiring nearby.
 See [CLAUDE.md](CLAUDE.md) for the full MVP spec and build phases.
 
-**Status:** Phase 1 (data model + seed) — all tables and indexes are migrated, and a
-deterministic seed with the five demo stories loads with one command.
+**Status:** Phase 2 (auth + profiles) — login via a JWT provider or demo personas,
+member/startup profiles, needs and offers, smart onboarding (F1) and verification
+levels (F7). Browse the API at http://localhost:8000/docs.
 
 ## Layout
 
@@ -79,12 +80,43 @@ cd ../frontend
 npm run build               # type-checks and builds
 ```
 
+## Auth
+
+- **Real logins**: set `JWKS_URL` (and `JWT_ISSUER` / `JWT_AUDIENCE` if your provider
+  sets them) to your Clerk or Supabase project. The API accepts RS256/ES256 tokens
+  signed by that provider. The token's `sub` identifies the person; a new user calls
+  `POST /api/members/me` once to create their profile.
+- **Demo logins** (`DEMO_AUTH=true`): `GET /api/auth/demo/personas` lists the seeded
+  personas, `POST /api/auth/demo/login {"persona": "ravi"}` returns a token. The app
+  refuses to start with demo auth in production unless `DEMO_PUBLIC=true` and a random
+  `DEMO_JWT_SECRET` (32+ chars) are set.
+- **Verification levels** (F7) are stored on the member and checked on every request,
+  so a change applies immediately: 1 = email verified (browse), 2 = work email or
+  LinkedIn link (matches), 3 = role verified by an admin (intros). Adding a LinkedIn URL
+  to your profile raises level 1 to 2. Partner admins (level 3) set levels with
+  `PUT /api/admin/members/{id}/verification`.
+- Try it in the browser: open http://localhost:8000/docs, call the demo login, copy the
+  `access_token`, click **Authorize** and paste it.
+
+## Smart onboarding (F1)
+
+`POST /api/onboarding/suggest {"text": "...pasted bio..."}` asks Claude
+(`ANTHROPIC_MODEL`, default `claude-haiku-4-5-20251001`) to suggest needs, offers,
+skills and traits. The answer is forced into a JSON schema whose ids can only come
+from our fixed lists, and is filtered again on our side. Without `ANTHROPIC_API_KEY`
+(or if the call fails) the response is `"source": "manual"` and the UI shows manual
+pickers. `POST /api/onboarding/confirm` saves the chosen chips. The pasted text is
+never logged or stored by the suggest step.
+
 ## Logs
 
 The API writes one JSON line per request with `request_id`, `method`, `path`,
 `status`, `duration_ms` and `user_id`. Query strings, headers and bodies are never
 logged, so personal data and tokens stay out of logs. Every response carries an
 `X-Request-ID` header matching its log line.
+
+Product actions are also written to the append-only `events` table (ids, counts and
+categories only; never names, emails, phone numbers, free text or tokens).
 
 ## Demo data
 

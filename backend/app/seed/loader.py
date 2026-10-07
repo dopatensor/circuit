@@ -130,6 +130,7 @@ async def load_dataset(session: AsyncSession, data: Dataset) -> None:
         [
             {
                 "id": member_ids[m.key],
+                "auth_subject": f"demo:{m.key}",  # only usable when DEMO_AUTH is on
                 "role": m.role,
                 "display_name": m.display_name,
                 "bio": m.bio,
@@ -146,6 +147,7 @@ async def load_dataset(session: AsyncSession, data: Dataset) -> None:
         ["id"],
         {
             "cols": [
+                "auth_subject",
                 "role",
                 "display_name",
                 "bio",

@@ -32,6 +32,20 @@ PERSONAS: dict[str, str] = {
     "partner_admin": "nandini",
 }
 
+# Everyone the demo switcher offers, in display order, with the story they belong to.
+DEMO_PERSONAS: list[tuple[str, str]] = [
+    ("ravi", "Student from a lower-tier college, matched to LedgerLoop on skills"),
+    ("meera", "Biotech founder; bridge match with a deep-tech marketer"),
+    ("lakshmi", "Respected mentor; the warm-intro path to Vikram"),
+    ("vikram", "Climate investor"),
+    ("nandini", "Partner admin; sees the ecosystem dashboard"),
+    ("rohan", "Climate founder; claims TerraGrid and asks for an intro"),
+    ("asha", "Exchange circuit: needs marketing, offers hiring"),
+    ("priya", "Exchange circuit: needs fundraising, offers marketing"),
+    ("arjun", "Exchange circuit: needs hiring, offers fundraising"),
+    ("kavya", "Deep-tech marketer; the other side of the bridge match"),
+]
+
 # Keys of all hand-written members; the generator never uses these.
 STORY_MEMBER_KEYS = {
     "meera", "kavya", "asha", "priya", "arjun", "ravi", "rohan", "lakshmi", "vikram",

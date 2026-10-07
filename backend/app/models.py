@@ -116,6 +116,8 @@ class Member(Base):
     )
 
     id: Mapped[uuid.UUID] = _uuid_pk()
+    # The login identity: the JWT "sub" claim from the auth provider (or "demo:<key>").
+    auth_subject: Mapped[str | None] = mapped_column(String(255), unique=True)
     role: Mapped[str] = mapped_column(String(20), nullable=False)
     display_name: Mapped[str] = mapped_column(String(120), nullable=False)
     bio: Mapped[str] = mapped_column(Text, nullable=False, default="")
@@ -124,6 +126,7 @@ class Member(Base):
     location: Mapped[str | None] = _point()
     city: Mapped[str | None] = mapped_column(String(120))
     college: Mapped[str | None] = mapped_column(String(200))  # students only
+    linkedin_url: Mapped[str | None] = mapped_column(String(300))
     verification_level: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
     open_intro_slots: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=3)
     circuits_opt_in: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
