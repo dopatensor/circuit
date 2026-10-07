@@ -1,0 +1,7188 @@
+{
+  "components": {
+    "schemas": {
+      "AcceptanceGroup": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "integer"
+          },
+          "decided": {
+            "title": "Decided",
+            "type": "integer"
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate"
+          }
+        },
+        "required": [
+          "decided",
+          "accepted",
+          "rate"
+        ],
+        "title": "AcceptanceGroup",
+        "type": "object"
+      },
+      "ApplicantMember": {
+        "description": "What a founder sees about an applicant: skills, not college.",
+        "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "city",
+          "verification_level"
+        ],
+        "title": "ApplicantMember",
+        "type": "object"
+      },
+      "ApplicantOut": {
+        "properties": {
+          "application_id": {
+            "format": "uuid",
+            "title": "Application Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "job_id": {
+            "format": "uuid",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "job_title": {
+            "title": "Job Title",
+            "type": "string"
+          },
+          "match": {
+            "$ref": "#/components/schemas/SkillMatchOut"
+          },
+          "member": {
+            "$ref": "#/components/schemas/ApplicantMember"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillIn"
+            },
+            "title": "Skills",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "submitted",
+              "shortlisted",
+              "rejected",
+              "hired",
+              "withdrawn"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "application_id",
+          "job_id",
+          "job_title",
+          "member",
+          "skills",
+          "match",
+          "note",
+          "status",
+          "created_at"
+        ],
+        "title": "ApplicantOut",
+        "type": "object"
+      },
+      "ApplicationJob": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "paid": {
+            "title": "Paid",
+            "type": "boolean"
+          },
+          "startup_claimed": {
+            "title": "Startup Claimed",
+            "type": "boolean"
+          },
+          "startup_id": {
+            "format": "uuid",
+            "title": "Startup Id",
+            "type": "string"
+          },
+          "startup_name": {
+            "title": "Startup Name",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "internship",
+              "full_time",
+              "part_time",
+              "contract"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "type",
+          "paid",
+          "startup_id",
+          "startup_name",
+          "startup_claimed"
+        ],
+        "title": "ApplicationJob",
+        "type": "object"
+      },
+      "ApplicationOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "job": {
+            "$ref": "#/components/schemas/ApplicationJob"
+          },
+          "match_score_at_apply": {
+            "title": "Match Score At Apply",
+            "type": "integer"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "submitted",
+              "shortlisted",
+              "rejected",
+              "hired",
+              "withdrawn"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "status_changed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Changed At"
+          }
+        },
+        "required": [
+          "id",
+          "job",
+          "status",
+          "note",
+          "match_score_at_apply",
+          "created_at",
+          "status_changed_at"
+        ],
+        "title": "ApplicationOut",
+        "type": "object"
+      },
+      "ApplicationStatusIn": {
+        "properties": {
+          "status": {
+            "enum": [
+              "submitted",
+              "shortlisted",
+              "rejected",
+              "hired"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ApplicationStatusIn",
+        "type": "object"
+      },
+      "ApplyIn": {
+        "properties": {
+          "note": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "title": "ApplyIn",
+        "type": "object"
+      },
+      "AreaCell": {
+        "properties": {
+          "gap": {
+            "title": "Gap",
+            "type": "integer"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "title": "Lng",
+            "type": "number"
+          },
+          "needs": {
+            "title": "Needs",
+            "type": "integer"
+          },
+          "offers": {
+            "title": "Offers",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lat",
+          "lng",
+          "needs",
+          "offers",
+          "gap"
+        ],
+        "title": "AreaCell",
+        "type": "object"
+      },
+      "AreaGaps": {
+        "description": "Grid cells for a map heat layer (weight by gap, or by needs).",
+        "properties": {
+          "capability_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capability Id"
+          },
+          "cell_km": {
+            "title": "Cell Km",
+            "type": "number"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/AreaCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "max_gap": {
+            "title": "Max Gap",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "capability_id",
+          "cell_km",
+          "max_gap",
+          "cells"
+        ],
+        "title": "AreaGaps",
+        "type": "object"
+      },
+      "AuthMe": {
+        "properties": {
+          "has_profile": {
+            "title": "Has Profile",
+            "type": "boolean"
+          },
+          "is_demo": {
+            "title": "Is Demo",
+            "type": "boolean"
+          },
+          "member": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemberSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject",
+          "is_demo",
+          "has_profile",
+          "member"
+        ],
+        "title": "AuthMe",
+        "type": "object"
+      },
+      "CapabilityGap": {
+        "properties": {
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "gap": {
+            "title": "Gap",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "needs": {
+            "title": "Needs",
+            "type": "integer"
+          },
+          "offers": {
+            "title": "Offers",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "capability_id",
+          "name",
+          "category",
+          "needs",
+          "offers",
+          "gap"
+        ],
+        "title": "CapabilityGap",
+        "type": "object"
+      },
+      "CapabilityOut": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "description"
+        ],
+        "title": "CapabilityOut",
+        "type": "object"
+      },
+      "CapabilityRef": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "CapabilityRef",
+        "type": "object"
+      },
+      "Capacity": {
+        "description": "Intro requests a member takes on per week (received plus passed on).",
+        "properties": {
+          "next_free_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Free At"
+          },
+          "slots": {
+            "title": "Slots",
+            "type": "integer"
+          },
+          "used": {
+            "title": "Used",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slots",
+          "used",
+          "next_free_at"
+        ],
+        "title": "Capacity",
+        "type": "object"
+      },
+      "CircuitCard": {
+        "description": "A loop card: \"You help X with A, X helps Y with B, Y helps you with C\".",
+        "properties": {
+          "actions": {
+            "items": {
+              "enum": [
+                "accept",
+                "decline",
+                "rate"
+              ],
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "legs": {
+            "items": {
+              "$ref": "#/components/schemas/CircuitLegOut"
+            },
+            "title": "Legs",
+            "type": "array"
+          },
+          "my_consent": {
+            "enum": [
+              "pending",
+              "accepted",
+              "declined"
+            ],
+            "title": "My Consent",
+            "type": "string"
+          },
+          "round_key": {
+            "title": "Round Key",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sentence": {
+            "title": "Sentence",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "proposed",
+              "active",
+              "declined",
+              "expired",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "round_key",
+          "status",
+          "score",
+          "created_at",
+          "expires_at",
+          "sentence",
+          "legs",
+          "my_consent",
+          "actions"
+        ],
+        "title": "CircuitCard",
+        "type": "object"
+      },
+      "CircuitLegOut": {
+        "properties": {
+          "capability": {
+            "$ref": "#/components/schemas/CapabilityRef"
+          },
+          "consent": {
+            "enum": [
+              "pending",
+              "accepted",
+              "declined"
+            ],
+            "title": "Consent",
+            "type": "string"
+          },
+          "fulfilled": {
+            "title": "Fulfilled",
+            "type": "boolean"
+          },
+          "giver": {
+            "$ref": "#/components/schemas/MemberSummary"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "receiver": {
+            "$ref": "#/components/schemas/MemberSummary"
+          }
+        },
+        "required": [
+          "position",
+          "giver",
+          "receiver",
+          "capability",
+          "consent",
+          "fulfilled",
+          "rating"
+        ],
+        "title": "CircuitLegOut",
+        "type": "object"
+      },
+      "CircuitRatingIn": {
+        "properties": {
+          "rating": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rating",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rating"
+        ],
+        "title": "CircuitRatingIn",
+        "type": "object"
+      },
+      "ClaimStartIn": {
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "ClaimStartIn",
+        "type": "object"
+      },
+      "ClaimStartOut": {
+        "properties": {
+          "claim_id": {
+            "format": "uuid",
+            "title": "Claim Id",
+            "type": "string"
+          },
+          "dev_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dev Code"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "sent_to_domain": {
+            "title": "Sent To Domain",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_id",
+          "sent_to_domain",
+          "expires_at"
+        ],
+        "title": "ClaimStartOut",
+        "type": "object"
+      },
+      "ClaimVerifyIn": {
+        "properties": {
+          "claim_id": {
+            "format": "uuid",
+            "title": "Claim Id",
+            "type": "string"
+          },
+          "code": {
+            "pattern": "^\\d{6}$",
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_id",
+          "code"
+        ],
+        "title": "ClaimVerifyIn",
+        "type": "object"
+      },
+      "DemoLoginIn": {
+        "properties": {
+          "persona": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Persona",
+            "type": "string"
+          }
+        },
+        "required": [
+          "persona"
+        ],
+        "title": "DemoLoginIn",
+        "type": "object"
+      },
+      "DepCheck": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok",
+          "detail"
+        ],
+        "title": "DepCheck",
+        "type": "object"
+      },
+      "DepsHealth": {
+        "properties": {
+          "checks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DepCheck"
+            },
+            "title": "Checks",
+            "type": "object"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "checks"
+        ],
+        "title": "DepsHealth",
+        "type": "object"
+      },
+      "GapList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CapabilityGap"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "GapList",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "InterestOut": {
+        "properties": {
+          "interest_count": {
+            "title": "Interest Count",
+            "type": "integer"
+          },
+          "interested": {
+            "title": "Interested",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "interested",
+          "interest_count"
+        ],
+        "title": "InterestOut",
+        "type": "object"
+      },
+      "IntroAcceptance": {
+        "description": "Do cross-sector (bridge) intros work as well as local ones?",
+        "properties": {
+          "bridge": {
+            "$ref": "#/components/schemas/AcceptanceGroup"
+          },
+          "local": {
+            "$ref": "#/components/schemas/AcceptanceGroup"
+          }
+        },
+        "required": [
+          "local",
+          "bridge"
+        ],
+        "title": "IntroAcceptance",
+        "type": "object"
+      },
+      "IntroInbox": {
+        "properties": {
+          "capacity": {
+            "$ref": "#/components/schemas/Capacity"
+          },
+          "received": {
+            "items": {
+              "$ref": "#/components/schemas/IntroOut"
+            },
+            "title": "Received",
+            "type": "array"
+          },
+          "sent": {
+            "items": {
+              "$ref": "#/components/schemas/IntroOut"
+            },
+            "title": "Sent",
+            "type": "array"
+          },
+          "sent_limit": {
+            "title": "Sent Limit",
+            "type": "integer"
+          },
+          "sent_this_week": {
+            "title": "Sent This Week",
+            "type": "integer"
+          },
+          "to_forward": {
+            "items": {
+              "$ref": "#/components/schemas/IntroOut"
+            },
+            "title": "To Forward",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sent",
+          "to_forward",
+          "received",
+          "capacity",
+          "sent_this_week",
+          "sent_limit"
+        ],
+        "title": "IntroInbox",
+        "type": "object"
+      },
+      "IntroOut": {
+        "properties": {
+          "actions": {
+            "items": {
+              "enum": [
+                "forward",
+                "accept",
+                "decline",
+                "withdraw",
+                "rate"
+              ],
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "forwarded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forwarded At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_bridge": {
+            "title": "Is Bridge",
+            "type": "boolean"
+          },
+          "my_role": {
+            "enum": [
+              "sender",
+              "mutual",
+              "target"
+            ],
+            "title": "My Role",
+            "type": "string"
+          },
+          "outcome_rating": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Rating"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "responded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responded At"
+          },
+          "sender": {
+            "$ref": "#/components/schemas/MemberSummary"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "forwarded",
+              "accepted",
+              "declined",
+              "expired",
+              "completed",
+              "withdrawn"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/MemberSummary"
+          },
+          "via": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemberSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "sender",
+          "target",
+          "via",
+          "reason",
+          "is_bridge",
+          "outcome_rating",
+          "created_at",
+          "forwarded_at",
+          "responded_at",
+          "completed_at",
+          "my_role",
+          "actions"
+        ],
+        "title": "IntroOut",
+        "type": "object"
+      },
+      "IntroPath": {
+        "description": "How a request to this person would travel.",
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/MemberSummary"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "blocked_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocked Reason"
+          },
+          "can_request": {
+            "title": "Can Request",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "mutual",
+              "direct",
+              "none"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "open_request_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Open Request Id"
+          },
+          "sentence": {
+            "title": "Sentence",
+            "type": "string"
+          },
+          "strengths": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Strengths",
+            "type": "array"
+          },
+          "target": {
+            "$ref": "#/components/schemas/MemberSummary"
+          },
+          "via": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MemberSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "target",
+          "kind",
+          "via",
+          "strengths",
+          "sentence",
+          "alternatives",
+          "can_request",
+          "blocked_reason",
+          "open_request_id"
+        ],
+        "title": "IntroPath",
+        "type": "object"
+      },
+      "IntroRatingIn": {
+        "properties": {
+          "rating": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rating",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rating"
+        ],
+        "title": "IntroRatingIn",
+        "type": "object"
+      },
+      "IntroRequestIn": {
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Reason",
+            "type": "string"
+          },
+          "to_member_id": {
+            "format": "uuid",
+            "title": "To Member Id",
+            "type": "string"
+          },
+          "via_member_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Via Member Id"
+          }
+        },
+        "required": [
+          "to_member_id",
+          "reason"
+        ],
+        "title": "IntroRequestIn",
+        "type": "object"
+      },
+      "JobBrief": {
+        "properties": {
+          "compensation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compensation"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "paid": {
+            "title": "Paid",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "internship",
+              "full_time",
+              "part_time",
+              "contract"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "type",
+          "paid",
+          "compensation"
+        ],
+        "title": "JobBrief",
+        "type": "object"
+      },
+      "JobCapabilityIO": {
+        "properties": {
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "min_level": {
+            "default": 2,
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Min Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "capability_id"
+        ],
+        "title": "JobCapabilityIO",
+        "type": "object"
+      },
+      "JobIn": {
+        "properties": {
+          "capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/JobCapabilityIO"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "compensation": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compensation"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Description",
+            "type": "string"
+          },
+          "paid": {
+            "default": true,
+            "title": "Paid",
+            "type": "boolean"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "default": "full_time",
+            "enum": [
+              "internship",
+              "full_time",
+              "part_time",
+              "contract"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "capabilities"
+        ],
+        "title": "JobIn",
+        "type": "object"
+      },
+      "JobOut": {
+        "properties": {
+          "capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/JobCapabilityIO"
+            },
+            "title": "Capabilities",
+            "type": "array"
+          },
+          "compensation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compensation"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "distance_km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance Km"
+          },
+          "has_applied": {
+            "title": "Has Applied",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillMatchOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paid": {
+            "title": "Paid",
+            "type": "boolean"
+          },
+          "startup": {
+            "$ref": "#/components/schemas/JobStartup"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "internship",
+              "full_time",
+              "part_time",
+              "contract"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "type",
+          "paid",
+          "compensation",
+          "status",
+          "capabilities",
+          "startup",
+          "distance_km",
+          "match",
+          "has_applied",
+          "created_at"
+        ],
+        "title": "JobOut",
+        "type": "object"
+      },
+      "JobStartup": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "claimed": {
+            "title": "Claimed",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LatLng"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sector": {
+            "title": "Sector",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sector",
+          "claimed",
+          "location",
+          "address"
+        ],
+        "title": "JobStartup",
+        "type": "object"
+      },
+      "JobUpdate": {
+        "properties": {
+          "capabilities": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/JobCapabilityIO"
+                },
+                "maxItems": 10,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capabilities"
+          },
+          "compensation": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compensation"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "paid": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paid"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "open",
+                  "closed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "internship",
+                  "full_time",
+                  "part_time",
+                  "contract"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
+          }
+        },
+        "title": "JobUpdate",
+        "type": "object"
+      },
+      "LatLng": {
+        "properties": {
+          "lat": {
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Lng",
+            "type": "number"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ],
+        "title": "LatLng",
+        "type": "object"
+      },
+      "MapResult": {
+        "properties": {
+          "center": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LatLng"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MapStartup"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "radius_km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Radius Km"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "center",
+          "radius_km",
+          "total",
+          "items"
+        ],
+        "title": "MapResult",
+        "type": "object"
+      },
+      "MapStartup": {
+        "properties": {
+          "claimed": {
+            "title": "Claimed",
+            "type": "boolean"
+          },
+          "distance_km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance Km"
+          },
+          "hiring": {
+            "title": "Hiring",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "interest_count": {
+            "title": "Interest Count",
+            "type": "integer"
+          },
+          "interested": {
+            "title": "Interested",
+            "type": "boolean"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobBrief"
+            },
+            "title": "Jobs",
+            "type": "array"
+          },
+          "location": {
+            "$ref": "#/components/schemas/LatLng"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SkillMatchOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sector": {
+            "title": "Sector",
+            "type": "string"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sector",
+          "stage",
+          "hiring",
+          "location",
+          "distance_km",
+          "jobs",
+          "claimed",
+          "interest_count",
+          "interested",
+          "match"
+        ],
+        "title": "MapStartup",
+        "type": "object"
+      },
+      "MatchList": {
+        "properties": {
+          "computed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Computed At"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MatchOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items",
+          "computed_at"
+        ],
+        "title": "MatchList",
+        "type": "object"
+      },
+      "MatchOut": {
+        "properties": {
+          "candidate_id": {
+            "format": "uuid",
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "candidate_type": {
+            "enum": [
+              "member",
+              "startup",
+              "job"
+            ],
+            "title": "Candidate Type",
+            "type": "string"
+          },
+          "components": {
+            "additionalProperties": true,
+            "title": "Components",
+            "type": "object"
+          },
+          "computed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Computed At"
+          },
+          "is_bridge": {
+            "title": "Is Bridge",
+            "type": "boolean"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "subtitle": {
+            "title": "Subtitle",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate_type",
+          "candidate_id",
+          "title",
+          "subtitle",
+          "sector",
+          "score",
+          "reason",
+          "is_bridge",
+          "components",
+          "computed_at"
+        ],
+        "title": "MatchOut",
+        "type": "object"
+      },
+      "MemberCreate": {
+        "properties": {
+          "bio": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Bio",
+            "type": "string"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "college": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "College"
+          },
+          "display_name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LatLng"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "role": {
+            "enum": [
+              "student",
+              "founder",
+              "mentor",
+              "investor"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          }
+        },
+        "required": [
+          "role",
+          "display_name"
+        ],
+        "title": "MemberCreate",
+        "type": "object"
+      },
+      "MemberMe": {
+        "description": "Your own profile, with private fields.",
+        "properties": {
+          "bio": {
+            "title": "Bio",
+            "type": "string"
+          },
+          "circuits_opt_in": {
+            "title": "Circuits Opt In",
+            "type": "boolean"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "college": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "College"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_demo": {
+            "title": "Is Demo",
+            "type": "boolean"
+          },
+          "linkedin_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linkedin Url"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LatLng"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/NeedOut"
+            },
+            "title": "Needs",
+            "type": "array"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/OfferOut"
+            },
+            "title": "Offers",
+            "type": "array"
+          },
+          "open_intro_slots": {
+            "title": "Open Intro Slots",
+            "type": "integer"
+          },
+          "role": {
+            "enum": [
+              "student",
+              "founder",
+              "mentor",
+              "investor",
+              "partner_admin"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillIn"
+            },
+            "title": "Skills",
+            "type": "array"
+          },
+          "startups": {
+            "items": {
+              "$ref": "#/components/schemas/StartupLink"
+            },
+            "title": "Startups",
+            "type": "array"
+          },
+          "trait_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Trait Ids",
+            "type": "array"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "display_name",
+          "bio",
+          "sector",
+          "city",
+          "college",
+          "verification_level",
+          "trait_ids",
+          "offers",
+          "needs",
+          "startups",
+          "location",
+          "linkedin_url",
+          "open_intro_slots",
+          "circuits_opt_in",
+          "skills",
+          "is_demo"
+        ],
+        "title": "MemberMe",
+        "type": "object"
+      },
+      "MemberPublic": {
+        "description": "What other members can see. No exact location: only the city.",
+        "properties": {
+          "bio": {
+            "title": "Bio",
+            "type": "string"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "college": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "College"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/NeedOut"
+            },
+            "title": "Needs",
+            "type": "array"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/OfferOut"
+            },
+            "title": "Offers",
+            "type": "array"
+          },
+          "role": {
+            "enum": [
+              "student",
+              "founder",
+              "mentor",
+              "investor",
+              "partner_admin"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "startups": {
+            "items": {
+              "$ref": "#/components/schemas/StartupLink"
+            },
+            "title": "Startups",
+            "type": "array"
+          },
+          "trait_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Trait Ids",
+            "type": "array"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "display_name",
+          "bio",
+          "sector",
+          "city",
+          "college",
+          "verification_level",
+          "trait_ids",
+          "offers",
+          "needs",
+          "startups"
+        ],
+        "title": "MemberPublic",
+        "type": "object"
+      },
+      "MemberSummary": {
+        "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "student",
+              "founder",
+              "mentor",
+              "investor",
+              "partner_admin"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "display_name",
+          "sector",
+          "city",
+          "verification_level"
+        ],
+        "title": "MemberSummary",
+        "type": "object"
+      },
+      "MemberUpdate": {
+        "properties": {
+          "bio": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "circuits_opt_in": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Circuits Opt In"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "college": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "College"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "linkedin_url": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "maxLength": 2083,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linkedin Url"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LatLng"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "open_intro_slots": {
+            "anyOf": [
+              {
+                "maximum": 20.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Open Intro Slots"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          }
+        },
+        "title": "MemberUpdate",
+        "type": "object"
+      },
+      "NeedIn": {
+        "properties": {
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "text": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "capability_id"
+        ],
+        "title": "NeedIn",
+        "type": "object"
+      },
+      "NeedOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "owner_id": {
+            "format": "uuid",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "owner_type": {
+            "enum": [
+              "member",
+              "startup"
+            ],
+            "title": "Owner Type",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "owner_type",
+          "owner_id",
+          "capability_id",
+          "text",
+          "active",
+          "created_at"
+        ],
+        "title": "NeedOut",
+        "type": "object"
+      },
+      "NeedUpdate": {
+        "properties": {
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "title": "NeedUpdate",
+        "type": "object"
+      },
+      "NetworkStats": {
+        "properties": {
+          "active_needs": {
+            "title": "Active Needs",
+            "type": "integer"
+          },
+          "active_offers": {
+            "title": "Active Offers",
+            "type": "integer"
+          },
+          "applications": {
+            "title": "Applications",
+            "type": "integer"
+          },
+          "circuits_by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Circuits By Status",
+            "type": "object"
+          },
+          "circuits_opted_in": {
+            "title": "Circuits Opted In",
+            "type": "integer"
+          },
+          "connections": {
+            "title": "Connections",
+            "type": "integer"
+          },
+          "intros": {
+            "title": "Intros",
+            "type": "integer"
+          },
+          "intros_accepted": {
+            "title": "Intros Accepted",
+            "type": "integer"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "members_by_role": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Members By Role",
+            "type": "object"
+          },
+          "open_jobs": {
+            "title": "Open Jobs",
+            "type": "integer"
+          },
+          "startups": {
+            "title": "Startups",
+            "type": "integer"
+          },
+          "startups_claimed": {
+            "title": "Startups Claimed",
+            "type": "integer"
+          },
+          "startups_hiring": {
+            "title": "Startups Hiring",
+            "type": "integer"
+          },
+          "students_interested": {
+            "title": "Students Interested",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "members",
+          "members_by_role",
+          "startups",
+          "startups_claimed",
+          "startups_hiring",
+          "open_jobs",
+          "applications",
+          "active_needs",
+          "active_offers",
+          "connections",
+          "intros",
+          "intros_accepted",
+          "students_interested",
+          "circuits_opted_in",
+          "circuits_by_status"
+        ],
+        "title": "NetworkStats",
+        "type": "object"
+      },
+      "OfferIn": {
+        "properties": {
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "text": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "capability_id"
+        ],
+        "title": "OfferIn",
+        "type": "object"
+      },
+      "OfferOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "member_id": {
+            "format": "uuid",
+            "title": "Member Id",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "member_id",
+          "capability_id",
+          "text",
+          "active",
+          "created_at"
+        ],
+        "title": "OfferOut",
+        "type": "object"
+      },
+      "OnboardingConfirmIn": {
+        "description": "The person's final choices after editing the chips. Replaces what they had.",
+        "properties": {
+          "bio": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/NeedIn"
+            },
+            "maxItems": 10,
+            "title": "Needs",
+            "type": "array"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/OfferIn"
+            },
+            "maxItems": 10,
+            "title": "Offers",
+            "type": "array"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillIn"
+            },
+            "maxItems": 15,
+            "title": "Skills",
+            "type": "array"
+          },
+          "trait_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Trait Ids",
+            "type": "array"
+          }
+        },
+        "title": "OnboardingConfirmIn",
+        "type": "object"
+      },
+      "OnboardingSuggestIn": {
+        "properties": {
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "student",
+                  "founder",
+                  "mentor",
+                  "investor"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "maxLength": 4000,
+            "minLength": 10,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "OnboardingSuggestIn",
+        "type": "object"
+      },
+      "OnboardingSuggestOut": {
+        "properties": {
+          "fallback_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Reason"
+          },
+          "source": {
+            "enum": [
+              "llm",
+              "manual"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "suggestions": {
+            "$ref": "#/components/schemas/Suggestions"
+          }
+        },
+        "required": [
+          "source",
+          "suggestions"
+        ],
+        "title": "OnboardingSuggestOut",
+        "type": "object"
+      },
+      "Page_JobOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/JobOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[JobOut]",
+        "type": "object"
+      },
+      "Page_MemberSummary_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MemberSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[MemberSummary]",
+        "type": "object"
+      },
+      "Page_StartupOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StartupOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "Page[StartupOut]",
+        "type": "object"
+      },
+      "Persona": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "member_id": {
+            "format": "uuid",
+            "title": "Member Id",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "student",
+              "founder",
+              "mentor",
+              "investor",
+              "partner_admin"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "story": {
+            "title": "Story",
+            "type": "string"
+          },
+          "story_number": {
+            "title": "Story Number",
+            "type": "integer"
+          },
+          "story_title": {
+            "title": "Story Title",
+            "type": "string"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "member_id",
+          "role",
+          "display_name",
+          "verification_level",
+          "story",
+          "story_number",
+          "story_title"
+        ],
+        "title": "Persona",
+        "type": "object"
+      },
+      "RecomputeOut": {
+        "properties": {
+          "embedded": {
+            "title": "Embedded",
+            "type": "integer"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "results": {
+            "title": "Results",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "members",
+          "results",
+          "embedded"
+        ],
+        "title": "RecomputeOut",
+        "type": "object"
+      },
+      "RoleFitOut": {
+        "properties": {
+          "matched": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Matched",
+            "type": "array"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "score",
+          "matched",
+          "missing"
+        ],
+        "title": "RoleFitOut",
+        "type": "object"
+      },
+      "RoundCircuit": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/MemberSummary"
+            },
+            "title": "Members",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "sentence": {
+            "title": "Sentence",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "score",
+          "members",
+          "sentence"
+        ],
+        "title": "RoundCircuit",
+        "type": "object"
+      },
+      "RoundOut": {
+        "properties": {
+          "circuits": {
+            "items": {
+              "$ref": "#/components/schemas/RoundCircuit"
+            },
+            "title": "Circuits",
+            "type": "array"
+          },
+          "cycles_found": {
+            "title": "Cycles Found",
+            "type": "integer"
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "edges": {
+            "title": "Edges",
+            "type": "integer"
+          },
+          "pool": {
+            "title": "Pool",
+            "type": "integer"
+          },
+          "round_key": {
+            "title": "Round Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "round_key",
+          "dry_run",
+          "pool",
+          "edges",
+          "cycles_found",
+          "circuits"
+        ],
+        "title": "RoundOut",
+        "type": "object"
+      },
+      "SkillIn": {
+        "properties": {
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "level": {
+            "default": 2,
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "capability_id"
+        ],
+        "title": "SkillIn",
+        "type": "object"
+      },
+      "SkillMatchOut": {
+        "description": "'Match to my skills' for students. Based on skills only, never on college.",
+        "properties": {
+          "best_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleFitOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "matched": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Matched",
+            "type": "array"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "score",
+          "best_role",
+          "matched",
+          "missing"
+        ],
+        "title": "SkillMatchOut",
+        "type": "object"
+      },
+      "SkillsIn": {
+        "properties": {
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillIn"
+            },
+            "maxItems": 15,
+            "title": "Skills",
+            "type": "array"
+          }
+        },
+        "required": [
+          "skills"
+        ],
+        "title": "SkillsIn",
+        "type": "object"
+      },
+      "StartupCreate": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Description",
+            "type": "string"
+          },
+          "hiring": {
+            "default": false,
+            "title": "Hiring",
+            "type": "boolean"
+          },
+          "location": {
+            "$ref": "#/components/schemas/LatLng"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "sector": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Sector",
+            "type": "string"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "tech_stack": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Tech Stack",
+            "type": "array"
+          },
+          "website_domain": {
+            "maxLength": 253,
+            "minLength": 3,
+            "pattern": "^[a-zA-Z0-9.-]+\\.[a-z]+$",
+            "title": "Website Domain",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "website_domain",
+          "sector",
+          "location"
+        ],
+        "title": "StartupCreate",
+        "type": "object"
+      },
+      "StartupLink": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "startup_id": {
+            "format": "uuid",
+            "title": "Startup Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "startup_id",
+          "name",
+          "title"
+        ],
+        "title": "StartupLink",
+        "type": "object"
+      },
+      "StartupOut": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "claimed": {
+            "title": "Claimed",
+            "type": "boolean"
+          },
+          "claimed_by_member_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed By Member Id"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "hiring": {
+            "title": "Hiring",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobBrief"
+            },
+            "title": "Jobs",
+            "type": "array"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LatLng"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/NeedOut"
+            },
+            "title": "Needs",
+            "type": "array"
+          },
+          "sector": {
+            "title": "Sector",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "seed",
+              "crawler",
+              "user"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "team": {
+            "items": {
+              "$ref": "#/components/schemas/MemberSummary"
+            },
+            "title": "Team",
+            "type": "array"
+          },
+          "tech_stack": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tech Stack",
+            "type": "array"
+          },
+          "trait_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Trait Ids",
+            "type": "array"
+          },
+          "view_count": {
+            "title": "View Count",
+            "type": "integer"
+          },
+          "website_domain": {
+            "title": "Website Domain",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "website_domain",
+          "description",
+          "sector",
+          "stage",
+          "address",
+          "location",
+          "hiring",
+          "jobs",
+          "tech_stack",
+          "claimed",
+          "claimed_by_member_id",
+          "source",
+          "view_count",
+          "trait_ids",
+          "needs",
+          "team"
+        ],
+        "title": "StartupOut",
+        "type": "object"
+      },
+      "StartupStats": {
+        "properties": {
+          "applications_waiting": {
+            "title": "Applications Waiting",
+            "type": "integer"
+          },
+          "interested_students": {
+            "title": "Interested Students",
+            "type": "integer"
+          },
+          "interested_total": {
+            "title": "Interested Total",
+            "type": "integer"
+          },
+          "student_viewers_30d": {
+            "title": "Student Viewers 30D",
+            "type": "integer"
+          },
+          "view_count": {
+            "title": "View Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "view_count",
+          "student_viewers_30d",
+          "interested_students",
+          "interested_total",
+          "applications_waiting"
+        ],
+        "title": "StartupStats",
+        "type": "object"
+      },
+      "StartupUpdate": {
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "hiring": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hiring"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LatLng"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "tech_stack": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 20,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tech Stack"
+          }
+        },
+        "title": "StartupUpdate",
+        "type": "object"
+      },
+      "SuggestedItem": {
+        "properties": {
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "capability_id",
+          "text"
+        ],
+        "title": "SuggestedItem",
+        "type": "object"
+      },
+      "Suggestions": {
+        "properties": {
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestedItem"
+            },
+            "title": "Needs",
+            "type": "array"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestedItem"
+            },
+            "title": "Offers",
+            "type": "array"
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skills",
+            "type": "array"
+          },
+          "traits": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Traits",
+            "type": "array"
+          }
+        },
+        "title": "Suggestions",
+        "type": "object"
+      },
+      "TokenOut": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "member": {
+            "$ref": "#/components/schemas/MemberSummary"
+          },
+          "token_type": {
+            "const": "bearer",
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in",
+          "member"
+        ],
+        "title": "TokenOut",
+        "type": "object"
+      },
+      "TraitOut": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description"
+        ],
+        "title": "TraitOut",
+        "type": "object"
+      },
+      "TraitsIn": {
+        "properties": {
+          "trait_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Trait Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "trait_ids"
+        ],
+        "title": "TraitsIn",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VerificationUpdate": {
+        "properties": {
+          "level": {
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "level"
+        ],
+        "title": "VerificationUpdate",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "Circuit API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/admin/circuits/run": {
+      "post": {
+        "description": "'Run round now' for demos: the same round the weekly job runs.",
+        "operationId": "run_round_now_api_admin_circuits_run_post",
+        "parameters": [
+          {
+            "description": "Find and choose loops but save nothing",
+            "in": "query",
+            "name": "dry_run",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Find and choose loops but save nothing",
+              "title": "Dry Run",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoundOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Round Now",
+        "tags": [
+          "circuits"
+        ]
+      }
+    },
+    "/api/admin/matches/recompute": {
+      "post": {
+        "description": "Run the background matching job now, for everyone.",
+        "operationId": "recompute_all_api_admin_matches_recompute_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecomputeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Recompute All",
+        "tags": [
+          "matches"
+        ]
+      }
+    },
+    "/api/admin/members/{member_id}/verification": {
+      "put": {
+        "description": "Set a member's verification level (F7). Level 3 means 'role verified by admin'.",
+        "operationId": "set_verification_level_api_admin_members__member_id__verification_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Member Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Verification Level",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/applications/me": {
+      "get": {
+        "operationId": "my_applications_api_applications_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicationOut"
+                  },
+                  "title": "Response My Applications Api Applications Me Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Applications",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/applications/{application_id}": {
+      "patch": {
+        "description": "Shortlist, reject or hire. Only the founder who claimed the startup.",
+        "operationId": "set_application_status_api_applications__application_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "application_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Application Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplicationStatusIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Application Status",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/applications/{application_id}/withdraw": {
+      "post": {
+        "operationId": "withdraw_api_applications__application_id__withdraw_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "application_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Application Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Withdraw",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/auth/demo/login": {
+      "post": {
+        "description": "Get a token for a seeded member (DEMO_AUTH only). Any seeded member key works.",
+        "operationId": "demo_login_api_auth_demo_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoLoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Demo Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/demo/personas": {
+      "get": {
+        "description": "The seeded people the persona switcher can log in as (DEMO_AUTH only).",
+        "operationId": "list_personas_api_auth_demo_personas_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Persona"
+                  },
+                  "title": "Response List Personas Api Auth Demo Personas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Personas",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "description": "Who the token belongs to, and whether they have created a profile yet.",
+        "operationId": "auth_me_api_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Auth Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/capabilities": {
+      "get": {
+        "operationId": "list_capabilities_api_capabilities_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CapabilityOut"
+                  },
+                  "title": "Response List Capabilities Api Capabilities Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Capabilities",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/api/circuits/me": {
+      "get": {
+        "description": "Your loop cards, newest first.",
+        "operationId": "my_circuits_api_circuits_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CircuitCard"
+                  },
+                  "title": "Response My Circuits Api Circuits Me Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Circuits",
+        "tags": [
+          "circuits"
+        ]
+      }
+    },
+    "/api/circuits/{circuit_id}/accept": {
+      "post": {
+        "description": "Accept the leg where you give help. When all three accept, the circuit is active.",
+        "operationId": "accept_api_circuits__circuit_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "circuit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Circuit Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CircuitCard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Accept",
+        "tags": [
+          "circuits"
+        ]
+      }
+    },
+    "/api/circuits/{circuit_id}/decline": {
+      "post": {
+        "description": "Decline: the circuit is called off for all three (no reason needed).",
+        "operationId": "decline_api_circuits__circuit_id__decline_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "circuit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Circuit Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CircuitCard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Decline",
+        "tags": [
+          "circuits"
+        ]
+      }
+    },
+    "/api/circuits/{circuit_id}/rate": {
+      "post": {
+        "description": "You got the help you were promised: rate it. All three rated -> completed.",
+        "operationId": "rate_api_circuits__circuit_id__rate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "circuit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Circuit Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CircuitRatingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CircuitCard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Rate",
+        "tags": [
+          "circuits"
+        ]
+      }
+    },
+    "/api/dashboard/gaps": {
+      "get": {
+        "description": "Per capability: active needs vs active offers, biggest gap first.",
+        "operationId": "capability_gaps_api_dashboard_gaps_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GapList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Capability Gaps",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/dashboard/gaps/areas": {
+      "get": {
+        "description": "The gap on a grid of square cells (about cell_km across) for a map heat layer.\nFilter to one capability, e.g. regulatory_affairs.",
+        "operationId": "area_gaps_api_dashboard_gaps_areas_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "capability",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capability"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cell_km",
+            "required": false,
+            "schema": {
+              "default": 2.0,
+              "maximum": 10,
+              "minimum": 0.25,
+              "title": "Cell Km",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaGaps"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Area Gaps",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/dashboard/intros": {
+      "get": {
+        "description": "Intro acceptance rate, local vs bridge matches. Accepted and completed intros\ncount as accepted; declined and expired as not; open and withdrawn ones are left out.",
+        "operationId": "intros_api_dashboard_intros_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntroAcceptance"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Intros",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/dashboard/stats": {
+      "get": {
+        "operationId": "stats_api_dashboard_stats_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Stats",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/api/intros": {
+      "post": {
+        "description": "Ask for an intro. It goes through the best mutual connection when there is one\n(or the mutual you pick from the path's alternatives), otherwise straight to them.",
+        "operationId": "request_intro_api_intros_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntroRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntroOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Request Intro",
+        "tags": [
+          "intros"
+        ]
+      }
+    },
+    "/api/intros/me": {
+      "get": {
+        "operationId": "my_intros_api_intros_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntroInbox"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Intros",
+        "tags": [
+          "intros"
+        ]
+      }
+    },
+    "/api/intros/path/{member_id}": {
+      "get": {
+        "description": "The best mutual connection to this person (1-2 hops), and whether you can ask now.",
+        "operationId": "intro_path_api_intros_path__member_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Member Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntroPath"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Intro Path",
+        "tags": [
+          "intros"
+        ]
+      }
+    },
+    "/api/intros/{intro_id}/accept": {
+      "post": {
+        "description": "The target accepts: the two are now connected.",
+        "operationId": "accept_api_intros__intro_id__accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intro_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Intro Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntroOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Accept",
+        "tags": [
+          "intros"
+        ]
+      }
+    },
+    "/api/intros/{intro_id}/decline": {
+      "post": {
+        "description": "The mutual (before passing it on) or the target says no, kindly.",
+        "operationId": "decline_api_intros__intro_id__decline_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intro_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Intro Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntroOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Decline",
+        "tags": [
+          "intros"
+        ]
+      }
+    },
+    "/api/intros/{intro_id}/forward": {
+      "post": {
+        "description": "The mutual passes the request on to the target.",
+        "operationId": "forward_api_intros__intro_id__forward_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intro_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Intro Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntroOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Forward",
+        "tags": [
+          "intros"
+        ]
+      }
+    },
+    "/api/intros/{intro_id}/rate": {
+      "post": {
+        "description": "After an accepted intro, the sender rates how useful it was (1-5).",
+        "operationId": "rate_api_intros__intro_id__rate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intro_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Intro Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntroRatingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntroOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Rate",
+        "tags": [
+          "intros"
+        ]
+      }
+    },
+    "/api/intros/{intro_id}/withdraw": {
+      "post": {
+        "operationId": "withdraw_api_intros__intro_id__withdraw_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "intro_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Intro Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntroOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Withdraw",
+        "tags": [
+          "intros"
+        ]
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "description": "Open jobs. Distance is measured from (lat, lng), your profile location or the\ncity centre; radius_km makes it a hard filter. Students default to sort=match.",
+        "operationId": "list_jobs_api_jobs_get",
+        "parameters": [
+          {
+            "description": "Search job titles",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search job titles",
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capability",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capability"
+            }
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "internship",
+                    "full_time",
+                    "part_time",
+                    "contract"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "paid",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Paid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "radius_km",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "maximum": 50.0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Radius Km"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lat",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 90,
+                  "minimum": -90,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lat"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lng",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 180,
+                  "minimum": -180,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lng"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "match",
+                    "distance",
+                    "newest"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sort"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_JobOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Jobs",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}": {
+      "get": {
+        "operationId": "get_job_api_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Job",
+        "tags": [
+          "jobs"
+        ]
+      },
+      "patch": {
+        "operationId": "update_job_api_jobs__job_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Job",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/apply": {
+      "post": {
+        "description": "Apply with a short note. One application per student per job.",
+        "operationId": "apply_api_jobs__job_id__apply_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Apply",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/map/startups/bbox": {
+      "get": {
+        "description": "Startups inside the rectangle the map is currently showing.",
+        "operationId": "in_bbox_api_map_startups_bbox_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "min_lat",
+            "required": true,
+            "schema": {
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Min Lat",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_lng",
+            "required": true,
+            "schema": {
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Min Lng",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_lat",
+            "required": true,
+            "schema": {
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Max Lat",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_lng",
+            "required": true,
+            "schema": {
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Max Lng",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hiring",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hiring"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sector",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sector"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capability",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capability"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 300,
+              "maximum": 300,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "In Bbox",
+        "tags": [
+          "map"
+        ]
+      }
+    },
+    "/api/map/startups/nearby": {
+      "get": {
+        "description": "Startups within radius_km of (lat, lng). Without a point we use your profile\nlocation, or the city centre if you haven't set one.",
+        "operationId": "nearby_api_map_startups_nearby_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lat",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 90,
+                  "minimum": -90,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lat"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lng",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 180,
+                  "minimum": -180,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lng"
+            }
+          },
+          {
+            "in": "query",
+            "name": "radius_km",
+            "required": false,
+            "schema": {
+              "default": 10.0,
+              "exclusiveMinimum": 0,
+              "maximum": 50.0,
+              "title": "Radius Km",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hiring",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hiring"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sector",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sector"
+            }
+          },
+          {
+            "in": "query",
+            "name": "capability",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Capability"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Match"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "distance",
+              "enum": [
+                "distance",
+                "match"
+              ],
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 300,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Nearby",
+        "tags": [
+          "map"
+        ]
+      }
+    },
+    "/api/matches": {
+      "get": {
+        "description": "Your ranked matches, each with a one-line reason. Bridge matches (across\nsectors) are flagged. Results come from the precomputed cache; if you have none\nyet, they are computed now.",
+        "operationId": "my_matches_api_matches_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Matches",
+        "tags": [
+          "matches"
+        ]
+      }
+    },
+    "/api/matches/refresh": {
+      "post": {
+        "description": "Recompute your matches now (e.g. right after editing your needs and offers).",
+        "operationId": "refresh_my_matches_api_matches_refresh_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Refresh My Matches",
+        "tags": [
+          "matches"
+        ]
+      }
+    },
+    "/api/members": {
+      "get": {
+        "description": "Browse people (verification level 1+).",
+        "operationId": "list_members_api_members_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sector",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sector"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_MemberSummary_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Members",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/members/me": {
+      "delete": {
+        "description": "Delete your profile and everything attached to it.",
+        "operationId": "delete_my_profile_api_members_me_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete My Profile",
+        "tags": [
+          "members"
+        ]
+      },
+      "get": {
+        "operationId": "get_my_profile_api_members_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get My Profile",
+        "tags": [
+          "members"
+        ]
+      },
+      "patch": {
+        "operationId": "update_my_profile_api_members_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update My Profile",
+        "tags": [
+          "members"
+        ]
+      },
+      "post": {
+        "description": "First step after signing up: create your profile.",
+        "operationId": "create_my_profile_api_members_me_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create My Profile",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/members/me/needs": {
+      "post": {
+        "operationId": "add_my_need_api_members_me_needs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NeedIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add My Need",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/members/me/offers": {
+      "post": {
+        "operationId": "add_my_offer_api_members_me_offers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add My Offer",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/members/me/skills": {
+      "put": {
+        "operationId": "set_my_skills_api_members_me_skills_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set My Skills",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/members/me/traits": {
+      "put": {
+        "operationId": "set_my_traits_api_members_me_traits_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraitsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set My Traits",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/members/{member_id}": {
+      "get": {
+        "operationId": "get_member_api_members__member_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "member_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Member Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberPublic"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Member",
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/api/needs/{need_id}": {
+      "delete": {
+        "description": "Needs are retired (active=false), not erased, so dashboard history stays correct.",
+        "operationId": "retire_need_api_needs__need_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "need_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Need Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Retire Need",
+        "tags": [
+          "needs & offers"
+        ]
+      },
+      "patch": {
+        "operationId": "update_need_api_needs__need_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "need_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Need Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NeedUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Need",
+        "tags": [
+          "needs & offers"
+        ]
+      }
+    },
+    "/api/offers/{offer_id}": {
+      "delete": {
+        "operationId": "retire_offer_api_offers__offer_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "offer_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Offer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Retire Offer",
+        "tags": [
+          "needs & offers"
+        ]
+      },
+      "patch": {
+        "operationId": "update_offer_api_offers__offer_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "offer_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Offer Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NeedUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Offer",
+        "tags": [
+          "needs & offers"
+        ]
+      }
+    },
+    "/api/onboarding/confirm": {
+      "post": {
+        "description": "Save the person's final selection. Replaces their current needs, offers, skills\nand traits in one transaction.",
+        "operationId": "confirm_api_onboarding_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnboardingConfirmIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm",
+        "tags": [
+          "onboarding"
+        ]
+      }
+    },
+    "/api/onboarding/suggest": {
+      "post": {
+        "description": "Suggest needs, offers, skills and traits from free text. Never fails: without an\nAPI key, or if the model is unavailable, it returns source=\"manual\" and the UI\nshows the pickers. The text itself is not stored or logged.",
+        "operationId": "suggest_api_onboarding_suggest_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnboardingSuggestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingSuggestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Suggest",
+        "tags": [
+          "onboarding"
+        ]
+      }
+    },
+    "/api/startups": {
+      "get": {
+        "operationId": "list_startups_api_startups_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "sector",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sector"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hiring",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hiring"
+            }
+          },
+          {
+            "in": "query",
+            "name": "claimed",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Claimed"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_StartupOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Startups",
+        "tags": [
+          "startups"
+        ]
+      },
+      "post": {
+        "description": "Founders add a startup we don't know yet. It starts claimed by them.",
+        "operationId": "create_startup_api_startups_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartupCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Startup",
+        "tags": [
+          "startups"
+        ]
+      }
+    },
+    "/api/startups/{startup_id}": {
+      "delete": {
+        "description": "Founders can delete startups they added. Seeded/crawled ones can only be unlisted\nby an admin (not in the MVP), because they would be re-imported anyway.",
+        "operationId": "delete_startup_api_startups__startup_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Startup",
+        "tags": [
+          "startups"
+        ]
+      },
+      "get": {
+        "description": "A startup's page. Opening it counts as a view (once per person per 24 hours;\nthe startup's own team doesn't count).",
+        "operationId": "get_startup_api_startups__startup_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Startup",
+        "tags": [
+          "startups"
+        ]
+      },
+      "patch": {
+        "operationId": "update_startup_api_startups__startup_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartupUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Startup",
+        "tags": [
+          "startups"
+        ]
+      }
+    },
+    "/api/startups/{startup_id}/applicants": {
+      "get": {
+        "description": "Applicants to this startup's jobs, best skill match first. Shows skills, not\ncollege: we rank on what people can do.",
+        "operationId": "applicants_api_startups__startup_id__applicants_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "job_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Job Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "submitted",
+                    "shortlisted",
+                    "rejected",
+                    "hired",
+                    "withdrawn"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicantOut"
+                  },
+                  "title": "Response Applicants Api Startups  Startup Id  Applicants Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Applicants",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/startups/{startup_id}/claim": {
+      "post": {
+        "description": "Step 1 of claiming: give an email address on the startup's own domain. We send\na 6-digit code there (simulated in development: the code comes back as dev_code).",
+        "operationId": "start_claim_api_startups__startup_id__claim_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimStartIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimStartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start Claim",
+        "tags": [
+          "startups"
+        ]
+      }
+    },
+    "/api/startups/{startup_id}/claim/verify": {
+      "post": {
+        "description": "Step 2: enter the code. On success the startup is yours to edit.",
+        "operationId": "verify_claim_api_startups__startup_id__claim_verify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimVerifyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Verify Claim",
+        "tags": [
+          "startups"
+        ]
+      }
+    },
+    "/api/startups/{startup_id}/interest": {
+      "post": {
+        "description": "The \"I'm interested\" button. Pressing it again changes nothing.",
+        "operationId": "express_interest_api_startups__startup_id__interest_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Express Interest",
+        "tags": [
+          "startups"
+        ]
+      }
+    },
+    "/api/startups/{startup_id}/interested": {
+      "get": {
+        "description": "Who pressed \"I'm interested\". Only for the founder who claimed the startup.",
+        "operationId": "interested_people_api_startups__startup_id__interested_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MemberSummary"
+                  },
+                  "title": "Response Interested People Api Startups  Startup Id  Interested Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Interested People",
+        "tags": [
+          "startups"
+        ]
+      }
+    },
+    "/api/startups/{startup_id}/jobs": {
+      "post": {
+        "operationId": "create_job_api_startups__startup_id__jobs_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Job",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/startups/{startup_id}/needs": {
+      "post": {
+        "operationId": "add_startup_need_api_startups__startup_id__needs_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NeedIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Startup Need",
+        "tags": [
+          "startups"
+        ]
+      }
+    },
+    "/api/startups/{startup_id}/stats": {
+      "get": {
+        "description": "Visible to everyone, including on unclaimed startups: it's what motivates a\nfounder to claim their page.",
+        "operationId": "startup_stats_api_startups__startup_id__stats_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "startup_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Startup Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartupStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Startup Stats",
+        "tags": [
+          "startups"
+        ]
+      }
+    },
+    "/api/traits": {
+      "get": {
+        "operationId": "list_traits_api_traits_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TraitOut"
+                  },
+                  "title": "Response List Traits Api Traits Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Traits",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "The process is up. Does not touch the database.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/deps": {
+      "get": {
+        "description": "Checks Postgres is reachable and has the PostGIS and pgvector extensions.",
+        "operationId": "health_deps_health_deps_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepsHealth"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepsHealth"
+                }
+              }
+            },
+            "description": "A dependency is unavailable"
+          }
+        },
+        "summary": "Health Deps",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  }
+}

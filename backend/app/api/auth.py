@@ -16,7 +16,7 @@ from app.auth import (
 from app.events import record_event
 from app.models import Member
 from app.schemas import AuthMe, DemoLoginIn, MemberSummary, Persona, TokenOut
-from app.seed.stories import DEMO_PERSONAS
+from app.seed.stories import DEMO_PERSONAS, DEMO_STORIES
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -31,7 +31,7 @@ def _require_demo(settings) -> None:
 async def list_personas(settings: SettingsDep, session: SessionDep) -> list[Persona]:
     """The seeded people the persona switcher can log in as (DEMO_AUTH only)."""
     _require_demo(settings)
-    subjects = [f"{DEMO_SUBJECT_PREFIX}{key}" for key, _ in DEMO_PERSONAS]
+    subjects = [f"{DEMO_SUBJECT_PREFIX}{key}" for key, _, _ in DEMO_PERSONAS]
     members = {
         m.auth_subject: m
         for m in (
@@ -39,7 +39,7 @@ async def list_personas(settings: SettingsDep, session: SessionDep) -> list[Pers
         ).all()
     }
     personas = []
-    for key, story in DEMO_PERSONAS:
+    for key, number, story in DEMO_PERSONAS:
         m = members.get(f"{DEMO_SUBJECT_PREFIX}{key}")
         if m is not None:  # missing only if the seed hasn't been loaded
             personas.append(
@@ -50,6 +50,8 @@ async def list_personas(settings: SettingsDep, session: SessionDep) -> list[Pers
                     display_name=m.display_name,
                     verification_level=m.verification_level,
                     story=story,
+                    story_number=number,
+                    story_title=DEMO_STORIES[number],
                 )
             )
     return personas

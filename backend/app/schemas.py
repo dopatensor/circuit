@@ -261,7 +261,9 @@ class Persona(BaseModel):
     role: Role
     display_name: str
     verification_level: int
-    story: str
+    story: str  # their part in the story, one line
+    story_number: int  # 1-5, the demo story they belong to
+    story_title: str  # e.g. "Bridge match"
 
 
 class DemoLoginIn(BaseModel):

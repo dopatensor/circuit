@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/* Design tokens: pure black with two neon colours.
+   - Neon blue: the main action on each screen (and the active tab).
+   - Neon green: the "Bridge match" badge and good news (hiring, accepted, matched).
+   Everything else stays black, white and grey. Contrast is checked against #000. */
+:root {
+  --bg: #000000;
+  --surface: #0c0d10; /* cards */
+  --raised: #15171c; /* things inside cards, inputs, chips */
+  --line: #24262d;
+  --fg: #f4f6fa;
+  --muted: #9aa1ad; /* 7.9:1 on black */
+  --blue: #2f8cff; /* 6.3:1 on black; black text on it is 6.3:1 too */
+  --green: #39ff8f; /* 15:1 on black */
+  color-scheme: dark;
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-blue: var(--blue);
+  --color-green: var(--green);
+
+  /* One font family: the system stack, so nothing is downloaded. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans",
+    Arial, sans-serif;
+
+  /* Four text sizes: small, body, title, and display (hero lines and big numbers). */
+  --text-*: initial;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.875rem;
+  --text-display: 2.5rem;
+  --text-display--line-height: 2.75rem;
+
+  --default-transition-duration: 150ms;
+
+  /* The neon glow: only on the main action and the Bridge badge. */
+  --shadow-glow-blue: 0 0 0 1px rgb(47 140 255 / 0.6), 0 0 24px rgb(47 140 255 / 0.35);
+  --shadow-glow-green: 0 0 16px rgb(57 255 143 / 0.25);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe areas (notch, home indicator) when installed and full-screen. Defined as
+   Tailwind utilities so they combine predictably with other padding classes. */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,12 +1,13 @@
 # Circuit — progress
 
 Snapshot for picking the work up in a new session. The spec is [CLAUDE.md](CLAUDE.md)
-(including the "Spec additions" and "Testing" sections at the end); setup details are
-in [README.md](README.md).
+(including the "Spec additions" and "Testing" sections at the end). **The frontend
+must also follow [DESIGN.md](DESIGN.md)**, the user's design and PWA brief for Phases
+8–11. Setup details are in [README.md](README.md).
 
 Branch: `claude/kind-noether-bp70jm`. Phases 0–4 are merged into `main` (pull requests
-#1–#3 in `dopatensor/circuit`). Phases 5, 6 and 7 are committed and pushed on this
-branch but not merged yet; no pull request has been opened for them.
+#1–#3 in `dopatensor/circuit`). Phases 5–8 are committed and pushed on this branch
+but not merged yet; no pull request has been opened for them.
 
 ## Status at a glance
 
@@ -19,23 +20,21 @@ branch but not merged yet; no pull request has been opened for them.
 | 4 Matching (F4) | ✅ done |
 | 5 Intros + events (F5, F10) | ✅ done |
 | 6 Circuits (F6) | ✅ done |
-| 7 Dashboard API (F8 backend) | ✅ done (waiting for the user's OK) |
-| **8 Frontend shell (F9)** | ⏭️ **next: not started** |
-| 9–12 | not started |
+| 7 Dashboard API (F8 backend) | ✅ done |
+| 8 Frontend shell (F9) + PWA + redesign | ✅ done (waiting for the user's OK on the redesign) |
+| **9 Map view + jobs UI (F2, F3, F11)** | ⏭️ **next: not started** |
+| 10–12 | not started |
 
-Last verified (2026-10-07, Phase 7 commit):
+Last verified (2026-10-07, Phase 8 redesign commit):
 
-- Backend tests: **223 passed, 1 skipped, 0 failing**. The skipped test
-  (`tests/test_embeddings.py::test_real_model_puts_related_sentences_closer`) downloads
-  the real embedding model, so it only runs with `RUN_MODEL_TESTS=1`. It passed after the
-  Phase 6 dependency change (OR-Tools moved protobuf from 7 to 6).
-- `ruff check`, `ruff format --check` and `alembic check` are clean. Phase 6 needed no
-  migration (the `circuits` and `circuit_legs` tables were created in Phase 1).
-- `make demo-check`: **5/5 PASS** on a fresh `make reset-demo`. Every story now goes
-  through the API: story 2 runs the real circuit round as a dry run, story 4 uses the
-  intro path, and story 5 uses the dashboard (gaps, heat cells, acceptance split).
-- `make eval`: 53 labelled pairs, 100% agreement.
-- Frontend: only the Phase 0 placeholder; `npm run build` passes.
+- Backend tests: **224 passed, 1 skipped** (the real-model test runs with
+  `RUN_MODEL_TESTS=1`). `ruff` and `alembic check` are clean.
+- Browser tests (`cd frontend && npx playwright test`): **23 passed, 1 skipped** (the
+  iPhone install-prompt test only runs at phone width).
+- `npm run size`: 95.6 KB of first-load JavaScript, gzipped (budget 200 KB).
+- Lighthouse (mobile, slow 4G, `/welcome`): Performance 99, Accessibility 100, Best
+  Practices 100, SEO 100.
+- `make demo-check`: **5/5 PASS**. `make eval`: 100%.
 
 ## What Phase 5 built (warm intros, F5)
 
@@ -90,40 +89,101 @@ Last verified (2026-10-07, Phase 7 commit):
 - Seed numbers: regulatory affairs 35 needs vs 2 offers; 17 cells with a regulatory gap
   at 2 km; intro acceptance local 52% (12/23) vs bridge 80% (20/25).
 
-## Phase 8: exactly what's left (all of it)
+## What Phase 8 built (frontend shell, F9, PWA)
 
-Spec: frontend shell, F9 persona switcher, login state, verification badges. From Phase
-8 on, every screen must work at phone width and on a laptop, and Playwright tests cover
-the demo stories at both widths.
+- **Dependencies** (approved): tailwindcss + `@tailwindcss/vite`, `@tanstack/react-query`,
+  `openapi-fetch` + `openapi-typescript` (dev), `react-router`, `@playwright/test`
+  (pinned to **1.56.1** to match the container's Chromium), `vite-plugin-pwa`,
+  `lighthouse` (dev). **TypeScript pinned to ~5.9**: TypeScript 7's native compiler has
+  no JS API, which openapi-typescript needs.
+- `src/api/client.ts`: the typed client (`api.GET("/api/...")`), the token middleware,
+  `unwrap()` (data or an `ApiError` with one plain sentence; the API's `detail` strings
+  are shown as-is), and `withMeta()` (also returns `servedAt` from the `Date` header, for
+  `<LastUpdated>`). CORS exposes `Date`.
+- `src/auth.tsx`: token plus your own `MemberSummary` (and the demo flag) in
+  localStorage. This makes the app open instantly and work offline; `/api/auth/me`
+  re-checks it, and a 401 signs you out. `login(persona)` and `logout()` clear the query
+  cache and the service worker's `circuit-api` cache.
+- `src/nav.ts`: tabs per role; the first tab is home. `/` and unknown paths redirect
+  there, as do tabs your role doesn't have.
+- `src/components/`: `Shell` (bottom tabs on phones, sidebar from `md`; content column
+  720px, full width for `/map` and `/dashboard`), `ui.tsx` (Title, PrimaryButton (accent),
+  SecondaryButton, Skeleton, Empty, ErrorState, VerificationBadge, BridgeBadge,
+  LastUpdated), `PersonaList`.
+- `src/screens/`: Welcome (signed out, persona list), Me (name, role, badge, persona
+  switcher, sign out), and placeholders for Map, Jobs, Matches, Circuits, Intros and
+  Dashboard (`placeholders.tsx`). Every screen is lazy-loaded.
+- `src/pwa/`: `UpdateBar` (registers the service worker with `registerType: "prompt"`)
+  and `InstallPrompt` (counts visits per browser session; iPhone gets manual steps).
+- `vite.config.ts`: manifest, Workbox precache, navigation fallback (not for `/api`),
+  runtime cache `circuit-api` (NetworkFirst for GET `/api/matches`, `/api/jobs`,
+  `/api/applications/me`, keyed by URL only so no Authorization header is stored), and a
+  proxy target from `API_PROXY_TARGET`.
+- `scripts/`: `make-icons.mjs` (renders the "C" icons with Playwright),
+  `check-size.mjs`, `lighthouse.mjs`, `screenshots.mjs`.
+- `playwright.config.ts`: phone (375×812) and laptop (1280×800) projects; starts the API
+  on :8011 against `TEST_DATABASE_URL` after `reset-demo` (fake embeddings), and a preview
+  build on :4183. Tests: `e2e/shell.spec.ts`, `e2e/pwa.spec.ts`.
+- Backend: `python -m app.cli openapi`, `PORT` env for the API, and a test that
+  `frontend/openapi.json` is current.
 
-1. **Ask the user first** about frontend dependencies not named in CLAUDE.md. Named:
-   Tailwind CSS, TanStack Query, openapi-typescript, MapLibre GL JS, Recharts. Likely
-   extras to ask about: `openapi-fetch` (a tiny typed client that uses the
-   openapi-typescript types, so no fetch calls are hand-written), `@tailwindcss/vite`
-   (Tailwind 4's Vite plugin), `react-router` (pages and URLs), `@playwright/test`.
-2. **Generated client**: a script (e.g. `npm run gen:api`) that writes `src/api/schema.ts`
-   from the backend's OpenAPI. Read it from a running API at `/openapi.json`, or better,
-   dump it without a server: `uv run python -c "from app.main import app; ..."` to a
-   file. Commit the generated file and add a test or check that it's up to date.
-3. **Auth state**: store the demo token. `POST /api/auth/demo/login` with a persona;
-   `GET /api/auth/demo/personas` lists them (only when `DEMO_AUTH=true`); `GET /api/auth/me`.
-   Use sessionStorage or localStorage, with a logout.
-4. **Layout**: a header with nav (Map, Jobs, Matches, Intros, Circuits, Dashboard for
-   partner admins), the persona switcher (dev/demo only), and a verification badge (levels
-   1–3) next to names. Mobile: collapsible nav.
-5. Every screen has loading, empty and error states. 429 and 403 messages from the API
-   are written to be shown as-is.
-6. **Playwright**: config with two projects (phone, e.g. 390×844, and laptop
-   1280×800). Use Chromium at `/opt/pw-browsers` in the cloud and don't run
-   `playwright install` there. Start with persona switching; stories come in Phases 9–11.
-7. `make test` should also run the frontend typecheck and the Playwright tests; README.
-8. Commit "Phase 8: …", explain, stop for OK.
+## Phase 8 redesign (after the user's review)
 
-## Remaining phases after 8 (from CLAUDE.md)
+- The user found the first shell too plain, loosened the brief and asked for pure black
+  with neon blue and green. DESIGN.md's "Update" section records the new rules.
+- `src/index.css`: dark-only tokens (`bg`, `surface`, `raised`, `line`, `fg`, `muted`,
+  `blue`, `green`), `text-display`, `shadow-glow-blue` / `shadow-glow-green`.
+- `src/components/ui.tsx`: Card, Avatar (initials), Pill (green/blue/neutral), Stat,
+  Eyebrow, PrimaryButton (neon blue + glow), BridgeBadge (neon green + glow);
+  `Sheet.tsx` (bottom sheet / centred panel on `<dialog>`); `DemoStories.tsx` (personas
+  grouped by story, replaces PersonaList); `MatchCard.tsx`.
+- Backend: `DEMO_STORIES` and `DEMO_PERSONAS` now carry a story number; the persona API
+  returns `story_number` and `story_title`. Deepak (LedgerLoop's founder, story 3) was
+  added to the switcher.
+- Screens: a new Welcome (pitch, three steps, stories), Me (profile card, three stats by
+  role, demo card with "Switch person", sign out), and **Matches is real now**
+  (`/api/matches` as cards: score, reason, Bridge badge; no action yet, Phase 10 adds
+  "Ask for intro"). Icons are a neon-blue "C" on black.
+- The Me stats call `/api/matches`, `/api/jobs`, `/api/dashboard/stats` etc., so they
+  also write those endpoints' "viewed" events. Acceptable for now; a dedicated
+  `/api/members/me/summary` endpoint would be cleaner.
 
-- **9 Map view**: MapLibre map, filters, pins and popups (with job counts), interest
-  button, startup page with the claim flow; jobs list, job page, apply with a note,
-  "My applications" with status badges, founder applicants view (F11).
+## Phase 9: exactly what's left (all of it)
+
+Spec: F2 map, F3 claim UI, F11 jobs UI. Follow DESIGN.md (Map and Jobs sections).
+
+1. **Map library and tiles:** MapLibre GL JS is on the spec's list. Tiles need a free
+   OSM-based style with no key, e.g. OpenFreeMap
+   (`https://tiles.openfreemap.org/styles/positron`, plus a dark style for dark mode).
+   Check its attribution and terms, and make the style URL a `VITE_MAP_STYLE` setting.
+   Lazy-load MapLibre: the Map tab chunk only, and keep `npm run size` green.
+2. **Map** (`/map`, students and partner admins): full-screen; pins coloured only by
+   hiring or not (neon green = hiring, grey = not hiring); one "Filters"
+   button opening a bottom sheet (hiring only, capability, distance); data from
+   `GET /api/map/startups/bbox` (pan/zoom) or `/nearby`. Tapping a pin opens a bottom
+   sheet with name, match % (`skill_match`), open roles (job titles/count) and one
+   button ("I'm interested" → `POST /api/startups/{id}/interest`, or "View" for
+   founders/partners).
+3. **Startup page** with the claim flow (F3): views/interest counts to motivate
+   claiming; "Claim this startup" → email on the startup's domain → code (dev shows
+   `dev_code`) → verify.
+4. **Jobs** (`/jobs`): a plain list (title, startup, distance, match %), one search field
+   and one filter button (type, paid, capability, distance). Job page: role, skills
+   needed with matched ones highlighted, "Apply" fixed at the bottom (a short note),
+   and "Applied" state. "My applications" with status badges, e.g. a section on Jobs or
+   in Me. Offline: show `<LastUpdated servedAt>` (use `withMeta`).
+5. **Founder applicants view**: Meera/Deepak see applicants ranked by skill match and set
+   the status (shortlist, reject, hire). Founders don't have a Jobs tab: reach it from the
+   startup page ("Applicants"), e.g. via Me → "Your startup".
+6. Loading, empty and error states on every screen; 44px targets; check at 375 and 1280.
+7. **Playwright**: story 3 through the UI at both widths (Ravi → map → LedgerLoop pin →
+   job → apply; Deepak → applicants → shortlist → Ravi sees "Shortlisted"), the
+   interest button, and the claim flow (Rohan claims TerraGrid). Reset between tests or
+   undo changes, because they share the e2e database.
+8. Screenshots for the user, Lighthouse, size, README, PROGRESS, commit, stop for OK.
+
+## Remaining phases after 9 (from CLAUDE.md)
+
 - **10 Network app**: onboarding chips (F1 UI), matches with reasons and Bridge badges,
   warm intro flow (path sentence → request with reason → inbox with the `actions` each
   item lists; show 429 messages as-is), circuit loop card with accept and decline. For
@@ -251,6 +311,15 @@ are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per st
   not cleared when every job closes.
 - **`jobs.searched` events are noisy:** one is written on every jobs list call, including
   pagination.
+- **Lighthouse only audits `/welcome`** (signed out). Signed-in screens need a login step
+  in the script; add it when the real screens exist (Phase 9+).
+- **Offline e2e tests need `PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1`**, which
+  `playwright.config.ts` sets. Without it, Playwright's offline switch and routes
+  sometimes miss the service worker's own requests, and the cache test flakes.
+- **The update bar can't easily be tested automatically** (it needs two deployed
+  versions). Check it by hand: build, preview, change a file, rebuild, reload.
+- **On a Mac, run `npx playwright install chromium` once** (the cloud container has
+  Chromium preinstalled).
 - **Uvicorn's own startup lines are plain text.** Request logs are JSON as specified.
 - **First `reset-demo` needs internet:** it downloads the ~130 MB embedding model to
   `~/.cache/circuit/fastembed`. With `EMBEDDING_PROVIDER=fake` it works offline, with
