@@ -7,7 +7,10 @@ See [CLAUDE.md](CLAUDE.md) for the full MVP spec and build phases.
 **Status:** Phases 0–7 done, i.e. the whole backend: auth, profiles, smart onboarding,
 the startup map, claiming, jobs (F11), matching with reasons and Bridge badges (F4),
 warm intros with weekly capacity (F5), events for every action (F10), exchange
-circuits (F6) and the partner dashboard API (F8). The frontend comes next.
+circuits (F6) and the partner dashboard API (F8). Phase 8 added the frontend shell:
+an installable app (PWA) with role-based tabs, the demo persona switcher and
+verification badges. The map, jobs, matches, intros, circuits and dashboard screens
+come in Phases 9–11.
 `make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
 
@@ -50,7 +53,7 @@ under `/mnt/c/...`. File watching and installs are far faster there.
 cp .env.example .env            # then edit if needed; never commit .env
 docker compose up -d --wait     # builds and starts Postgres (first build takes a minute)
 cd backend && uv sync && cd ..  # creates backend/.venv with all Python packages
-cd frontend && npm install && cd ..
+cd frontend && npm install && npx playwright install chromium && cd ..   # browser for e2e tests
 cd backend && uv run python -m app.cli reset-demo && cd ..   # tables + demo data
 ```
 
@@ -84,8 +87,22 @@ uv run ruff check .         # lint
 uv run ruff format .        # auto-format
 
 cd ../frontend
-npm run build               # type-checks and builds
+npm run build               # type-checks and builds (also writes the service worker)
+npm run size                # first-load JavaScript must stay under 200 KB gzipped
+npx playwright test         # browser tests at 375px and 1280px (starts its own API on
+                            # :8011 against circuit_test and a preview build on :4183)
 ```
+
+Lighthouse (mobile profile: mid-range Android, slow 4G), with the API running:
+
+```bash
+cd frontend && npm run build && npx vite preview --port 4183 &
+npm run lighthouse -- http://localhost:4183/welcome
+```
+
+Last run: Performance 99, Accessibility 100, Best Practices 100, SEO 100. Lighthouse
+12+ no longer has a PWA category; `e2e/pwa.spec.ts` checks the manifest, icons,
+service worker and offline behaviour instead.
 
 ## Auth
 
@@ -114,13 +131,46 @@ make db           # start Postgres
 make reset-demo   # wipe and reload the demo seed
 make demo-check   # PASS/FAIL for each of the five demo stories
 make eval         # how often the match scorer agrees with tests/eval/pairs.json
-make test         # backend tests + frontend build
+make test         # backend tests, frontend build + size budget, browser tests
+make e2e          # browser tests only
+make api-client   # regenerate the frontend's typed API client after API changes
 make lint         # ruff lint + format check
 make dev-api      # API on :8000
 make dev-web      # web app on :5173
 ```
 
 Run `make reset-demo && make demo-check` before every demo.
+
+## Frontend (Phase 8 onward)
+
+`frontend/` is a React + TypeScript app built with Vite and Tailwind CSS.
+
+- **Design**: hyper-minimalist and mobile-first. Black and white with one accent
+  colour, used only for each screen's main action and the "Bridge match" badge. Light
+  and dark follow the system. One system font, three text sizes. No shadows or
+  gradients, and transitions are short and turned off under "reduce motion". Tokens
+  live in `src/index.css`.
+- **Layout**: phones get a bottom tab bar, laptops a slim left sidebar, and content sits
+  in a 720px column (the map and dashboard use the full width). Tabs depend on role:
+  students get Map · Jobs · Matches · Me; founders, mentors and investors get Matches ·
+  Circuits · Intros · Me; partner admins get Dashboard · Map · Me. Tap targets are 44px+.
+- **Data**: every call goes through the typed client generated from the API's OpenAPI
+  spec (`src/api/schema.d.ts`; regenerate with `make api-client`), with TanStack Query.
+  A backend test fails if `frontend/openapi.json` is out of date.
+- **Demo mode (F9)**: signed out, the welcome screen lists the demo people. Signed in,
+  the switcher is in the **Me** tab, with your verification badge and sign-out.
+- **Installable (PWA)**: a manifest (name, standalone, "C" icons at 192/512/maskable plus
+  an apple-touch-icon; regenerate with `npm run icons`) and a service worker
+  (vite-plugin-pwa):
+  - The app shell is precached, so it opens instantly and works offline.
+  - Your matches, jobs and applications are fetched network-first, and the last copy
+    is used offline (screens show "Last updated <time>").
+  - The API cache is keyed by URL only, so tokens are never stored in it, and it is
+    cleared on sign-out and persona switch.
+  - When a new version is deployed, a bar says "Update available, tap to refresh".
+  - After the second visit, a one-time "Add Circuit to your home screen" prompt
+    appears, with the Share → "Add to Home Screen" steps on iPhone.
+- **Screenshots** for design reviews: `npm run screenshots -- http://localhost:4183`.
 
 ## Smart onboarding (F1)
 

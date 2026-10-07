@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/* Design tokens. Mostly black and white; one accent colour, used only for the main
+   action on each screen and the "Bridge match" badge. Light and dark follow the
+   system setting. */
+:root {
+  --bg: #ffffff;
+  --fg: #0a0a0a;
+  --muted: #5f5f5f; /* 6.4:1 on white */
+  --line: #e4e4e4;
+  --surface: #f4f4f4;
+  --accent: #1f4fd8; /* 6.3:1 with white text */
+  --accent-fg: #ffffff;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0a;
+    --fg: #f5f5f5;
+    --muted: #a6a6a6; /* 8:1 on black */
+    --line: #2a2a2a;
+    --surface: #161616;
+    --accent: #84a9ff; /* 8.6:1 with black text */
+    --accent-fg: #0a0a0a;
+  }
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+
+  /* One font family: the system stack, so nothing is downloaded. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans",
+    Arial, sans-serif;
+
+  /* At most three text sizes. */
+  --text-*: initial;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 2rem;
+
+  --default-transition-duration: 120ms;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe areas (notch, home indicator) when installed and full-screen. Defined as
+   Tailwind utilities so they combine predictably with other padding classes. */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -49,7 +49,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
-        expose_headers=["X-Request-ID"],
+        # Date lets the app show "Last updated <time>" for data served offline from cache.
+        expose_headers=["X-Request-ID", "Date"],
     )
     # Added last so it is the outermost layer and also times CORS handling.
     app.add_middleware(RequestLoggingMiddleware)

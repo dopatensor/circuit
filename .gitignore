@@ -19,3 +19,8 @@ dist/
 .vscode/
 .idea/
 .DS_Store
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/screenshots/

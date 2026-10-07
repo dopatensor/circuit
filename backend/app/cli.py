@@ -4,6 +4,7 @@ uv run python -m app.cli migrate      # apply database migrations
 uv run python -m app.cli seed         # add/refresh seed data, keep live activity
 uv run python -m app.cli reset-demo   # wipe everything and restore the demo seed
 uv run python -m app.cli dump-seed    # print the generated startups as crawler JSON
+uv run python -m app.cli openapi      # print the API's OpenAPI spec (for the frontend client)
 """
 
 import argparse
@@ -69,6 +70,14 @@ async def compute_matches(database_url: str, settings: Settings) -> None:
         await engine.dispose()
 
 
+def openapi_json() -> str:
+    """The OpenAPI spec as stable JSON. The frontend generates its typed client from it
+    (frontend/openapi.json -> src/api/schema.d.ts); a test checks the copy is current."""
+    from app.main import create_app
+
+    return json.dumps(create_app().openapi(), indent=2, sort_keys=True, ensure_ascii=False)
+
+
 def _refuse_in_production(settings: Settings, action: str) -> None:
     if settings.env == "production" and not settings.demo_public:
         sys.exit(f"Refusing to {action} with ENV=production (set DEMO_PUBLIC=true for demos).")
@@ -77,11 +86,15 @@ def _refuse_in_production(settings: Settings, action: str) -> None:
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     parser.add_argument(
-        "command", choices=["migrate", "seed", "reset-demo", "dump-seed", "compute-matches"]
+        "command",
+        choices=["migrate", "seed", "reset-demo", "dump-seed", "compute-matches", "openapi"],
     )
     args = parser.parse_args(argv)
     settings = get_settings()
 
+    if args.command == "openapi":
+        print(openapi_json())
+        return
     if args.command == "dump-seed":
         records = [s.record.model_dump() for s in dataset_for(settings).startups]
         json.dump(records, sys.stdout, indent=2, ensure_ascii=False)
