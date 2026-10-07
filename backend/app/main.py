@@ -10,6 +10,7 @@ from app.api import (
     admin,
     auth,
     catalog,
+    circuits,
     health,
     intros,
     jobs,
@@ -62,6 +63,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         jobs,
         matches,
         intros,
+        circuits,
         onboarding,
         admin,
     ):

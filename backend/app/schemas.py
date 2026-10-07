@@ -614,3 +614,58 @@ class IntroInbox(BaseModel):
 
 class IntroRatingIn(BaseModel):
     rating: int = Field(ge=1, le=5)
+
+
+# --- exchange circuits (F6) ---------------------------------------------------------------
+
+CircuitStatus = Literal["proposed", "active", "declined", "expired", "completed"]
+
+
+class CapabilityRef(BaseModel):
+    id: str
+    name: str
+
+
+class CircuitLegOut(BaseModel):
+    position: int
+    giver: MemberSummary
+    receiver: MemberSummary
+    capability: CapabilityRef
+    consent: Literal["pending", "accepted", "declined"]  # the giver's answer
+    fulfilled: bool  # the receiver says they got the help
+    rating: int | None  # the receiver's rating, 1-5
+
+
+class CircuitCard(BaseModel):
+    """A loop card: "You help X with A, X helps Y with B, Y helps you with C"."""
+
+    id: uuid.UUID
+    round_key: str
+    status: CircuitStatus
+    score: int  # 0-100, the weakest link
+    created_at: datetime
+    expires_at: datetime  # answer by then (while proposed)
+    sentence: str
+    legs: list[CircuitLegOut]  # starting with the leg where you give
+    my_consent: Literal["pending", "accepted", "declined"]
+    actions: list[Literal["accept", "decline", "rate"]]
+
+
+class CircuitRatingIn(BaseModel):
+    rating: int = Field(ge=1, le=5)
+
+
+class RoundCircuit(BaseModel):
+    id: uuid.UUID | None  # None in a dry run
+    score: int
+    members: list[MemberSummary]
+    sentence: str  # "Asha helps Arjun with hiring, Arjun helps Priya with ..."
+
+
+class RoundOut(BaseModel):
+    round_key: str
+    dry_run: bool
+    pool: int  # members with at least one possible exchange
+    edges: int
+    cycles_found: int
+    circuits: list[RoundCircuit]

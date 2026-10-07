@@ -89,24 +89,39 @@ async def story1_bridge(ctx: Ctx) -> str:
 
 
 async def story2_circuit(ctx: Ctx) -> str:
-    people = {k: await ctx.get(k, "/api/members/me") for k in ("asha", "priya", "arjun")}
-    needs = {k: {n["capability_id"] for n in p["needs"]} for k, p in people.items()}
-    offers = {k: {o["capability_id"] for o in p["offers"]} for k, p in people.items()}
-    loop = [
-        ("asha", "arjun", "hiring"),
-        ("arjun", "priya", "fundraising"),
-        ("priya", "asha", "marketing"),
-    ]
-    for giver, receiver, cap in loop:
-        expect(
-            cap in offers[giver] and cap in needs[receiver],
-            f"{giver} can't help {receiver} with {cap}",
-        )
-    expect(
-        all(p["circuits_opt_in"] for p in people.values()),
-        "someone in the loop opted out of circuits",
+    story = {str(member_id(k)) for k in ("asha", "priya", "arjun")}
+    open_circuits = await ctx.session.scalar(
+        text(
+            """
+            SELECT count(*) FROM circuits c JOIN circuit_legs l ON l.circuit_id = c.id
+            WHERE l.giver_id = ANY(CAST(:ids AS uuid[]))
+              AND (c.status = 'active' OR (c.status = 'proposed' AND c.expires_at > now()))
+            """
+        ),
+        {"ids": sorted(story)},
     )
-    return "Asha → Arjun (hiring) → Priya (fundraising) → Asha (marketing): all edges present"
+    expect(open_circuits == 0, "Asha, Priya or Arjun is already in an open circuit (reset-demo)")
+    # A dry run: the same round "Run round now" runs, but nothing is saved.
+    r = await ctx.client.post(
+        "/api/admin/circuits/run", headers=await ctx.as_("nandini"), params={"dry_run": True}
+    )
+    expect(r.status_code == 200, f"circuit round (dry run) returned {r.status_code}")
+    result = r.json()
+    hit = next((c for c in result["circuits"] if {m["id"] for m in c["members"]} == story), None)
+    expect(
+        hit is not None,
+        f"the round didn't choose Asha, Priya and Arjun ({result['cycles_found']} loops found)",
+    )
+    for step in (
+        "Asha Reddy helps Arjun Nair with hiring",
+        "Arjun Nair helps Priya Sharma with fundraising",
+        "Priya Sharma helps Asha Reddy with marketing",
+    ):
+        expect(step in hit["sentence"], f"the loop is different: {hit['sentence']}")
+    return (
+        f"round {result['round_key']} chooses the loop (score {hit['score']}): Asha → Arjun "
+        "(hiring) → Priya (fundraising) → Asha (marketing)"
+    )
 
 
 async def story3_student(ctx: Ctx) -> str:
