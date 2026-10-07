@@ -382,6 +382,7 @@ class StartupStats(BaseModel):
     # Applications waiting for this startup. On an unclaimed startup they are saved
     # and shown to the founder once they claim the page.
     applications_waiting: int
+    you_are_interested: bool  # has the current user pressed "I'm interested"?
 
 
 class InterestOut(BaseModel):

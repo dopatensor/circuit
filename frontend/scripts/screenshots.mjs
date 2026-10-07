@@ -11,13 +11,36 @@ const sizes = {
   phone: { viewport: { width: 375, height: 812 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
   laptop: { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 },
 };
-// [file name, persona to sign in as (null = signed out), path, open the switcher?]
+// [file name, persona to sign in as (null = signed out), path, then (optional)]
+const pin = (name) => async (page) => {
+  await page.locator("[data-map-settled]").waitFor();
+  await page.getByRole("button", { name: new RegExp(`^${name}, `) }).dispatchEvent("click");
+};
+const firstJob = async (page) => {
+  await page.getByRole("main").getByRole("link").filter({ hasText: "match" }).first().click();
+  await page.getByRole("button", { name: "Apply" }).waitFor();
+};
 const shots = [
   ["welcome", null, "/welcome"],
   ["founder-matches", "Meera", "/matches"],
   ["student-me", "Ravi", "/me"],
-  ["switcher", "Ravi", "/me", true],
-  ["partner-me", "Nandini", "/me"],
+  ["switcher", "Ravi", "/me", async (page) => page.getByRole("button", { name: "Switch person" }).click()],
+  ["student-map", "Ravi", "/map", async (page) => page.locator("[data-map-settled]").waitFor()],
+  ["student-map-pin", "Ravi", "/map", pin("LedgerLoop")],
+  ["student-jobs", "Ravi", "/jobs", async (page) =>
+    page.getByRole("main").getByRole("link").filter({ hasText: "match" }).first().waitFor()],
+  ["student-job", "Ravi", "/jobs", firstJob],
+  ["founder-startup", "Rohan", "/startups", async (page) => {
+    await page.getByLabel("Startup name").fill("TerraGrid");
+    await page.getByRole("link", { name: /TerraGrid/ }).click();
+    await page.getByRole("button", { name: "Claim this startup" }).waitFor();
+  }],
+  ["founder-applicants", "Deepak", "/me", async (page) => {
+    await page.getByRole("link", { name: /LedgerLoop/ }).click();
+    await page.getByRole("link", { name: "See applicants" }).click();
+    await page.getByRole("heading", { name: "Applicants" }).waitFor();
+  }],
+  ["partner-map", "Nandini", "/map", async (page) => page.locator("[data-map-settled]").waitFor()],
 ];
 
 const browser = await chromium.launch();
@@ -25,7 +48,7 @@ for (const [size, options] of Object.entries(sizes)) {
   {
     const context = await browser.newContext({ ...options, colorScheme: "dark", serviceWorkers: "block" });
     const page = await context.newPage();
-    for (const [name, persona, path, openSwitcher] of shots) {
+    for (const [name, persona, path, then] of shots) {
       await page.goto(`${base}/welcome`);
       await page.evaluate(() => localStorage.clear());
       if (persona) {
@@ -34,10 +57,10 @@ for (const [size, options] of Object.entries(sizes)) {
         await page.getByRole("navigation", { name: "Main" }).waitFor();
       }
       await page.goto(`${base}${path}`);
-      await page.waitForLoadState("networkidle");
-      if (openSwitcher) {
-        await page.getByRole("button", { name: "Switch person" }).click();
-        await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
+      if (then) {
+        await then(page);
+        await page.waitForTimeout(400); // let sheets and the map finish moving
       }
       const file = `${out}/${size}-${name}.png`;
       await page.screenshot({ path: file, fullPage: false });

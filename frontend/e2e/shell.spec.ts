@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { goToTab, personButton, signInAs, switchTo, tabLabels } from "./helpers";
 
 test("signed out, you land on the welcome screen with the demo people", async ({ page }) => {

@@ -1,6 +1,8 @@
 import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { Link } from "react-router";
 import { api, type Role, unwrap } from "../api/client";
+import { useMyProfile } from "../api/hooks";
 import { useAuth } from "../auth";
 import { DemoStories } from "../components/DemoStories";
 import { Page } from "../components/Shell";
@@ -112,6 +114,8 @@ export default function Me() {
         ))}
       </div>
 
+      {member.role === "founder" && <YourStartups />}
+
       {isDemo && (
         <Card className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-1">
@@ -132,5 +136,38 @@ export default function Me() {
         <DemoStories onSwitched={() => setSwitching(false)} />
       </Sheet>
     </Page>
+  );
+}
+
+/** Founders: the startups you're part of, and a way to find and claim yours. */
+function YourStartups() {
+  const profile = useMyProfile();
+  const startups = profile.data?.startups ?? [];
+  return (
+    <Card className="flex flex-col gap-4">
+      <Eyebrow>Your startups</Eyebrow>
+      {profile.isPending ? (
+        <div className="h-14 animate-pulse rounded-xl bg-raised" />
+      ) : startups.length === 0 ? (
+        <p className="text-muted">You haven't claimed a startup yet.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {startups.map((s) => (
+            <li key={s.startup_id}>
+              <Link
+                to={`/startups/${s.startup_id}`}
+                className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-line bg-raised px-4 hover:border-muted"
+              >
+                <span className="font-semibold">{s.name}</span>
+                <span className="text-sm text-muted">{s.title}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      <Link to="/startups" className="text-sm font-semibold text-blue hover:underline">
+        Find and claim your startup
+      </Link>
+    </Card>
   );
 }

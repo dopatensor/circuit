@@ -11,8 +11,12 @@ const Welcome = lazy(() => import("./screens/Welcome"));
 const Me = lazy(() => import("./screens/Me"));
 const screens = (name: keyof typeof import("./screens/placeholders")) =>
   lazy(() => import("./screens/placeholders").then((m) => ({ default: m[name] })));
-const MapScreen = screens("MapScreen");
-const JobsScreen = screens("JobsScreen");
+const MapScreen = lazy(() => import("./screens/MapScreen"));
+const JobsScreen = lazy(() => import("./screens/Jobs"));
+const JobPage = lazy(() => import("./screens/JobPage"));
+const StartupPage = lazy(() => import("./screens/StartupPage"));
+const FindStartup = lazy(() => import("./screens/FindStartup"));
+const Applicants = lazy(() => import("./screens/Applicants"));
 const MatchesScreen = lazy(() => import("./screens/Matches"));
 const CircuitsScreen = screens("CircuitsScreen");
 const IntrosScreen = screens("IntrosScreen");
@@ -54,6 +58,11 @@ export default function App() {
         {tab("/intros", <IntrosScreen />)}
         {tab("/dashboard", <DashboardScreen />)}
         <Route path="/me" element={<Me />} />
+        {/* Pages reached from a tab (or a link), open to every signed-in role. */}
+        <Route path="/jobs/:jobId" element={<JobPage />} />
+        <Route path="/startups" element={<FindStartup />} />
+        <Route path="/startups/:startupId" element={<StartupPage />} />
+        <Route path="/startups/:startupId/applicants" element={<Applicants />} />
         {/* "/" (the installed app's start URL) and anything unknown: your main tab. */}
         <Route path="*" element={<Navigate to={home} replace />} />
       </Route>

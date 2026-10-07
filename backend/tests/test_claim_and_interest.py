@@ -48,9 +48,13 @@ async def test_views_count_once_per_person_per_day_and_not_for_the_team(client, 
 async def test_interest_is_idempotent_and_shows_on_the_map(client, make_member):
     _, student = await make_member(role="student", level=1)
     sid = await startup_id(client, student, "LedgerLoop")
+    stats = (await client.get(f"/api/startups/{sid}/stats", headers=student)).json()
+    assert stats["you_are_interested"] is False
     first = (await client.post(f"/api/startups/{sid}/interest", headers=student)).json()
     second = (await client.post(f"/api/startups/{sid}/interest", headers=student)).json()
     assert first["interested"] and second["interest_count"] == first["interest_count"]
+    stats = (await client.get(f"/api/startups/{sid}/stats", headers=student)).json()
+    assert stats["you_are_interested"] is True
 
     r = await client.get(
         "/api/map/startups/nearby",

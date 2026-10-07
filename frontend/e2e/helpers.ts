@@ -30,3 +30,8 @@ export async function tabLabels(page: Page): Promise<string[]> {
 export async function goToTab(page: Page, label: string) {
   await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: label }).click();
 }
+
+/** Wait until the map has zoomed to its pins and stopped moving. */
+export async function mapSettled(page: Page) {
+  await expect(page.locator("[data-map-settled]")).toBeVisible();
+}

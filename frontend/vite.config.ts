@@ -37,10 +37,18 @@ export default defineConfig(({ mode }) => {
         workbox: {
           // The app shell: precached, so the app opens instantly and offline.
           globPatterns: ["**/*.{js,css,html,svg,png}"],
+          // The map library (~280 KB gzipped) isn't pre-downloaded on install: founders
+          // never open the map. It's cached the first time someone does (below).
+          globIgnores: ["**/MapView-*"],
           navigateFallback: "/index.html",
           navigateFallbackDenylist: [/^\/api\//, /^\/health/, /^\/docs/],
           cleanupOutdatedCaches: true,
           runtimeCaching: [
+            {
+              urlPattern: ({ url }) => url.pathname.startsWith("/assets/MapView-"),
+              handler: "CacheFirst", // file names change with every build, so never stale
+              options: { cacheName: "circuit-map", expiration: { maxEntries: 6 } },
+            },
             {
               // API data that stays readable offline (network first, cache as fallback):
               // your matches, jobs and applications. Nothing else from /api is cached,
