@@ -10,7 +10,8 @@ warm intros with weekly capacity (F5), events for every action (F10), exchange
 circuits (F6) and the partner dashboard API (F8). Phase 8 added the frontend shell:
 an installable app (PWA) with role-based tabs, the demo persona switcher and
 verification badges. The map, jobs, matches, intros, circuits and dashboard screens
-come in Phases 9–11.
+come in Phases 9–11. Phase 9 added the map, startup pages with claiming, and jobs
+with applications.
 `make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
 
@@ -98,9 +99,13 @@ Lighthouse (mobile profile: mid-range Android, slow 4G), with the API running:
 ```bash
 cd frontend && npm run build && npx vite preview --port 4183 &
 npm run lighthouse -- http://localhost:4183/welcome
+npm run lighthouse -- http://localhost:4183/map --as ravi --details   # signed in
 ```
 
-Last run: Performance 99, Accessibility 100, Best Practices 100, SEO 100 (after the redesign). Lighthouse
+Last run (Phase 9): welcome 98/100/100/100; jobs and matches 99–100 across the board;
+the map 89–92 Performance (MapLibre's start-up work on a simulated budget phone), 95
+Accessibility (pins in dense clusters sit closer than 24px) and 96 Best Practices
+(only because this sandbox can't reach the tile server). Lighthouse
 12+ no longer has a PWA category; `e2e/pwa.spec.ts` checks the manifest, icons,
 service worker and offline behaviour instead.
 
@@ -173,6 +178,21 @@ Run `make reset-demo && make demo-check` before every demo.
   - When a new version is deployed, a bar says "Update available, tap to refresh".
   - After the second visit, a one-time "Add Circuit to your home screen" prompt
     appears, with the Share → "Add to Home Screen" steps on iPhone.
+- **Map (F2)**: MapLibre with a pure-black style built from free OpenStreetMap vector
+  tiles (OpenFreeMap, no key; `VITE_MAP_TILES` to change). If tiles can't load, the map
+  still works on black with the pins. Pins are real buttons, neon green for hiring and
+  grey otherwise. The map fits all pins; one "Filters" sheet (hiring, skill, distance);
+  tap a pin for a sheet with match %, open roles, "I'm interested" and "View startup".
+  MapLibre loads only with the Map tab and is cached the first time it's opened.
+- **Startup page and claim (F3)**: views, interested students and applications; for an
+  unclaimed startup, founders see "Claim this startup": a work email on the startup's
+  domain, then a 6-digit code (shown on screen in demo mode). Founders find it via Me →
+  "Find and claim your startup"; Me lists "Your startups".
+- **Jobs (F11)**: "Open jobs" (search, one filter sheet: type, pay, distance, skill;
+  students sorted by skill match) and "My applications" with status badges. The job page
+  highlights the skills you have and keeps "Apply" at the bottom (short note in a sheet).
+  Founders open their startup → "See applicants", ranked by skill match (never college),
+  and shortlist, hire or pass.
 - **Screenshots** for design reviews: `npm run screenshots -- http://localhost:4183`.
 
 ## Smart onboarding (F1)

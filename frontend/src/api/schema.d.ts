@@ -2317,6 +2317,8 @@ export interface components {
             student_viewers_30d: number;
             /** View Count */
             view_count: number;
+            /** You Are Interested */
+            you_are_interested: boolean;
         };
         /** StartupUpdate */
         StartupUpdate: {

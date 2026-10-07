@@ -246,7 +246,11 @@ async def startup_stats(startup_id: uuid.UUID, user: BrowseUser, session: Sessio
         .join(Job, Job.id == Application.job_id)
         .where(Job.startup_id == startup.id, Application.status == "submitted")
     )
+    mine = await session.scalar(
+        select(Event.id).where(*_interest_filter(startup.id), Event.actor_id == user.member_id)
+    )
     return StartupStats(
+        you_are_interested=mine is not None,
         applications_waiting=waiting or 0,
         view_count=startup.view_count,
         student_viewers_30d=viewers or 0,

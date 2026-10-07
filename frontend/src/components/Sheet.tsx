@@ -31,7 +31,10 @@ export function Sheet({
     >
       <div className="pb-safe flex flex-col">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-surface px-5 py-4">
-          <h2 className="text-xl font-semibold">{title}</h2>
+          {/* Focus lands on the title when the sheet opens, not on Close. */}
+          <h2 tabIndex={-1} autoFocus className="text-xl font-semibold outline-none">
+            {title}
+          </h2>
           <button onClick={onClose} className="min-h-11 px-2 text-sm text-muted hover:text-fg">
             Close
           </button>

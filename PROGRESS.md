@@ -6,7 +6,7 @@ must also follow [DESIGN.md](DESIGN.md)**, the user's design and PWA brief for P
 8–11. Setup details are in [README.md](README.md).
 
 Branch: `claude/kind-noether-bp70jm`. Phases 0–4 are merged into `main` (pull requests
-#1–#3 in `dopatensor/circuit`). Phases 5–8 are committed and pushed on this branch
+#1–#3 in `dopatensor/circuit`). Phases 5–9 are committed and pushed on this branch
 but not merged yet; no pull request has been opened for them.
 
 ## Status at a glance
@@ -21,20 +21,21 @@ but not merged yet; no pull request has been opened for them.
 | 5 Intros + events (F5, F10) | ✅ done |
 | 6 Circuits (F6) | ✅ done |
 | 7 Dashboard API (F8 backend) | ✅ done |
-| 8 Frontend shell (F9) + PWA + redesign | ✅ done (waiting for the user's OK on the redesign) |
-| **9 Map view + jobs UI (F2, F3, F11)** | ⏭️ **next: not started** |
-| 10–12 | not started |
+| 8 Frontend shell (F9) + PWA + redesign | ✅ done |
+| 9 Map view + jobs UI (F2, F3, F11) | ✅ done (waiting for the user's OK) |
+| **10 Network app (F1 UI, matches, intros, circuits)** | ⏭️ **next: not started** |
+| 11–12 | not started |
 
-Last verified (2026-10-07, Phase 8 redesign commit):
+Last verified (2026-10-07, Phase 9 commit):
 
-- Backend tests: **224 passed, 1 skipped** (the real-model test runs with
-  `RUN_MODEL_TESTS=1`). `ruff` and `alembic check` are clean.
-- Browser tests (`cd frontend && npx playwright test`): **23 passed, 1 skipped** (the
-  iPhone install-prompt test only runs at phone width).
-- `npm run size`: 95.6 KB of first-load JavaScript, gzipped (budget 200 KB).
-- Lighthouse (mobile, slow 4G, `/welcome`): Performance 99, Accessibility 100, Best
-  Practices 100, SEO 100.
-- `make demo-check`: **5/5 PASS**. `make eval`: 100%.
+- Backend tests: **224 passed, 1 skipped**. `ruff` and `alembic check` are clean.
+- Browser tests: **35 passed, 1 skipped** (twice in a row).
+- `npm run size`: 96.6 KB first-load JavaScript, gzipped. MapLibre (283 KB gzipped) is
+  its own lazy chunk and isn't pre-cached on install (404 KB precache).
+- Lighthouse (mobile, slow 4G): welcome 98/100/100/100; `/jobs` and `/matches` signed in
+  99–100; `/map` as Ravi 89–92 Performance, 95 Accessibility, 96 Best Practices (see
+  known issues).
+- `make demo-check`: **5/5 PASS**.
 
 ## What Phase 5 built (warm intros, F5)
 
@@ -148,47 +149,71 @@ Last verified (2026-10-07, Phase 8 redesign commit):
   also write those endpoints' "viewed" events. Acceptable for now; a dedicated
   `/api/members/me/summary` endpoint would be cleaner.
 
-## Phase 9: exactly what's left (all of it)
+## What Phase 9 built (map, claim, jobs: F2, F3, F11 UI)
 
-Spec: F2 map, F3 claim UI, F11 jobs UI. Follow DESIGN.md (Map and Jobs sections).
+- **Map** (`src/screens/MapScreen.tsx`, `src/map/`): MapLibre GL (lazy chunk) with
+  `darkStyle()`, a pure-black style from OpenFreeMap vector tiles (`VITE_MAP_TILES`,
+  `VITE_MAP_GLYPHS`). Pins are DOM buttons inside a MapLibre-owned wrapper (never
+  overwrite the wrapper's classes: MapLibre positions it), created 25 per frame, with a
+  24px tap area. The map fits all pins when results or filters change (instant the
+  first time) and sets `data-map-settled` when it stops moving. Data comes from
+  `/api/map/startups/nearby` (students 5/10/20 km, others 50 km). Filters sheet: hiring,
+  skill, distance (students). The pin sheet shows sector, distance, hiring, match %,
+  open roles (links to jobs), "I'm interested" (students) and "View startup". Without
+  WebGL, a plain list is shown.
+- **Startup page** (`StartupPage.tsx`): header with pills, stats (students interested,
+  views, applications), the claim card + `ClaimFlow` sheet (email → code; "Use it" fills
+  the demo code), "See applicants" for the claimer, "I'm interested" for students,
+  description, roles, team. **Find your startup** (`FindStartup.tsx`, `/startups`).
+- **Jobs** (`Jobs.tsx`): "Open jobs" / "My applications" segmented tabs (`?tab=`),
+  search, filter sheet (type, pay, distance, skill), and `LastUpdated` for offline
+  copies. **Job page** (`JobPage.tsx`): match %, skills with ✓ for ones you have,
+  description, a note about unclaimed startups, "Apply" fixed at the bottom and an
+  `ApplyForm` sheet, "You applied" + status afterwards, "See applicants" for the
+  startup's own founder.
+- **Applicants** (`Applicants.tsx`): ranked by match; skills (matched in green), the
+  note, status, and Shortlist / Hire / Not a fit buttons.
+- **Me** for founders: "Your startups" and "Find and claim your startup".
+- Backend: `StartupStats.you_are_interested`.
+- Shared: `src/api/hooks.ts` (`useCapabilities`, `useMyProfile`),
+  `src/components/jobs.tsx` (status pills, job types, pay).
+- **Tests**: `e2e/fixtures.ts` (`resetDemo()` resets the e2e database in about 6 s; an
+  automatic fixture blocks the tile host so tests don't depend on it),
+  `map.spec.ts` (pins, pin sheet, interest, filters, partner view), `story3.spec.ts`
+  (apply → Deepak shortlists → Ravi sees "Shortlisted"; another founder is refused;
+  no double apply), `claim.spec.ts` (wrong domain refused, right domain + code claims).
+- `scripts/lighthouse.mjs` takes `--as <persona>` (signs in through Playwright first)
+  and `--details`.
 
-1. **Map library and tiles:** MapLibre GL JS is on the spec's list. Tiles need a free
-   OSM-based style with no key, e.g. OpenFreeMap
-   (`https://tiles.openfreemap.org/styles/positron`, plus a dark style for dark mode).
-   Check its attribution and terms, and make the style URL a `VITE_MAP_STYLE` setting.
-   Lazy-load MapLibre: the Map tab chunk only, and keep `npm run size` green.
-2. **Map** (`/map`, students and partner admins): full-screen; pins coloured only by
-   hiring or not (neon green = hiring, grey = not hiring); one "Filters"
-   button opening a bottom sheet (hiring only, capability, distance); data from
-   `GET /api/map/startups/bbox` (pan/zoom) or `/nearby`. Tapping a pin opens a bottom
-   sheet with name, match % (`skill_match`), open roles (job titles/count) and one
-   button ("I'm interested" → `POST /api/startups/{id}/interest`, or "View" for
-   founders/partners).
-3. **Startup page** with the claim flow (F3): views/interest counts to motivate
-   claiming; "Claim this startup" → email on the startup's domain → code (dev shows
-   `dev_code`) → verify.
-4. **Jobs** (`/jobs`): a plain list (title, startup, distance, match %), one search field
-   and one filter button (type, paid, capability, distance). Job page: role, skills
-   needed with matched ones highlighted, "Apply" fixed at the bottom (a short note),
-   and "Applied" state. "My applications" with status badges, e.g. a section on Jobs or
-   in Me. Offline: show `<LastUpdated servedAt>` (use `withMeta`).
-5. **Founder applicants view**: Meera/Deepak see applicants ranked by skill match and set
-   the status (shortlist, reject, hire). Founders don't have a Jobs tab: reach it from the
-   startup page ("Applicants"), e.g. via Me → "Your startup".
-6. Loading, empty and error states on every screen; 44px targets; check at 375 and 1280.
-7. **Playwright**: story 3 through the UI at both widths (Ravi → map → LedgerLoop pin →
-   job → apply; Deepak → applicants → shortlist → Ravi sees "Shortlisted"), the
-   interest button, and the claim flow (Rohan claims TerraGrid). Reset between tests or
-   undo changes, because they share the e2e database.
-8. Screenshots for the user, Lighthouse, size, README, PROGRESS, commit, stop for OK.
+## Phase 10: exactly what's left (all of it)
 
-## Remaining phases after 9 (from CLAUDE.md)
+Spec: F1 onboarding UI, matches with reasons and Bridge badges (the list exists),
+warm intro flow, circuits loop card. Follow DESIGN.md.
 
-- **10 Network app**: onboarding chips (F1 UI), matches with reasons and Bridge badges,
-  warm intro flow (path sentence → request with reason → inbox with the `actions` each
-  item lists; show 429 messages as-is), circuit loop card with accept and decline. For
-  a *startup* match, the intro target is its claiming founder (no intro if unclaimed);
-  this mapping isn't in the API yet.
+1. **Onboarding (F1)**: `POST /api/onboarding/suggest` (paste a bio → suggested needs,
+   offers, capabilities, traits from the fixed lists) and `POST /api/onboarding/confirm`.
+   Tap-to-select chips; without an API key the endpoint falls back to manual pickers
+   (check the response shape). Entry point: Me ("Edit what you need and offer"), and for
+   new profiles.
+2. **Matches**: add one action per card. Members → "Ask for intro" (opens the intro
+   sheet); startups → "View startup"; jobs (students) → "View job". For a startup
+   match, the intro target would be its claiming founder (not in the API yet).
+3. **Warm intro flow (F5)**: the sheet shows `GET /api/intros/path/{id}`'s sentence and
+   via person, a reason field (10–500 characters) and "Send request". Show 429/403
+   messages as-is (`blocked_reason` when `can_request` is false). The **Intros tab**
+   lists sent, to-forward and received requests, each with the `actions` the API lists
+   (forward, accept, decline, withdraw, rate 1–5).
+4. **Circuits tab (F6)**: `GET /api/circuits/me` loop cards: three names in a simple
+   circle, the three "who helps whom" lines, Accept / Decline (72 h countdown), then
+   "Rate the help you got" once active. Partner admins: "Run round now" (Dashboard, Phase
+   11, or a small admin card).
+5. Playwright: story 1 (Meera → Kavya Bridge card → intro path), story 4 (Rohan →
+   Vikram via Lakshmi: request → Lakshmi forwards → Vikram accepts → Rohan rates), story 2
+   (admin runs the round → Asha, Priya and Arjun accept → active). Use `resetDemo()`.
+6. Screenshots, Lighthouse, size, README, PROGRESS, commit, stop for OK.
+
+## Remaining phases after 10 (from CLAUDE.md)
+
 - **11 Dashboard UI**: gap chart (Recharts) from `/api/dashboard/gaps`, MapLibre heatmap
   layer from `/api/dashboard/gaps/areas` (weight by `gap`, clipped at 0, with a
   capability picker), stat tiles from `/stats`, local vs bridge bars from `/intros`.
@@ -311,8 +336,13 @@ are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per st
   not cleared when every job closes.
 - **`jobs.searched` events are noisy:** one is written on every jobs list call, including
   pagination.
-- **Lighthouse only audits `/welcome`** (signed out). Signed-in screens need a login step
-  in the script; add it when the real screens exist (Phase 9+).
+- **The map scores 89–92 for Lighthouse Performance** (MapLibre's start-up on a simulated
+  budget phone) and 95 for Accessibility: in dense clusters pins sit closer than 24px.
+  **Pin clustering** (count bubbles that zoom in when tapped) would fix both and help on
+  small screens; with DOM pins it means grouping pins in screen space on `moveend`.
+- **This sandbox can't reach `tiles.openfreemap.org`** (network policy), so the map here
+  shows pins on black without streets. Real browsers load the tiles. Tests block the tile
+  host on purpose.
 - **Offline e2e tests need `PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1`**, which
   `playwright.config.ts` sets. Without it, Playwright's offline switch and routes
   sometimes miss the service worker's own requests, and the cache test flakes.
