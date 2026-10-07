@@ -9,6 +9,22 @@ Branch: `claude/kind-noether-bp70jm`. Phases 0–4 are merged into `main` (pull 
 #1–#3 in `dopatensor/circuit`). Phases 5–9 are committed and pushed on this branch
 but not merged yet; no pull request has been opened for them.
 
+## Where we stopped (2026-10-07)
+
+- **Phase 9 is finished, committed and pushed** (`4aa2a03`). The working tree is clean.
+- **Waiting for the user** on two things before Phase 10 starts:
+  1. An OK to start Phase 10 (onboarding chips, match-card actions, the warm intro
+     flow and Intros tab, the circuits loop card). The step-by-step plan is below.
+  2. Whether to add **map pin clustering** first: nearby pins merge into a count bubble
+     that zooms in when tapped. It would lift the map's Lighthouse Accessibility (95) and
+     Performance (89–92) and help on small screens. See "Known issues".
+- **How we work:** one phase at a time. Write tests during the phase; run the backend
+  tests, `make demo-check`, the browser tests, `npm run size` and Lighthouse; update
+  README and this file; commit and push; explain in plain language with screenshots;
+  then stop for the user's OK.
+- **Screenshots** for the user: build, run `npx vite preview --port 4183` with the API
+  on :8000, then `npm run screenshots -- http://localhost:4183 <dir>` and send the PNGs.
+
 ## Status at a glance
 
 | Phase | State |
@@ -402,6 +418,17 @@ The SessionStart hook (`.claude/hooks/session-start.sh`) does the setup:
 - runs `uv sync` and `npm install`;
 - exports `DATABASE_URL` and `TEST_DATABASE_URL`.
 
-No Docker is needed. Then use the same `make` commands. If uv warns that
+No Docker is needed. Then use the same `make` commands. Also:
+
+- Run `cp .env.example .env` once in a new container. `.env` is gitignored, and without
+  it `DEMO_AUTH` is off, so the persona switcher says "Demo sign-in is turned off".
+- The network policy blocks `tiles.openfreemap.org`, so maps in screenshots show pins
+  on black without streets. Real browsers load the tiles. To allow it, add the host
+  under Network access → Allowed domains in the environment settings.
+- Stop servers by port (`fuser -k 8000/tcp 4183/tcp`), not with `pkill -f "python -m
+  app"`: that pattern also matches the shell running it.
+- Playwright 1.56.1 matches the preinstalled Chromium; don't run `playwright install`.
+
+If uv warns that
 `UV_NATIVE_TLS` is deprecated, export `UV_SYSTEM_CERTS=1` and unset `UV_NATIVE_TLS`; the
 warning is harmless.
