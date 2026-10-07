@@ -2142,6 +2142,10 @@ export interface components {
             role: "student" | "founder" | "mentor" | "investor" | "partner_admin";
             /** Story */
             story: string;
+            /** Story Number */
+            story_number: number;
+            /** Story Title */
+            story_title: string;
             /** Verification Level */
             verification_level: number;
         };

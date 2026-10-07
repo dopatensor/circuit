@@ -2829,6 +2829,14 @@
             "title": "Story",
             "type": "string"
           },
+          "story_number": {
+            "title": "Story Number",
+            "type": "integer"
+          },
+          "story_title": {
+            "title": "Story Title",
+            "type": "string"
+          },
           "verification_level": {
             "title": "Verification Level",
             "type": "integer"
@@ -2840,7 +2848,9 @@
           "role",
           "display_name",
           "verification_level",
-          "story"
+          "story",
+          "story_number",
+          "story_title"
         ],
         "title": "Persona",
         "type": "object"

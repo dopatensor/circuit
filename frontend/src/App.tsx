@@ -13,7 +13,7 @@ const screens = (name: keyof typeof import("./screens/placeholders")) =>
   lazy(() => import("./screens/placeholders").then((m) => ({ default: m[name] })));
 const MapScreen = screens("MapScreen");
 const JobsScreen = screens("JobsScreen");
-const MatchesScreen = screens("MatchesScreen");
+const MatchesScreen = lazy(() => import("./screens/Matches"));
 const CircuitsScreen = screens("CircuitsScreen");
 const IntrosScreen = screens("IntrosScreen");
 const DashboardScreen = screens("DashboardScreen");

@@ -100,7 +100,7 @@ cd frontend && npm run build && npx vite preview --port 4183 &
 npm run lighthouse -- http://localhost:4183/welcome
 ```
 
-Last run: Performance 99, Accessibility 100, Best Practices 100, SEO 100. Lighthouse
+Last run: Performance 99, Accessibility 100, Best Practices 100, SEO 100 (after the redesign). Lighthouse
 12+ no longer has a PWA category; `e2e/pwa.spec.ts` checks the manifest, icons,
 service worker and offline behaviour instead.
 
@@ -145,11 +145,11 @@ Run `make reset-demo && make demo-check` before every demo.
 
 `frontend/` is a React + TypeScript app built with Vite and Tailwind CSS.
 
-- **Design**: hyper-minimalist and mobile-first. Black and white with one accent
-  colour, used only for each screen's main action and the "Bridge match" badge. Light
-  and dark follow the system. One system font, three text sizes. No shadows or
-  gradients, and transitions are short and turned off under "reduce motion". Tokens
-  live in `src/index.css`.
+- **Design** (see [DESIGN.md](DESIGN.md)): mobile-first, pure black with neon blue
+  for the main action and neon green for the "Bridge match" badge and good news.
+  Soft rounded cards, initials avatars, tinted status pills, one system font, four text
+  sizes. Transitions are short and turned off under "reduce motion". Tokens live in
+  `src/index.css`.
 - **Layout**: phones get a bottom tab bar, laptops a slim left sidebar, and content sits
   in a 720px column (the map and dashboard use the full width). Tabs depend on role:
   students get Map · Jobs · Matches · Me; founders, mentors and investors get Matches ·
@@ -157,8 +157,11 @@ Run `make reset-demo && make demo-check` before every demo.
 - **Data**: every call goes through the typed client generated from the API's OpenAPI
   spec (`src/api/schema.d.ts`; regenerate with `make api-client`), with TanStack Query.
   A backend test fails if `frontend/openapi.json` is out of date.
-- **Demo mode (F9)**: signed out, the welcome screen lists the demo people. Signed in,
-  the switcher is in the **Me** tab, with your verification badge and sign-out.
+- **Demo mode (F9)**: signed out, the welcome screen shows the pitch and the demo people
+  grouped by the five stories. Signed in, **Me** shows your profile, verification, three
+  stats for your role and a "Switch person" button that opens the same story list.
+- **Matches** already lists your real matches as cards (reason, score, Bridge badge);
+  the intro action arrives in Phase 10.
 - **Installable (PWA)**: a manifest (name, standalone, "C" icons at 192/512/maskable plus
   an apple-touch-icon; regenerate with `npm run icons`) and a service worker
   (vite-plugin-pwa):

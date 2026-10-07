@@ -33,18 +33,28 @@ PERSONAS: dict[str, str] = {
     "partner_admin": "nandini",
 }
 
-# Everyone the demo switcher offers, in display order, with the story they belong to.
-DEMO_PERSONAS: list[tuple[str, str]] = [
-    ("ravi", "Student from a lower-tier college, matched to LedgerLoop on skills"),
-    ("meera", "Biotech founder; bridge match with a deep-tech marketer"),
-    ("lakshmi", "Respected mentor; the warm-intro path to Vikram"),
-    ("vikram", "Climate investor"),
-    ("nandini", "Partner admin; sees the ecosystem dashboard"),
-    ("rohan", "Climate founder; claims TerraGrid and asks for an intro"),
-    ("asha", "Exchange circuit: needs marketing, offers hiring"),
-    ("priya", "Exchange circuit: needs fundraising, offers marketing"),
-    ("arjun", "Exchange circuit: needs hiring, offers fundraising"),
-    ("kavya", "Deep-tech marketer; the other side of the bridge match"),
+# The five demo stories, in demo order (DEMO.md follows the same order).
+DEMO_STORIES: dict[int, str] = {
+    1: "Bridge match",
+    2: "Exchange circuit",
+    3: "Student hired on skills",
+    4: "Warm intro",
+    5: "Ecosystem gaps",
+}
+
+# Everyone the demo switcher offers, in display order: (key, story number, their part).
+DEMO_PERSONAS: list[tuple[str, int, str]] = [
+    ("meera", 1, "Biotech founder who needs marketing"),
+    ("kavya", 1, "Deep-tech marketer, matched across sectors"),
+    ("asha", 2, "Needs marketing, offers hiring"),
+    ("priya", 2, "Needs fundraising, offers marketing"),
+    ("arjun", 2, "Needs hiring, offers fundraising"),
+    ("ravi", 3, "Student from a lower-tier college with strong skills"),
+    ("deepak", 3, "LedgerLoop founder who shortlists Ravi"),
+    ("rohan", 4, "Climate founder who wants an intro to Vikram"),
+    ("lakshmi", 4, "Respected mentor who knows them both"),
+    ("vikram", 4, "Climate investor"),
+    ("nandini", 5, "Incubator lead who sees the ecosystem's gaps"),
 ]
 
 # Keys of all hand-written members; the generator never uses these.

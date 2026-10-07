@@ -21,17 +21,17 @@ but not merged yet; no pull request has been opened for them.
 | 5 Intros + events (F5, F10) | ✅ done |
 | 6 Circuits (F6) | ✅ done |
 | 7 Dashboard API (F8 backend) | ✅ done |
-| 8 Frontend shell (F9) + PWA | ✅ done (waiting for the user's OK on the screenshots) |
+| 8 Frontend shell (F9) + PWA + redesign | ✅ done (waiting for the user's OK on the redesign) |
 | **9 Map view + jobs UI (F2, F3, F11)** | ⏭️ **next: not started** |
 | 10–12 | not started |
 
-Last verified (2026-10-07, Phase 8 commit):
+Last verified (2026-10-07, Phase 8 redesign commit):
 
 - Backend tests: **224 passed, 1 skipped** (the real-model test runs with
   `RUN_MODEL_TESTS=1`). `ruff` and `alembic check` are clean.
-- Browser tests (`cd frontend && npx playwright test`): **21 passed, 1 skipped** (the
+- Browser tests (`cd frontend && npx playwright test`): **23 passed, 1 skipped** (the
   iPhone install-prompt test only runs at phone width).
-- `npm run size`: 94.8 KB of first-load JavaScript, gzipped (budget 200 KB).
+- `npm run size`: 95.6 KB of first-load JavaScript, gzipped (budget 200 KB).
 - Lighthouse (mobile, slow 4G, `/welcome`): Performance 99, Accessibility 100, Best
   Practices 100, SEO 100.
 - `make demo-check`: **5/5 PASS**. `make eval`: 100%.
@@ -127,6 +127,27 @@ Last verified (2026-10-07, Phase 8 commit):
 - Backend: `python -m app.cli openapi`, `PORT` env for the API, and a test that
   `frontend/openapi.json` is current.
 
+## Phase 8 redesign (after the user's review)
+
+- The user found the first shell too plain, loosened the brief and asked for pure black
+  with neon blue and green. DESIGN.md's "Update" section records the new rules.
+- `src/index.css`: dark-only tokens (`bg`, `surface`, `raised`, `line`, `fg`, `muted`,
+  `blue`, `green`), `text-display`, `shadow-glow-blue` / `shadow-glow-green`.
+- `src/components/ui.tsx`: Card, Avatar (initials), Pill (green/blue/neutral), Stat,
+  Eyebrow, PrimaryButton (neon blue + glow), BridgeBadge (neon green + glow);
+  `Sheet.tsx` (bottom sheet / centred panel on `<dialog>`); `DemoStories.tsx` (personas
+  grouped by story, replaces PersonaList); `MatchCard.tsx`.
+- Backend: `DEMO_STORIES` and `DEMO_PERSONAS` now carry a story number; the persona API
+  returns `story_number` and `story_title`. Deepak (LedgerLoop's founder, story 3) was
+  added to the switcher.
+- Screens: a new Welcome (pitch, three steps, stories), Me (profile card, three stats by
+  role, demo card with "Switch person", sign out), and **Matches is real now**
+  (`/api/matches` as cards: score, reason, Bridge badge; no action yet, Phase 10 adds
+  "Ask for intro"). Icons are a neon-blue "C" on black.
+- The Me stats call `/api/matches`, `/api/jobs`, `/api/dashboard/stats` etc., so they
+  also write those endpoints' "viewed" events. Acceptable for now; a dedicated
+  `/api/members/me/summary` endpoint would be cleaner.
+
 ## Phase 9: exactly what's left (all of it)
 
 Spec: F2 map, F3 claim UI, F11 jobs UI. Follow DESIGN.md (Map and Jobs sections).
@@ -137,7 +158,7 @@ Spec: F2 map, F3 claim UI, F11 jobs UI. Follow DESIGN.md (Map and Jobs sections)
    Check its attribution and terms, and make the style URL a `VITE_MAP_STYLE` setting.
    Lazy-load MapLibre: the Map tab chunk only, and keep `npm run size` green.
 2. **Map** (`/map`, students and partner admins): full-screen; pins coloured only by
-   hiring or not (fg vs muted, so the accent stays for the main action); one "Filters"
+   hiring or not (neon green = hiring, grey = not hiring); one "Filters"
    button opening a bottom sheet (hiring only, capability, distance); data from
    `GET /api/map/startups/bbox` (pan/zoom) or `/nearby`. Tapping a pin opens a bottom
    sheet with name, match % (`skill_match`), open roles (job titles/count) and one

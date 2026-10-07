@@ -73,9 +73,14 @@ async def test_personas_are_listed_with_their_stories(client, seeded):
     r = await client.get("/api/auth/demo/personas")
     assert r.status_code == 200
     personas = {p["key"]: p for p in r.json()}
-    assert list(personas) == [key for key, _ in DEMO_PERSONAS]
+    assert list(personas) == [key for key, _, _ in DEMO_PERSONAS]
     assert personas["ravi"]["role"] == "student"
     assert personas["nandini"]["role"] == "partner_admin"
+    assert (personas["asha"]["story_number"], personas["asha"]["story_title"]) == (
+        2, "Exchange circuit"
+    )  # fmt: skip
+    numbers = [p["story_number"] for p in personas.values()]
+    assert numbers == sorted(numbers) and set(numbers) == {1, 2, 3, 4, 5}
 
 
 async def test_demo_login_then_me(client, login):

@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { signInAs } from "./helpers";
+import { goToTab, signInAs, switchTo } from "./helpers";
 
 async function serviceWorkerReady(page: Page) {
   await page.evaluate(async () => {
@@ -40,7 +40,7 @@ test("the service worker registers and the app opens offline", async ({ page, co
   await page.reload();
   // The shell comes from the cache and you're still you: tabs and your name, offline.
   await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
-  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Me" }).click();
+  await goToTab(page, "Me");
   await expect(page.getByRole("heading", { name: "Ravi Kumar" })).toBeVisible();
   await context.setOffline(false);
 });
@@ -61,12 +61,17 @@ test("jobs, matches and applications stay readable offline; tokens and other peo
   const online = await fetchJobs();
   expect(online.ok).toBe(true);
 
-  const cached = await page.evaluate(async () => {
-    const cache = await caches.open("circuit-api");
-    const keys = await cache.keys();
-    return keys.map((k) => ({ url: k.url, auth: k.headers.get("authorization") }));
-  });
-  expect(cached.some((k) => k.url.includes("/api/jobs"))).toBe(true);
+  // The worker writes to its cache just after answering the page, so wait for it.
+  const cachedKeys = () =>
+    page.evaluate(async () => {
+      const cache = await caches.open("circuit-api");
+      const keys = await cache.keys();
+      return keys.map((k) => ({ url: k.url, auth: k.headers.get("authorization") }));
+    });
+  await expect
+    .poll(async () => (await cachedKeys()).some((k) => k.url.includes("/api/jobs")))
+    .toBe(true);
+  const cached = await cachedKeys();
   expect(cached.every((k) => k.auth === null)).toBe(true); // the token is never stored
   const allCached = await page.evaluate(async () => {
     const urls: string[] = [];
@@ -84,11 +89,15 @@ test("jobs, matches and applications stay readable offline; tokens and other peo
   expect(offline.date).toBe(online.date); // so the app can say "Last updated <time>"
   await context.setOffline(false);
 
-  // Switching person clears the cached data.
-  await page.goto("/me");
-  await page.getByRole("button", { name: /Meera/ }).click();
+  // Switching person clears the previous person's cached data. (Meera's own matches
+  // may be cached again straight away; Ravi's jobs must be gone.)
+  await switchTo(page, "Meera");
   await expect(page).toHaveURL(/\/matches$/);
-  expect(await page.evaluate(() => caches.has("circuit-api"))).toBe(false);
+  const left = await page.evaluate(async () => {
+    if (!(await caches.has("circuit-api"))) return [];
+    return (await (await caches.open("circuit-api")).keys()).map((k) => k.url);
+  });
+  expect(left.some((u) => u.includes("/api/jobs"))).toBe(false);
 });
 
 test.describe("add to home screen", () => {

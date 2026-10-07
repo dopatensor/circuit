@@ -5,7 +5,31 @@ every screen. The user approved `vite-plugin-pwa`, `openapi-fetch`, `@tailwindcs
 `react-router` and `@playwright/test` as dependencies (and Lighthouse for the score
 script).
 
-## Design: hyper-minimalist, mobile-first
+## Update (2026-10-07): the brief was loosened after the Phase 8 review
+
+The first shell was too plain to show customers. The user asked to loosen the brief,
+use **neon blue and green**, and use **pure black (#000000)**. This section overrides
+the original design rules below wherever they conflict:
+
+- **Dark only, pure black background** (`#000`). Cards are near-black (`#0c0d10`),
+  raised elements `#15171c`, lines `#24262d`, text `#f4f6fa`, muted text `#9aa1ad`.
+  (Light mode was dropped; neon colours don't work on white. Easy to bring back.)
+- **Neon blue `#2f8cff`**: the main action on each screen (black text on it, soft glow),
+  the active tab, focus rings, story numbers, avatar rings.
+- **Neon green `#39ff8f`**: the "Bridge match" badge (with a glow), good news and
+  positive statuses (hiring, accepted, role verified, "You").
+- **Soft rounded cards** (`rounded-2xl`, 1px border) structure every screen, instead of
+  hairline lists. Subtle glows are allowed on the main action and Bridge badge only.
+- **Initials avatars** (a circle with a blue ring) for people; rounded squares for
+  startups and jobs. Still no photos or decorative images, and no gradients.
+- **Tinted status pills**: green, blue or grey backgrounds at 10% with matching text.
+- **Four text sizes**: `text-sm`, `text-base`, `text-xl`, plus `text-display` (2.5rem)
+  for the welcome headline and big numbers in stat tiles.
+- Laptops: the sidebar shows who you are at the bottom; welcome uses two columns.
+- Demo personas are grouped by the five stories, in the welcome page and in a "Switch
+  person" sheet opened from Me.
+
+## Design: hyper-minimalist, mobile-first (original brief)
 - One idea per screen. If a screen needs explaining, it's too complex; simplify it.
 - Mostly black and white, with one accent colour used only for the main action on each
   screen and for the "Bridge match" badge. Light and dark mode from system settings.
