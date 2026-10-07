@@ -4,9 +4,9 @@ A startup ecosystem platform that matches people on what they **need** and what 
 can **offer**, across sectors, with exchange circuits and a map of who is hiring nearby.
 See [CLAUDE.md](CLAUDE.md) for the full MVP spec and build phases.
 
-**Status:** Phases 0–3 done, including jobs and applications (F11): auth, profiles,
-smart onboarding, the startup map with a student skill-match score, claiming, and
-jobs. `make demo-check` prints PASS/FAIL per demo story. Browse the API at
+**Status:** Phases 0–4 done: auth, profiles, smart onboarding, the startup map,
+claiming, jobs (F11) and matching with reasons and Bridge badges (F4).
+`make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
 
 ## Layout
@@ -15,6 +15,9 @@ http://localhost:8000/docs.
 backend/    FastAPI app (Python 3.12, uv)
   app/        config, logging middleware, db, models, API routers, CLI
   app/seed/   capability/trait lists, demo stories, generator, loader
+  app/matching/ pure scoring, ranking and reasons; the compute service; the eval
+  app/graph/  people-graph interface (Postgres today, Neo4j later)
+  app/cache/  match-cache interface (match_results today, Redis later)
   migrations/ Alembic database migrations
   tests/      pytest suite
 frontend/   React + TypeScript + Vite app
@@ -107,6 +110,7 @@ From the repo root (macOS and WSL both have `make`):
 make db           # start Postgres
 make reset-demo   # wipe and reload the demo seed
 make demo-check   # PASS/FAIL for each of the five demo stories
+make eval         # how often the match scorer agrees with tests/eval/pairs.json
 make test         # backend tests + frontend build
 make lint         # ruff lint + format check
 make dev-api      # API on :8000
@@ -158,6 +162,31 @@ never logged or stored by the suggest step.
 - Applying to a job at an unclaimed startup works: the application waits, the
   startup's stats show `applications_waiting`, and the founder sees it after claiming.
 - The map, job list and job page all use the same scoring (`app/skill_match.py`).
+
+## Matching (F4)
+
+- `GET /api/matches` (verification level 2) returns your ranked matches, each with a
+  one-line reason and a `is_bridge` flag for cross-sector matches, e.g. *"Kavya Menon
+  offers marketing, which you need · both: long sales cycle, technical buyers · across
+  sectors (deeptech → biotech) · you both know Nandini Rao"*.
+- **Candidates**: local (same city plus a shared trait, a 1–2 hop connection or the same
+  sector) merged with bridge (anyone whose offers meet your needs or the reverse, by
+  capability or by embedding similarity from pgvector, ignoring sector).
+- **Score** = w1·complementarity (both directions) + w2·affinity (shared traits) +
+  w3·trust path + w4·timing − w5·load penalty. Weights live in `.env`. All scoring is
+  pure functions in `app/matching/scoring.py`.
+- **Ranking**: people with no free intro slots are skipped, a startup and its team count
+  once, ~25% of results are reserved for bridge matches, and no sector dominates.
+- **Students** are matched to jobs within `STUDENT_RADIUS_KM` (a hard filter) using the
+  same skill match as the map and job pages; Ravi's top match is the story 3 internship.
+- **Embeddings** come from `fastembed` (BAAI/bge-small-en-v1.5, 384 numbers per text) behind
+  an `EmbeddingProvider` interface; tests use a deterministic fake.
+- Results are precomputed into `match_results` by a background job every
+  `MATCH_REFRESH_HOURS` (and by `reset-demo`); `POST /api/matches/refresh` recomputes yours,
+  `POST /api/admin/matches/recompute` everyone's, `uv run python -m app.cli compute-matches`
+  from the shell.
+- **Eval**: `tests/eval/pairs.json` holds 53 hand-labelled good/bad pairs from the seed;
+  `make eval` reports agreement and how often good pairs outrank bad ones.
 
 ## Logs
 

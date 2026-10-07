@@ -1,0 +1,486 @@
+{
+  "description": "Hand-labelled pairs from the demo seed. 'good' means the candidate should be shown to the member; 'bad' means they should not. Labels come from reading both sides' needs, offers, skills and distance, not from the scorer's output.",
+  "thresholds": {
+    "network": 0.4,
+    "job": 0.6
+  },
+  "pairs": [
+    {
+      "member": "meera",
+      "candidate": {
+        "type": "member",
+        "key": "kavya"
+      },
+      "label": "good",
+      "why": "Story 1: HelixRoot needs marketing for technical buyers; Kavya markets to engineers, long sales cycles"
+    },
+    {
+      "member": "kavya",
+      "candidate": {
+        "type": "member",
+        "key": "meera"
+      },
+      "label": "good",
+      "why": "Story 1 from Kavya's side: she offers the marketing Meera needs"
+    },
+    {
+      "member": "rohan",
+      "candidate": {
+        "type": "member",
+        "key": "vikram"
+      },
+      "label": "good",
+      "why": "Story 4: Rohan raises pre-seed; Vikram funds climate pre-seed"
+    },
+    {
+      "member": "asha",
+      "candidate": {
+        "type": "member",
+        "key": "priya"
+      },
+      "label": "good",
+      "why": "Story 2: Asha needs marketing, Priya is a brand marketer"
+    },
+    {
+      "member": "priya",
+      "candidate": {
+        "type": "member",
+        "key": "arjun"
+      },
+      "label": "good",
+      "why": "Story 2: Priya needs fundraising, Arjun has raised twice"
+    },
+    {
+      "member": "arjun",
+      "candidate": {
+        "type": "member",
+        "key": "asha"
+      },
+      "label": "good",
+      "why": "Story 2: Arjun needs hiring, Asha ran campus hiring"
+    },
+    {
+      "member": "founder-011-0",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-003"
+      },
+      "label": "good",
+      "why": "Medtech founder needs fundraising; mentor offers fundraising and financial modelling"
+    },
+    {
+      "member": "founder-011-0",
+      "candidate": {
+        "type": "member",
+        "key": "investor-004"
+      },
+      "label": "good",
+      "why": "Needs fundraising; investor offers fundraising and pitch coaching"
+    },
+    {
+      "member": "founder-026-0",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-001"
+      },
+      "label": "good",
+      "why": "D2C founder needs fundraising; d2c mentor offers fundraising"
+    },
+    {
+      "member": "founder-009-0",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-006"
+      },
+      "label": "good",
+      "why": "Edtech founder needs hiring; mentor offers hiring and HR operations"
+    },
+    {
+      "member": "founder-009-0",
+      "candidate": {
+        "type": "member",
+        "key": "asha"
+      },
+      "label": "good",
+      "why": "Needs hiring; Asha offers hiring (cross-sector)"
+    },
+    {
+      "member": "investor-000",
+      "candidate": {
+        "type": "member",
+        "key": "lakshmi"
+      },
+      "label": "good",
+      "why": "Investor needs scientific advisory for hardware deals; Lakshmi offers it"
+    },
+    {
+      "member": "investor-004",
+      "candidate": {
+        "type": "member",
+        "key": "lakshmi"
+      },
+      "label": "good",
+      "why": "Investor needs scientific advisory; Lakshmi offers it"
+    },
+    {
+      "member": "investor-007",
+      "candidate": {
+        "type": "member",
+        "key": "lakshmi"
+      },
+      "label": "good",
+      "why": "Climate investor needs scientific advisory; Lakshmi offers it"
+    },
+    {
+      "member": "vikram",
+      "candidate": {
+        "type": "member",
+        "key": "lakshmi"
+      },
+      "label": "good",
+      "why": "Vikram needs help assessing hardware claims; Lakshmi offers scientific advisory"
+    },
+    {
+      "member": "founder-008-0",
+      "candidate": {
+        "type": "member",
+        "key": "lakshmi"
+      },
+      "label": "good",
+      "why": "Mobility founder needs government relations; Lakshmi offers it"
+    },
+    {
+      "member": "founder-006-0",
+      "candidate": {
+        "type": "member",
+        "key": "founder-008-0"
+      },
+      "label": "good",
+      "why": "SaaS founder needs B2B sales; the other founder offers B2B sales"
+    },
+    {
+      "member": "founder-006-0",
+      "candidate": {
+        "type": "member",
+        "key": "founder-009-0"
+      },
+      "label": "good",
+      "why": "Needs B2B sales; offered"
+    },
+    {
+      "member": "meera",
+      "candidate": {
+        "type": "member",
+        "key": "sunil"
+      },
+      "label": "good",
+      "why": "HelixRoot needs CDSCO regulatory help; Sunil is an ex-regulator"
+    },
+    {
+      "member": "meera",
+      "candidate": {
+        "type": "member",
+        "key": "priya"
+      },
+      "label": "good",
+      "why": "Needs marketing; Priya offers consumer marketing (weaker fit, still useful)"
+    },
+    {
+      "member": "founder-015-0",
+      "candidate": {
+        "type": "member",
+        "key": "rohan"
+      },
+      "label": "good",
+      "why": "Climate founder needs energy know-how; Rohan is an ex-grid engineer"
+    },
+    {
+      "member": "mentor-002",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-000"
+      },
+      "label": "good",
+      "why": "Mentor wants public speaking help; the other mentor offers it"
+    },
+    {
+      "member": "founder-019-0",
+      "candidate": {
+        "type": "member",
+        "key": "founder-006-0"
+      },
+      "label": "good",
+      "why": "One-way: founder-019 can give the B2B sales founder-006 needs"
+    },
+    {
+      "member": "meera",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-007"
+      },
+      "label": "bad",
+      "why": "Meera needs marketing/regulatory/clinical help; mentor offers culture and leadership"
+    },
+    {
+      "member": "rohan",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-000"
+      },
+      "label": "bad",
+      "why": "Rohan needs fundraising; mentor offers public speaking and PR"
+    },
+    {
+      "member": "asha",
+      "candidate": {
+        "type": "member",
+        "key": "investor-000"
+      },
+      "label": "bad",
+      "why": "Asha needs marketing; investor offers investor relations, needs scientific advisory"
+    },
+    {
+      "member": "founder-009-0",
+      "candidate": {
+        "type": "member",
+        "key": "investor-008"
+      },
+      "label": "bad",
+      "why": "Needs hiring; investor offers financial modelling and pitch coaching"
+    },
+    {
+      "member": "founder-026-0",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-007"
+      },
+      "label": "bad",
+      "why": "Needs fundraising; mentor offers culture and leadership"
+    },
+    {
+      "member": "kavya",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-006"
+      },
+      "label": "bad",
+      "why": "Kavya offers marketing; the HR mentor needs nothing she offers and vice versa"
+    },
+    {
+      "member": "vikram",
+      "candidate": {
+        "type": "member",
+        "key": "founder-019-0"
+      },
+      "label": "bad",
+      "why": "Vikram needs scientific advisory; founder offers B2B sales and needs nothing"
+    },
+    {
+      "member": "founder-006-0",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-008"
+      },
+      "label": "bad",
+      "why": "Needs B2B sales; mentor offers culture, leadership, strategy"
+    },
+    {
+      "member": "priya",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-004"
+      },
+      "label": "bad",
+      "why": "Priya needs fundraising; mentor offers international expansion and partnerships"
+    },
+    {
+      "member": "founder-011-0",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-005"
+      },
+      "label": "bad",
+      "why": "Similar sector (health), but nothing to exchange: needs fundraising, mentor offers content"
+    },
+    {
+      "member": "arjun",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-000"
+      },
+      "label": "bad",
+      "why": "Arjun needs hiring; mentor offers public speaking and PR"
+    },
+    {
+      "member": "lakshmi",
+      "candidate": {
+        "type": "member",
+        "key": "founder-019-0"
+      },
+      "label": "bad",
+      "why": "Lakshmi needs nothing; founder needs nothing she offers"
+    },
+    {
+      "member": "meera",
+      "candidate": {
+        "type": "member",
+        "key": "investor-006"
+      },
+      "label": "bad",
+      "why": "Meera needs marketing and regulatory help; investor offers pitch coaching and strategy"
+    },
+    {
+      "member": "rohan",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-007"
+      },
+      "label": "bad",
+      "why": "Needs fundraising; mentor offers culture and leadership"
+    },
+    {
+      "member": "asha",
+      "candidate": {
+        "type": "member",
+        "key": "mentor-008"
+      },
+      "label": "bad",
+      "why": "Needs marketing; mentor offers culture, leadership, strategy"
+    },
+    {
+      "member": "kavya",
+      "candidate": {
+        "type": "member",
+        "key": "investor-003"
+      },
+      "label": "bad",
+      "why": "Nothing Kavya offers is needed and nothing she needs is offered"
+    },
+    {
+      "member": "ravi",
+      "candidate": {
+        "type": "job",
+        "key": "ledgerloop.example#Backend Engineering Intern"
+      },
+      "label": "good",
+      "why": "Story 3: strong backend and data engineering, 1 km away"
+    },
+    {
+      "member": "ravi",
+      "candidate": {
+        "type": "job",
+        "key": "ledgerloop.example#Junior Backend Engineer"
+      },
+      "label": "good",
+      "why": "Strong backend, solid devops (role wants strong), 1 km away"
+    },
+    {
+      "member": "student-000",
+      "candidate": {
+        "type": "job",
+        "key": "ledgerloop.example#Backend Engineering Intern"
+      },
+      "label": "good",
+      "why": "Strong data engineering, solid backend, 3.5 km"
+    },
+    {
+      "member": "student-000",
+      "candidate": {
+        "type": "job",
+        "key": "rasoikitchen.example#Backend Engineer"
+      },
+      "label": "good",
+      "why": "Solid backend meets the requirement, 1.9 km"
+    },
+    {
+      "member": "student-002",
+      "candidate": {
+        "type": "job",
+        "key": "naukrihire.example#Social Media Associate Intern"
+      },
+      "label": "good",
+      "why": "Strong social media and video skills"
+    },
+    {
+      "member": "student-002",
+      "candidate": {
+        "type": "job",
+        "key": "chalorides.example#DevOps Engineer"
+      },
+      "label": "good",
+      "why": "Solid devops, 0.3 km away"
+    },
+    {
+      "member": "student-003",
+      "candidate": {
+        "type": "job",
+        "key": "tensorlabs.example#Firmware Engineer Intern"
+      },
+      "label": "good",
+      "why": "Solid embedded hardware, 0.6 km"
+    },
+    {
+      "member": "student-003",
+      "candidate": {
+        "type": "job",
+        "key": "orbitrobotics.example#ML Engineer"
+      },
+      "label": "good",
+      "why": "Solid machine learning meets the requirement, 0.7 km"
+    },
+    {
+      "member": "student-001",
+      "candidate": {
+        "type": "job",
+        "key": "ledgerloop.example#Backend Engineering Intern"
+      },
+      "label": "bad",
+      "why": "Video and market research skills; no backend at all"
+    },
+    {
+      "member": "ravi",
+      "candidate": {
+        "type": "job",
+        "key": "terragrid.example#Energy Data Analyst Intern"
+      },
+      "label": "bad",
+      "why": "Across the city (beyond the distance limit), and no energy know-how"
+    },
+    {
+      "member": "ravi",
+      "candidate": {
+        "type": "job",
+        "key": "shiftly.example#Talent Acquisition Lead"
+      },
+      "label": "bad",
+      "why": "A hiring role; Ravi has no hiring skills"
+    },
+    {
+      "member": "student-000",
+      "candidate": {
+        "type": "job",
+        "key": "koshfin.example#Backend Engineer"
+      },
+      "label": "bad",
+      "why": "Role wants strong backend; student is solid, and it's 7 km away"
+    },
+    {
+      "member": "student-003",
+      "candidate": {
+        "type": "job",
+        "key": "naukrihire.example#Content Writer Intern"
+      },
+      "label": "bad",
+      "why": "No writing or content skills"
+    },
+    {
+      "member": "student-005",
+      "candidate": {
+        "type": "job",
+        "key": "ledgerloop.example#Backend Engineering Intern"
+      },
+      "label": "bad",
+      "why": "QA, mobile and video skills; no backend or data engineering"
+    }
+  ]
+}

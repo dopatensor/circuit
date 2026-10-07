@@ -37,6 +37,8 @@ def make_test_settings(**overrides) -> Settings:
         "demo_auth": True,
         "anthropic_api_key": None,
         "jwks_url": None,
+        "embedding_provider": "fake",
+        "scheduler_enabled": False,
     }
     values.update(overrides)
     return Settings(_env_file=None, **values)

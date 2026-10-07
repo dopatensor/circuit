@@ -436,7 +436,7 @@ def story_members(center: Point, city: str) -> list[SeedMember]:
                 "Final-year CSE student. Built a GST invoice parser used by 40 shops in my "
                 "neighbourhood, plus a Dockerised FastAPI backend for it."
             ),
-            verification_level=1,
+            verification_level=2,  # LinkedIn linked, so the demo can show his matches
             open_intro_slots=2,
             circuits_opt_in=False,
             skills={

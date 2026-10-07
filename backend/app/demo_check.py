@@ -78,8 +78,14 @@ async def story1_bridge(ctx: Ctx) -> str:
         {"long_sales_cycle", "technical_buyers"} <= shared,
         f"missing shared traits (have {sorted(shared)})",
     )
-    traits = ", ".join(sorted(shared))
-    return f"{helix['sector']} startup ↔ {kavya['sector']} marketer, shared traits: {traits}"
+    # Phase 4: the matching engine shows it, as a Bridge match, with a reason.
+    matches = (await ctx.get("meera", "/api/matches", limit=5))["items"]
+    hit = next((m for m in matches if m["title"] == "Kavya Menon"), None)
+    expect(hit is not None, "Kavya isn't in Meera's top 5 matches")
+    expect(hit["is_bridge"], "Kavya's match isn't flagged as a Bridge match")
+    expect("long sales cycle" in hit["reason"], f"reason lacks shared traits: {hit['reason']}")
+    rank = matches.index(hit) + 1
+    return f"Kavya is Meera's #{rank} match, Bridge badge, reason: “{hit['reason']}”"
 
 
 async def story2_circuit(ctx: Ctx) -> str:
@@ -114,12 +120,18 @@ async def story3_student(ctx: Ctx) -> str:
         f"Ravi's top job is {top['title']} at {top['startup']['name']}",
     )
     expect(top["distance_km"] < 3, f"LedgerLoop is {top['distance_km']} km away")
+    matches = (await ctx.get("ravi", "/api/matches", limit=1))["items"]
+    expect(
+        matches and matches[0]["title"] == "Backend Engineering Intern"
+        and matches[0]["subtitle"].startswith("LedgerLoop"),
+        "Ravi's top match isn't the LedgerLoop internship",
+    )  # fmt: skip
     pins = await ctx.get("ravi", "/api/map/startups/nearby", radius_km=5)
     pin = next((p for p in pins["items"] if p["name"] == "LedgerLoop"), None)
     expect(pin is not None and pin["hiring"], "LedgerLoop isn't a hiring pin near Ravi")
     return (
-        f"top job: {top['title']} at LedgerLoop, {top['match']['score']}% match, "
-        f"{top['distance_km']} km, {top['compensation']}"
+        f"top match and top job: {top['title']} at LedgerLoop, {top['match']['score']}% "
+        f"skills, {top['distance_km']} km, {top['compensation']}"
     )
 
 
@@ -143,6 +155,10 @@ async def story4_warm_intro(ctx: Ctx) -> str:
     expect(weakest is not None and weakest >= 0.8, "no strong Rohan → Lakshmi → Vikram path")
     lakshmi_profile = await ctx.get("rohan", f"/api/members/{lakshmi}")
     expect(lakshmi_profile["verification_level"] == 3, "Lakshmi isn't verified level 3")
+    matches = (await ctx.get("rohan", "/api/matches", limit=5))["items"]
+    vikram_match = next((m for m in matches if m["title"] == "Vikram Shah"), None)
+    expect(vikram_match is not None, "Vikram isn't in Rohan's top 5 matches")
+    expect("Lakshmi" in vikram_match["reason"], "Vikram's match doesn't mention Lakshmi")
     terra = (await ctx.get("rohan", "/api/startups", q="TerraGrid"))["items"][0]
     stats = await ctx.get("rohan", f"/api/startups/{terra['id']}/stats")
     expect(not terra["claimed"], "TerraGrid is already claimed (run reset-demo)")

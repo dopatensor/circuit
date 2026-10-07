@@ -12,6 +12,7 @@ from app.api import (
     catalog,
     health,
     jobs,
+    matches,
     members,
     needs,
     onboarding,
@@ -21,6 +22,7 @@ from app.api import (
 from app.config import Settings, get_settings
 from app.db import get_engine
 from app.logging import RequestLoggingMiddleware, configure_logging
+from app.scheduler import start_scheduler
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -31,7 +33,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         structlog.get_logger("app").info("startup", env=settings.env, demo_auth=settings.demo_auth)
+        scheduler = start_scheduler(settings) if settings.scheduler_enabled else None
         yield
+        if scheduler:
+            scheduler.shutdown(wait=False)
         await get_engine().dispose()
 
     app = FastAPI(title="Circuit API", version="0.1.0", lifespan=lifespan)
@@ -54,6 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         startups,
         startup_map,
         jobs,
+        matches,
         onboarding,
         admin,
     ):

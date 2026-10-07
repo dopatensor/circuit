@@ -41,6 +41,7 @@ EMBEDDING_DIM = 384  # BAAI/bge-small-en-v1.5
 MEMBER_ROLES = ("student", "founder", "mentor", "investor", "partner_admin")
 STARTUP_SOURCES = ("seed", "crawler", "user")
 OWNER_TYPES = ("member", "startup")
+CANDIDATE_TYPES = ("member", "startup", "job")  # students are matched to jobs
 INTRO_STATUSES = ("pending", "accepted", "declined", "expired", "completed")
 CIRCUIT_STATUSES = ("proposed", "active", "declined", "expired", "completed")
 CONSENT_STATES = ("pending", "accepted", "declined")
@@ -428,7 +429,7 @@ class MatchResult(Base):
 
     __tablename__ = "match_results"
     __table_args__ = (
-        CheckConstraint(_in("candidate_type", OWNER_TYPES), name="candidate_type"),
+        CheckConstraint(_in("candidate_type", CANDIDATE_TYPES), name="candidate_type"),
         UniqueConstraint(
             "member_id", "candidate_type", "candidate_id", name="uq_match_results_candidate"
         ),

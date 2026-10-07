@@ -44,6 +44,27 @@ async def seed(database_url: str, settings: Settings, reset: bool) -> None:
             if reset:
                 await truncate_all(session)
             await load_dataset(session, dataset_for(settings))
+            await session.flush()
+            await prepare_matches(session, settings)
+    finally:
+        await engine.dispose()
+
+
+async def prepare_matches(session, settings: Settings) -> None:
+    """Embed new needs/offers, then precompute everyone's matches."""
+    from app.embeddings import embed_pending, get_embedding_provider
+    from app.matching.service import compute_all
+
+    count = await embed_pending(session, get_embedding_provider(settings))
+    result = await compute_all(session, settings)
+    print(f"embedded {count} texts; {result['results']} matches for {result['members']} members")
+
+
+async def compute_matches(database_url: str, settings: Settings) -> None:
+    engine = make_engine(database_url)
+    try:
+        async with AsyncSession(engine) as session, session.begin():
+            await prepare_matches(session, settings)
     finally:
         await engine.dispose()
 
@@ -55,7 +76,9 @@ def _refuse_in_production(settings: Settings, action: str) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
-    parser.add_argument("command", choices=["migrate", "seed", "reset-demo", "dump-seed"])
+    parser.add_argument(
+        "command", choices=["migrate", "seed", "reset-demo", "dump-seed", "compute-matches"]
+    )
     args = parser.parse_args(argv)
     settings = get_settings()
 
@@ -67,6 +90,9 @@ def main(argv: list[str] | None = None) -> None:
 
     migrate(settings.database_url)
     if args.command == "migrate":
+        return
+    if args.command == "compute-matches":
+        asyncio.run(compute_matches(settings.database_url, settings))
         return
     _refuse_in_production(settings, args.command)
     asyncio.run(seed(settings.database_url, settings, reset=args.command == "reset-demo"))

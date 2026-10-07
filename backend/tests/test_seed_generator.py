@@ -204,3 +204,8 @@ def test_adding_jobs_did_not_change_other_seed_data(data):
     # Jobs use their own random stream; these numbers are from before jobs existed.
     assert sum(len(s.needs) for s in data.startups) + sum(len(m.needs) for m in data.members) > 300
     assert len(data.connections) > 800
+
+
+def test_job_titles_are_clean(data):
+    titles = [j.title for s in data.startups for j in s.jobs]
+    assert not [t for t in titles if "Intern Intern" in t]

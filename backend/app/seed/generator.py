@@ -354,7 +354,9 @@ class _Gen:
                 kind = "internship" if rng.random() < 0.3 else "full_time"
                 roles.append(
                     OpenRole(
-                        title=f"{title} Intern" if kind == "internship" else title,
+                        title=f"{title} Intern"
+                        if kind == "internship" and not title.endswith("Intern")
+                        else title,
                         type=kind,
                         capabilities=list(caps),
                     )

@@ -518,3 +518,30 @@ class ApplicationStatusIn(BaseModel):
 
 StartupOut.model_rebuild()
 MapStartup.model_rebuild()
+
+
+# --- matches (F4) -------------------------------------------------------------------------
+
+
+class MatchOut(BaseModel):
+    candidate_type: Literal["member", "startup", "job"]
+    candidate_id: uuid.UUID
+    title: str  # person's name, startup name, or job title
+    subtitle: str  # role and sector, or the job's startup
+    sector: str | None
+    score: int  # 0-100
+    reason: str  # one line, built from the components
+    is_bridge: bool  # cross-sector: shown as a "Bridge match" badge
+    components: dict
+    computed_at: datetime | None
+
+
+class MatchList(BaseModel):
+    items: list[MatchOut]
+    computed_at: datetime | None
+
+
+class RecomputeOut(BaseModel):
+    members: int
+    results: int
+    embedded: int

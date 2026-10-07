@@ -42,6 +42,24 @@ class Settings(BaseSettings):
     demo_jwt_secret: str = DEV_DEMO_SECRET
     demo_token_ttl_minutes: int = 8 * 60
 
+    # Embeddings (Phase 4): "fastembed" runs BAAI/bge-small-en-v1.5 locally (downloads
+    # ~130 MB once); "fake" is a fast deterministic stand-in for tests and offline use.
+    embedding_provider: Literal["fastembed", "fake"] = "fastembed"
+    embedding_cache_dir: str = str(Path.home() / ".cache" / "circuit" / "fastembed")
+
+    # Matching weights (Phase 4): score = w1*complementarity + w2*affinity
+    #   + w3*trust_path + w4*timing - w5*load_penalty
+    match_w_complementarity: float = 0.50
+    match_w_affinity: float = 0.20
+    match_w_trust_path: float = 0.15
+    match_w_timing: float = 0.10
+    match_w_load_penalty: float = 0.15
+    match_results_per_member: int = 20
+    match_bridge_share: float = 0.25  # share of results reserved for bridge matches
+    student_radius_km: float = 10.0  # hard distance filter for students
+    match_refresh_hours: float = 6.0  # background job interval
+    scheduler_enabled: bool = True
+
     # LLM onboarding (F1). Without a key the app falls back to manual pickers.
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-haiku-4-5-20251001"
