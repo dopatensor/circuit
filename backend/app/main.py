@@ -11,6 +11,7 @@ from app.api import (
     auth,
     catalog,
     health,
+    intros,
     jobs,
     matches,
     members,
@@ -60,6 +61,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         startup_map,
         jobs,
         matches,
+        intros,
         onboarding,
         admin,
     ):

@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     match_refresh_hours: float = 6.0  # background job interval
     scheduler_enabled: bool = True
 
+    # Warm intros (F5). Each member's weekly capacity is members.open_intro_slots: it
+    # covers requests they receive and requests they are asked to pass on.
+    intro_requests_per_week: int = 5  # how many requests one member may send per week
+    intro_expiry_days: int = 14  # unanswered requests expire after this
+
     # LLM onboarding (F1). Without a key the app falls back to manual pickers.
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-haiku-4-5-20251001"

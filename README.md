@@ -4,8 +4,9 @@ A startup ecosystem platform that matches people on what they **need** and what 
 can **offer**, across sectors, with exchange circuits and a map of who is hiring nearby.
 See [CLAUDE.md](CLAUDE.md) for the full MVP spec and build phases.
 
-**Status:** Phases 0–4 done: auth, profiles, smart onboarding, the startup map,
-claiming, jobs (F11) and matching with reasons and Bridge badges (F4).
+**Status:** Phases 0–5 done: auth, profiles, smart onboarding, the startup map,
+claiming, jobs (F11), matching with reasons and Bridge badges (F4), and warm intros
+with weekly capacity (F5) and events for every action (F10).
 `make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
 
@@ -188,6 +189,33 @@ never logged or stored by the suggest step.
 - **Eval**: `tests/eval/pairs.json` holds 53 hand-labelled good/bad pairs from the seed;
   `make eval` reports agreement and how often good pairs outrank bad ones.
 
+## Warm intros (F5)
+
+- `GET /api/intros/path/{member_id}` (level 2) shows how a request would travel: through
+  the best mutual connection within 2 hops (found with a recursive SQL query over
+  `connections`), directly if you already know each other, or straight to them if no
+  one links you. It also says whether you can ask right now and, if not, why. Example:
+  *"Dr. Lakshmi Narayan knows you both (mentorship with you; worked together with Vikram
+  Shah). Your request goes to them first."*
+- `POST /api/intros` (level 3) sends a request with a short reason. It goes **via the
+  mutual** when one exists (or another mutual you pick from `alternatives`).
+- Flow: `pending` → the mutual **forwards** (or declines) → the target **accepts** (or
+  declines) → the sender **rates** the intro 1–5 (`completed`). Direct requests skip
+  the forwarding step. The sender can **withdraw** an open request. Accepting connects the
+  two people, so their next path is direct. The target only sees a request once the
+  mutual has passed it on.
+- **Capacity**: `members.open_intro_slots` is how many requests a person takes on per
+  week, counting requests they receive and ones they're asked to pass on. A busy
+  mutual is skipped for one with room. Beyond capacity the API answers `429` with a
+  polite message and a date (*"Vikram Shah has had a busy week of intro requests.
+  They'll have room again from Tue 13 Oct, so please try then."*) and a `Retry-After`
+  header. Each member can also send at most `INTRO_REQUESTS_PER_WEEK` requests a week.
+- `GET /api/intros/me`: requests you sent, ones waiting for you to pass on, ones you
+  received, and your capacity this week. Each request lists the `actions` you can take.
+- Requests nobody answers within `INTRO_EXPIRY_DAYS` (14) expire (hourly job).
+- Each request records whether the match was a **Bridge match**, for the partner
+  dashboard's local vs bridge acceptance rate.
+
 ## Logs
 
 The API writes one JSON line per request with `request_id`, `method`, `path`,
@@ -196,7 +224,8 @@ logged, so personal data and tokens stay out of logs. Every response carries an
 `X-Request-ID` header matching its log line.
 
 Product actions are also written to the append-only `events` table (ids, counts and
-categories only; never names, emails, phone numbers, free text or tokens).
+categories only; never names, emails, phone numbers, free text or tokens). A test
+(`tests/test_events_coverage.py`) fails if any write endpoint forgets to record one.
 
 ## Demo data
 

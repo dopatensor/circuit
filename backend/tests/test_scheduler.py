@@ -7,11 +7,12 @@ from tests.conftest import make_test_settings
 pytestmark = pytest.mark.anyio
 
 
-async def test_scheduler_registers_the_matching_job():
+async def test_scheduler_registers_the_jobs():
     scheduler = start_scheduler(make_test_settings(match_refresh_hours=6))
     try:
-        (job,) = scheduler.get_jobs()
-        assert job.id == "refresh_matches" and job.trigger.interval.total_seconds() == 6 * 3600
+        jobs = {j.id: j for j in scheduler.get_jobs()}
+        assert set(jobs) == {"refresh_matches", "expire_intros"}
+        assert jobs["refresh_matches"].trigger.interval.total_seconds() == 6 * 3600
     finally:
         scheduler.shutdown(wait=False)
 

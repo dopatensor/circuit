@@ -145,7 +145,7 @@ async def load_context(session) -> MatchContext:
         (
             await session.execute(
                 select(IntroRequest.to_member, func.count())
-                .where(IntroRequest.status == "pending")
+                .where(IntroRequest.status.in_(("pending", "forwarded")))
                 .group_by(IntroRequest.to_member)
             )
         ).all()

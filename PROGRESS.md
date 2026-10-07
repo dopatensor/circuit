@@ -4,9 +4,9 @@ Snapshot for picking the work up in a new session. The spec is [CLAUDE.md](CLAUD
 (including the "Spec additions" and "Testing" sections at the end); setup details are
 in [README.md](README.md).
 
-Branch: `claude/youthful-dirac-1uej54`. PR #1 (Phase 0 only) is already **merged** into
-`main`. Everything after it (Phases 1–4) is committed and pushed on this branch but not
-merged; open a **new** pull request for it.
+Branch: `claude/kind-noether-bp70jm`. Phases 0–4 are merged into `main` (pull requests
+#1–#3 in `dopatensor/circuit`). Phase 5 is committed and pushed on this branch and is
+not merged yet; no pull request has been opened for it.
 
 ## Status at a glance
 
@@ -17,71 +17,85 @@ merged; open a **new** pull request for it.
 | 2 Auth + profiles, onboarding (F1), verification (F7) | ✅ done |
 | 3 Geo + claim (F2, F3) + jobs/applications API (F11) | ✅ done |
 | 4 Matching (F4) | ✅ done |
-| **5 Intros + events (F5, F10)** | ⏭️ **next: not started** (no work in progress) |
-| 6–12 | not started |
+| 5 Intros + events (F5, F10) | ✅ done (waiting for the user's OK) |
+| **6 Circuits (F6)** | ⏭️ **next: not started** |
+| 7–12 | not started |
 
-Last verified (2026-10-07, at commit `6153556`):
+Last verified (2026-10-07, Phase 5 commit):
 
-- Backend tests: **185 passed, 1 skipped, 0 failing**. The skipped test
+- Backend tests: **203 passed, 1 skipped, 0 failing**. The skipped test
   (`tests/test_embeddings.py::test_real_model_puts_related_sentences_closer`) downloads
-  the real embedding model, so it only runs with `RUN_MODEL_TESTS=1`. It passed when run
-  that way.
-- `ruff check`, `ruff format --check` and `alembic check` (models match migrations) are clean.
-- Migrations apply from scratch, downgrade and re-apply (tested in `tests/test_migrations.py`).
-- `make demo-check`: **5/5 PASS** on a fresh `make reset-demo`.
-- `make eval`: 53 labelled pairs, 100% agreement (see the caveat under "Known issues").
+  the real embedding model, so it only runs with `RUN_MODEL_TESTS=1`.
+- `ruff check`, `ruff format --check` and `alembic check` are clean; the new migration
+  upgrades, downgrades and re-applies.
+- `make demo-check`: **5/5 PASS** on a fresh `make reset-demo` (story 4 now goes through
+  the intro API).
+- `make eval`: 53 labelled pairs, 100% agreement.
 - Frontend: only the Phase 0 placeholder; `npm run build` passes.
 
-## Phase 5: exactly what's left (all of it)
+## What Phase 5 built (for reference)
 
-Spec: F5 warm intros and F10 events.
+- `app/intros.py`: pure helpers (weekly `Load` and the next free date, ranking mutuals,
+  path sentences, polite busy messages) plus database helpers (`plan_path` using the
+  recursive SQL in `app/graph`, `loads`, `sender_load`, `match_is_bridge`,
+  `expire_stale`).
+- `app/api/intros.py`: `GET /api/intros/path/{member_id}` (level 2), `POST /api/intros`
+  (level 3), `GET /api/intros/me`, and `POST /api/intros/{id}/forward|accept|decline|
+  withdraw|rate`. Each response lists the `actions` the caller can take, for the UI.
+- Statuses: `pending` → `forwarded` (mutual passed it on) → `accepted` / `declined` →
+  `completed` (sender rated 1–5); also `withdrawn` and `expired`. Migration
+  `a5cb711b8b42` adds `forwarded`, `withdrawn`, `forwarded_at` and an index on
+  `created_at`.
+- Capacity: `members.open_intro_slots` per rolling 7 days, counting requests received
+  (unless a mutual declined before it arrived) and requests to pass on. Senders: at most
+  `INTRO_REQUESTS_PER_WEEK` (5). Refusals are 429 with a dated, polite message and
+  `Retry-After`. Rows are locked (`SELECT … FOR UPDATE`) so two requests can't take the
+  last slot at once.
+- Accepting an intro adds a `connections` row (`source="intro"`, strength 0.5).
+- Hourly scheduler job expires requests unanswered for `INTRO_EXPIRY_DAYS` (14).
+- Events: `intro.path_viewed`, `intro.requested`, `intro.forwarded`, `intro.accepted`,
+  `intro.declined` (`by`: mutual or target), `intro.withdrawn`, `intro.rated`,
+  `intro.refused` (capacity), `intro.expired`. `tests/test_events_coverage.py` fails if
+  any write endpoint doesn't record an event.
+- Matching's load penalty now counts `forwarded` requests as well as `pending` ones.
 
-1. **Warm path endpoint**: for any match, return the best mutual connection within 1–2
-   hops. `app/graph/PostgresGraph.paths()` already implements the recursive SQL, and a
-   test (`tests/test_matching.py::test_graph_paths_use_recursive_sql`) covers it. What's
-   missing is the endpoint, e.g. `GET /api/intros/path/{member_id}`, returning the via
-   person, the tie strengths and a sentence for the UI.
-2. **Intro requests**: `POST /api/intros` with a reason.
-   - It goes *via the mutual* when one exists (`via_member`), otherwise direct.
-   - It needs verification level 3 (F7: "3 = intros").
-   - The `intro_requests` table exists (Phase 1) with `from_member`, `to_member`,
-     `via_member`, `status`, `reason`, `is_bridge`, `outcome_rating` and timestamps. It
-     probably needs a column for the mutual's step, e.g. `via_status` or a `forwarded`
-     status (requested → forwarded by the mutual → accepted or declined by the target).
-     That means a new migration.
-3. **Capacity**: limits per person per week. Count requests received (as target, and as
-   the via person) in the last 7 days against `members.open_intro_slots`. Beyond capacity,
-   refuse politely with a friendly 409/429 message such as "Lakshmi has had a busy week —
-   try again after <date>". Matching already uses pending requests as `load_penalty`
-   (`app/matching/service.py` reads pending `intro_requests`).
-4. **Responses and outcome**: endpoints for the mutual to forward or decline, for the
-   target to accept or decline, `GET /api/intros/me` (sent and received), and an outcome
-   rating of 1–5 after an accepted intro. Mark `is_bridge` from the match when the
-   request is created; the Phase 7 dashboard needs it.
-5. **Events for every action (F10)**: audit every endpoint and add any missing event.
-   Events already exist for profiles, needs and offers, onboarding, startups, views,
-   interest, claims, jobs, applications and matches. Add the intro events. Payloads must
-   never contain names, emails, phones, free text or tokens.
-6. **Tests**: happy path via a mutual; direct path; level below 3 refused; capacity
-   refusal; only the right person can forward, accept or rate; events written.
-7. **demo-check, story 4**: upgrade it to go through the intro API (Rohan's path to
-   Vikram is via Lakshmi). It must not leave data behind: either check the path endpoint
-   only, or create and then clean up inside a transaction.
-8. README section, full test run, commit "Phase 5: …", explain, stop for OK.
+## Phase 6: exactly what's left (all of it)
 
-## Remaining phases after 5 (from CLAUDE.md)
+Spec: F6 exchange circuits.
 
-- **6 Circuits**:
-  - CAN_HELP edges, 3-cycles with networkx, scoring by weakest link, and non-overlapping
-    selection with OR-Tools CP-SAT.
-  - Weekly round plus an admin "Run round now" button; consent endpoints with a 72-hour
-    expiry.
-  - Tests on a hand-built graph where the right circuits are known.
-  - networkx and ortools are on the approved list but not installed yet.
-  - Must reliably find Asha → Arjun → Priya (story 2), then upgrade demo-check story 2.
+1. **Dependencies**: `networkx` and `ortools` are on the spec's approved list but not
+   installed. Add them with `uv add` and check that wheels exist for macOS ARM64 and
+   Linux x86_64 (OR-Tools does publish both).
+2. **CAN_HELP edges**: A → B when one of A's active offers meets one of B's active needs
+   (by capability; optionally embedding similarity), only for members with
+   `circuits_opt_in`. Each edge has a weight from the match score. Put it behind the
+   `app/graph` interface (e.g. `can_help_edges`).
+3. **Cycles**: 3-person directed cycles with networkx (`simple_cycles` with
+   `length_bound=3`, or a direct triangle search); score each by its **weakest link**.
+4. **Choose circuits**: CP-SAT picks non-overlapping cycles (each person in at most one)
+   that maximise the total score.
+5. **Rounds**: a weekly scheduler job plus an admin `POST /api/admin/circuits/run`
+   ("Run round now"). Store `circuits` and `circuit_legs` (tables exist from Phase 1).
+   Each leg needs consent, and the offer expires after 72 hours.
+6. **Member endpoints**: `GET /api/circuits/me` returns a loop card ("You help X with A,
+   X helps Y with B, Y helps you with C"), plus accept and decline. The circuit becomes
+   `active` when all three accept and `declined` when anyone declines; afterwards legs
+   are marked fulfilled and rated.
+7. **Events** for round run, proposed, accepted, declined, expired, fulfilled and rated.
+   The events-coverage test will catch any write endpoint without one.
+8. **Tests**: a hand-built graph where the right circuits are known (overlapping
+   triangles, where the solver must choose the best non-overlapping set); weakest-link
+   scoring; consent and expiry; only legs' members can respond.
+9. **demo-check, story 2**: run the round (read-only, e.g. a dry-run function) and
+   check it finds Asha → Arjun → Priya → Asha. Today it only checks the data.
+10. README section, `PROGRESS.md`, full test run, commit "Phase 6: …", explain, stop for OK.
+
+## Remaining phases after 6 (from CLAUDE.md)
+
 - **7 Dashboard API**: gap by capability and by area (map heat), network stats, intro
-  acceptance local vs bridge (seeded intros already have `is_bridge`). demo-check
-  story 5 should switch to the dashboard API.
+  acceptance local vs bridge (seeded and live intros have `is_bridge`; `accepted` and
+  `completed` count as accepted; ignore `withdrawn`, and count `expired` as not
+  accepted). demo-check story 5 should switch to the dashboard API.
 - **8 Frontend shell**:
   - Tailwind, a client generated with openapi-typescript (no hand-written fetch),
     TanStack Query, layout, persona switcher (F9), login state, verification badges.
@@ -92,7 +106,10 @@ Spec: F5 warm intros and F10 events.
   button, startup page with the claim flow; jobs list, job page, apply with a note,
   "My applications" with status badges, founder applicants view (F11).
 - **10 Network app**: onboarding chips (F1 UI), matches with reasons and Bridge badges,
-  warm intro flow, circuit loop card with accept and decline.
+  warm intro flow (path sentence → request with reason → inbox with the `actions` each
+  item lists; show 429 messages as-is), circuit loop card with accept and decline. For
+  a *startup* match, the intro target is its claiming founder (no intro if unclaimed);
+  this mapping isn't in the API yet.
 - **11 Dashboard UI**: gap chart (Recharts), map heat layer, stats, acceptance split.
 - **12 Demo readiness**: DEMO.md 5-minute script (story 3 includes applying and
   shortlisting), Railway or Render config, final README.
@@ -113,7 +130,8 @@ All of these were explained at the end of their phase; the user confirmed by con
 - `members.sector` (needed to tell bridge from local matches), `members.auth_subject`
   (JWT `sub`), `members.linkedin_url` (level 2).
 - `member_skills.level` (1–3).
-- `intro_requests.is_bridge` and `outcome_rating`.
+- `intro_requests.is_bridge`, `outcome_rating`, `forwarded_at`, and the extra statuses
+  `forwarded` and `withdrawn` (Phase 5).
 - `startup_claims` table (claim codes; stores only the email domain and a code hash).
 - F11 tables `jobs`, `job_capabilities`, `applications`.
 - `match_results.candidate_type` also allows `job`, because students are matched to jobs.
@@ -154,6 +172,14 @@ accept `open_roles`; founders manage jobs through the jobs endpoints.
 **Matching:** the bridge rule is "different sectors and complementarity ≥ 0.5". Students
 are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per startup.
 
+**Intros (Phase 5):**
+- Viewing a path needs level 2 (like matches); sending a request needs level 3;
+  answering (forward, accept, decline) needs no particular level.
+- One weekly capacity per person covers both receiving and passing on requests.
+- Senders have their own weekly limit (5), which isn't in the spec, to stop spamming.
+- Accepted intros create a connection, which grows the graph used for trust paths.
+- Only the sender rates the outcome.
+
 **API layout:** product endpoints live under `/api/...`; health stays at `/health` and
 `/health/deps`.
 
@@ -175,6 +201,9 @@ are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per st
   against offers, which is also the scorer's main signal. Some good pairs sit close to
   the 0.40 threshold (Meera→Sunil 0.49, founder-008-0→Lakshmi 0.43). Labels from real
   users would be a harder test.
+- **Intro paths are only for members.** A startup match has no intro target in the API
+  yet (Phase 10 should use the claiming founder).
+- **`GET /api/intros/me` returns at most 200 requests**, newest first, with no paging.
 - **Story 2 is only checked at the data level** (all three needs and offers exist). That
   the circuit round reliably finds the loop is Phase 6's job.
 - **No way to withdraw interest.** "I'm interested" can't be undone, because events are
@@ -196,7 +225,7 @@ are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per st
 
 ```bash
 git clone <repo> && cd circuit
-git checkout claude/youthful-dirac-1uej54
+git checkout claude/kind-noether-bp70jm   # or main once Phase 5 is merged
 cp .env.example .env               # set DEMO_AUTH=true for the persona logins
 make db                            # docker compose up -d --wait  (Postgres+PostGIS+pgvector)
 cd backend && uv sync && cd ..     # Python 3.12 deps (uv downloads Python itself)
