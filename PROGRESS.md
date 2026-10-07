@@ -5,8 +5,8 @@ Snapshot for picking the work up in a new session. The spec is [CLAUDE.md](CLAUD
 in [README.md](README.md).
 
 Branch: `claude/kind-noether-bp70jm`. Phases 0–4 are merged into `main` (pull requests
-#1–#3 in `dopatensor/circuit`). Phases 5 and 6 are committed and pushed on this branch
-but not merged yet; no pull request has been opened for them.
+#1–#3 in `dopatensor/circuit`). Phases 5, 6 and 7 are committed and pushed on this
+branch but not merged yet; no pull request has been opened for them.
 
 ## Status at a glance
 
@@ -18,20 +18,22 @@ but not merged yet; no pull request has been opened for them.
 | 3 Geo + claim (F2, F3) + jobs/applications API (F11) | ✅ done |
 | 4 Matching (F4) | ✅ done |
 | 5 Intros + events (F5, F10) | ✅ done |
-| 6 Circuits (F6) | ✅ done (waiting for the user's OK) |
-| **7 Dashboard API (F8 backend)** | ⏭️ **next: not started** |
-| 8–12 | not started |
+| 6 Circuits (F6) | ✅ done |
+| 7 Dashboard API (F8 backend) | ✅ done (waiting for the user's OK) |
+| **8 Frontend shell (F9)** | ⏭️ **next: not started** |
+| 9–12 | not started |
 
-Last verified (2026-10-07, Phase 6 commit):
+Last verified (2026-10-07, Phase 7 commit):
 
-- Backend tests: **215 passed, 1 skipped, 0 failing**. The skipped test
+- Backend tests: **223 passed, 1 skipped, 0 failing**. The skipped test
   (`tests/test_embeddings.py::test_real_model_puts_related_sentences_closer`) downloads
   the real embedding model, so it only runs with `RUN_MODEL_TESTS=1`. It passed after the
   Phase 6 dependency change (OR-Tools moved protobuf from 7 to 6).
 - `ruff check`, `ruff format --check` and `alembic check` are clean. Phase 6 needed no
   migration (the `circuits` and `circuit_legs` tables were created in Phase 1).
-- `make demo-check`: **5/5 PASS** on a fresh `make reset-demo`. Story 2 now runs the real
-  round as a dry run; story 4 goes through the intro API.
+- `make demo-check`: **5/5 PASS** on a fresh `make reset-demo`. Every story now goes
+  through the API: story 2 runs the real circuit round as a dry run, story 4 uses the
+  intro path, and story 5 uses the dashboard (gaps, heat cells, acceptance split).
 - `make eval`: 53 labelled pairs, 100% agreement.
 - Frontend: only the Phase 0 placeholder; `npm run build` passes.
 
@@ -75,42 +77,50 @@ Last verified (2026-10-07, Phase 6 commit):
   providers, but a live round only shows one circuit. The solver logic is proven on
   hand-built graphs in `tests/test_circuits_engine.py`.
 
-## Phase 7: exactly what's left (all of it)
+## What Phase 7 built (partner dashboard API, F8)
 
-Spec: F8 backend, the partner dashboard API (partner admins only).
+- `app/dashboard.py`: SQL for gaps by capability, gaps on a grid (cells are squares of
+  `cell_km`, default 2 km, with longitude scaled by latitude), network stats, and intro
+  acceptance by `is_bridge`. The pure helpers (`grid_degrees`, `Acceptance.rate`) are
+  unit-tested.
+- `app/api/dashboard.py`: `GET /api/dashboard/gaps`, `/gaps/areas`, `/stats`, `/intros`,
+  partner admins only (`require_admin`). Each records a `dashboard.viewed` event.
+- Needs whose owner no longer exists are left out (needs have no foreign key to their
+  owner, so a deleted member's needs could otherwise linger in counts).
+- Seed numbers: regulatory affairs 35 needs vs 2 offers; 17 cells with a regulatory gap
+  at 2 km; intro acceptance local 52% (12/23) vs bridge 80% (20/25).
 
-1. **Gap by capability**: for each capability, active needs vs active offers (count
-   needs from members and startups), ranked by gap. Story 5: `regulatory_affairs` is
-   first (35 vs 2 on the seed).
-2. **Gap by area**: the same, grouped by area for a map heat layer. Use a grid
-   (`ST_SnapToGrid` on the owner's location, about 1 km cells) or the seed's named
-   areas, and return points or cells with weights that MapLibre's heatmap layer can use.
-   Needs from startups use the startup's location; needs from members use the member's.
-   Optional `capability` filter.
-3. **Network stats**: members by role, startups (claimed vs unclaimed, hiring), active
-   needs and offers, connections, intros (sent, accepted), circuits (proposed, active,
-   completed), applications, and student interest events.
-4. **Intro acceptance, local vs bridge**: by `intro_requests.is_bridge`. Count `accepted`
-   and `completed` as accepted, ignore `withdrawn` and still-open requests, and count
-   `declined` and `expired` as not accepted. Return the rate and counts per group. The
-   seed history makes bridge intros a bit higher.
-5. Endpoints e.g. `GET /api/dashboard/gaps`, `/api/dashboard/gaps/areas`,
-   `/api/dashboard/stats`, `/api/dashboard/intros`. Partner admin only (`require_admin`
-   or a partner role check). Add an event (e.g. `dashboard.viewed`) if you treat views
-   as product actions; GETs aren't covered by the events-coverage test.
-6. **Tests**: exact numbers on small hand-made data where possible; regulatory first on
-   the seed; non-admins get 403.
-7. **demo-check, story 5**: switch from raw SQL to the dashboard API.
-8. README, `PROGRESS.md`, full test run, commit "Phase 7: …", explain, stop for OK.
+## Phase 8: exactly what's left (all of it)
 
-## Remaining phases after 7 (from CLAUDE.md)
+Spec: frontend shell, F9 persona switcher, login state, verification badges. From Phase
+8 on, every screen must work at phone width and on a laptop, and Playwright tests cover
+the demo stories at both widths.
 
-- **8 Frontend shell**:
-  - Tailwind, a client generated with openapi-typescript (no hand-written fetch),
-    TanStack Query, layout, persona switcher (F9), login state, verification badges.
-  - Playwright tests at phone and laptop widths start here.
-  - Ask before adding any frontend dependency that isn't listed (e.g. `openapi-fetch`,
-    `@playwright/test`).
+1. **Ask the user first** about frontend dependencies not named in CLAUDE.md. Named:
+   Tailwind CSS, TanStack Query, openapi-typescript, MapLibre GL JS, Recharts. Likely
+   extras to ask about: `openapi-fetch` (a tiny typed client that uses the
+   openapi-typescript types, so no fetch calls are hand-written), `@tailwindcss/vite`
+   (Tailwind 4's Vite plugin), `react-router` (pages and URLs), `@playwright/test`.
+2. **Generated client**: a script (e.g. `npm run gen:api`) that writes `src/api/schema.ts`
+   from the backend's OpenAPI. Read it from a running API at `/openapi.json`, or better,
+   dump it without a server: `uv run python -c "from app.main import app; ..."` to a
+   file. Commit the generated file and add a test or check that it's up to date.
+3. **Auth state**: store the demo token. `POST /api/auth/demo/login` with a persona;
+   `GET /api/auth/demo/personas` lists them (only when `DEMO_AUTH=true`); `GET /api/auth/me`.
+   Use sessionStorage or localStorage, with a logout.
+4. **Layout**: a header with nav (Map, Jobs, Matches, Intros, Circuits, Dashboard for
+   partner admins), the persona switcher (dev/demo only), and a verification badge (levels
+   1–3) next to names. Mobile: collapsible nav.
+5. Every screen has loading, empty and error states. 429 and 403 messages from the API
+   are written to be shown as-is.
+6. **Playwright**: config with two projects (phone, e.g. 390×844, and laptop
+   1280×800). Use Chromium at `/opt/pw-browsers` in the cloud and don't run
+   `playwright install` there. Start with persona switching; stories come in Phases 9–11.
+7. `make test` should also run the frontend typecheck and the Playwright tests; README.
+8. Commit "Phase 8: …", explain, stop for OK.
+
+## Remaining phases after 8 (from CLAUDE.md)
+
 - **9 Map view**: MapLibre map, filters, pins and popups (with job counts), interest
   button, startup page with the claim flow; jobs list, job page, apply with a note,
   "My applications" with status badges, founder applicants view (F11).
@@ -119,7 +129,9 @@ Spec: F8 backend, the partner dashboard API (partner admins only).
   item lists; show 429 messages as-is), circuit loop card with accept and decline. For
   a *startup* match, the intro target is its claiming founder (no intro if unclaimed);
   this mapping isn't in the API yet.
-- **11 Dashboard UI**: gap chart (Recharts), map heat layer, stats, acceptance split.
+- **11 Dashboard UI**: gap chart (Recharts) from `/api/dashboard/gaps`, MapLibre heatmap
+  layer from `/api/dashboard/gaps/areas` (weight by `gap`, clipped at 0, with a
+  capability picker), stat tiles from `/stats`, local vs bridge bars from `/intros`.
 - **12 Demo readiness**: DEMO.md 5-minute script (story 3 includes applying and
   shortlisting), Railway or Render config, final README.
 
@@ -190,6 +202,12 @@ are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per st
 - Senders have their own weekly limit (5), which isn't in the spec, to stop spamming.
 - Accepted intros create a connection, which grows the graph used for trust paths.
 - Only the sender rates the outcome.
+
+**Dashboard (Phase 7):**
+- "Area" is a grid of square cells (2 km by default), not named neighbourhoods, because
+  addresses aren't geocoded into areas. This works for any city.
+- The dashboard covers the whole platform (one city in the MVP), not one partner's own
+  members.
 
 **Circuits (Phase 6):**
 - Circuits need verification level 2 (like matches), plus `circuits_opt_in`.

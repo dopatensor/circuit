@@ -4,9 +4,10 @@ A startup ecosystem platform that matches people on what they **need** and what 
 can **offer**, across sectors, with exchange circuits and a map of who is hiring nearby.
 See [CLAUDE.md](CLAUDE.md) for the full MVP spec and build phases.
 
-**Status:** Phases 0–6 done: auth, profiles, smart onboarding, the startup map,
-claiming, jobs (F11), matching with reasons and Bridge badges (F4), warm intros with
-weekly capacity (F5), events for every action (F10) and exchange circuits (F6).
+**Status:** Phases 0–7 done, i.e. the whole backend: auth, profiles, smart onboarding,
+the startup map, claiming, jobs (F11), matching with reasons and Bridge badges (F4),
+warm intros with weekly capacity (F5), events for every action (F10), exchange
+circuits (F6) and the partner dashboard API (F8). The frontend comes next.
 `make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
 
@@ -246,6 +247,24 @@ Endpoints: `GET /api/circuits/me` (loop cards, each listing your `actions`),
 `POST /api/admin/circuits/run` ("Run round now"; `?dry_run=true` previews without
 saving). The round also runs weekly (`CIRCUIT_ROUND_DAY`, `CIRCUIT_ROUND_HOUR`, UTC), and
 an hourly job expires circuits nobody fully accepted in time.
+
+## Partner dashboard API (F8)
+
+Partner admins only (role `partner_admin`, level 3); everyone else gets 403.
+
+- `GET /api/dashboard/gaps`: per capability, active needs (from members and startups)
+  vs active offers, biggest gap first. On the seed, regulatory affairs leads with 35
+  needs vs 2 offers (story 5).
+- `GET /api/dashboard/gaps/areas?capability=regulatory_affairs&cell_km=2`: the same on a
+  grid of square cells (about `cell_km` across), each with its centre `lat`/`lng`, for
+  the map's heat layer. A need sits where its startup (or member) is; an offer where
+  the member is.
+- `GET /api/dashboard/stats`: members by role, startups (claimed, hiring), open jobs,
+  applications, needs and offers, connections, intros, students who showed interest,
+  and circuits by status.
+- `GET /api/dashboard/intros`: intro acceptance rate for local vs bridge matches.
+  Accepted and completed intros count as accepted; declined and expired as not; open
+  and withdrawn ones are left out. On the seed: local 52%, bridge 80%.
 
 ## Logs
 

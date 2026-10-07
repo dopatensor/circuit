@@ -180,24 +180,24 @@ async def story4_warm_intro(ctx: Ctx) -> str:
 
 
 async def story5_gap(ctx: Ctx) -> str:
-    rows = (
-        await ctx.session.execute(
-            text(
-                """
-                SELECT id, needs, offers FROM (
-                  SELECT c.id,
-                    (SELECT count(*) FROM needs n WHERE n.capability_id = c.id AND n.active)
-                      AS needs,
-                    (SELECT count(*) FROM offers o WHERE o.capability_id = c.id AND o.active)
-                      AS offers
-                  FROM capabilities c
-                ) t ORDER BY needs - offers DESC LIMIT 1
-                """
-            )
-        )
-    ).one()
-    expect(rows.id == "regulatory_affairs", f"biggest gap is {rows.id}, not regulatory_affairs")
-    return f"regulatory_affairs: {rows.needs} needs vs {rows.offers} offers"
+    gaps = (await ctx.get("nandini", "/api/dashboard/gaps", limit=3))["items"]
+    expect(gaps, "the dashboard shows no capability gaps")
+    top = gaps[0]
+    expect(
+        top["capability_id"] == "regulatory_affairs",
+        f"biggest gap is {top['capability_id']}, not regulatory_affairs",
+    )
+    expect(top["needs"] >= 5 * max(top["offers"], 1), "the regulatory gap isn't striking")
+    areas = await ctx.get("nandini", "/api/dashboard/gaps/areas", capability="regulatory_affairs")
+    hot = [c for c in areas["cells"] if c["gap"] > 0]
+    expect(len(hot) >= 5, f"the heat layer has only {len(hot)} cells with a regulatory gap")
+    intros = await ctx.get("nandini", "/api/dashboard/intros")
+    local, bridge = intros["local"]["rate"], intros["bridge"]["rate"]
+    expect(local is not None and bridge is not None, "no decided intros for the acceptance split")
+    return (
+        f"dashboard: {top['name']} {top['needs']} needs vs {top['offers']} offers, "
+        f"{len(hot)} hot map cells; intro acceptance local {local:.0%} vs bridge {bridge:.0%}"
+    )
 
 
 STORIES: list[tuple[str, Callable[[Ctx], Awaitable[str]]]] = [
