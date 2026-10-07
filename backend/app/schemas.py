@@ -614,3 +614,122 @@ class IntroInbox(BaseModel):
 
 class IntroRatingIn(BaseModel):
     rating: int = Field(ge=1, le=5)
+
+
+# --- exchange circuits (F6) ---------------------------------------------------------------
+
+CircuitStatus = Literal["proposed", "active", "declined", "expired", "completed"]
+
+
+class CapabilityRef(BaseModel):
+    id: str
+    name: str
+
+
+class CircuitLegOut(BaseModel):
+    position: int
+    giver: MemberSummary
+    receiver: MemberSummary
+    capability: CapabilityRef
+    consent: Literal["pending", "accepted", "declined"]  # the giver's answer
+    fulfilled: bool  # the receiver says they got the help
+    rating: int | None  # the receiver's rating, 1-5
+
+
+class CircuitCard(BaseModel):
+    """A loop card: "You help X with A, X helps Y with B, Y helps you with C"."""
+
+    id: uuid.UUID
+    round_key: str
+    status: CircuitStatus
+    score: int  # 0-100, the weakest link
+    created_at: datetime
+    expires_at: datetime  # answer by then (while proposed)
+    sentence: str
+    legs: list[CircuitLegOut]  # starting with the leg where you give
+    my_consent: Literal["pending", "accepted", "declined"]
+    actions: list[Literal["accept", "decline", "rate"]]
+
+
+class CircuitRatingIn(BaseModel):
+    rating: int = Field(ge=1, le=5)
+
+
+class RoundCircuit(BaseModel):
+    id: uuid.UUID | None  # None in a dry run
+    score: int
+    members: list[MemberSummary]
+    sentence: str  # "Asha helps Arjun with hiring, Arjun helps Priya with ..."
+
+
+class RoundOut(BaseModel):
+    round_key: str
+    dry_run: bool
+    pool: int  # members with at least one possible exchange
+    edges: int
+    cycles_found: int
+    circuits: list[RoundCircuit]
+
+
+# --- partner dashboard (F8) ---------------------------------------------------------------
+
+
+class CapabilityGap(BaseModel):
+    capability_id: str
+    name: str
+    category: str
+    needs: int  # active needs (members and startups)
+    offers: int  # active offers
+    gap: int  # needs - offers; the biggest gaps are what the ecosystem lacks
+
+
+class GapList(BaseModel):
+    items: list[CapabilityGap]
+
+
+class AreaCell(BaseModel):
+    lat: float  # centre of the grid cell
+    lng: float
+    needs: int
+    offers: int
+    gap: int
+
+
+class AreaGaps(BaseModel):
+    """Grid cells for a map heat layer (weight by gap, or by needs)."""
+
+    capability_id: str | None  # None = all capabilities
+    cell_km: float
+    max_gap: int
+    cells: list[AreaCell]
+
+
+class NetworkStats(BaseModel):
+    members: int
+    members_by_role: dict[str, int]
+    startups: int
+    startups_claimed: int
+    startups_hiring: int
+    open_jobs: int
+    applications: int
+    active_needs: int
+    active_offers: int
+    connections: int
+    intros: int
+    intros_accepted: int
+    students_interested: int  # distinct students who pressed "I'm interested"
+    circuits_opted_in: int
+    circuits_by_status: dict[str, int]
+
+
+class AcceptanceGroup(BaseModel):
+    decided: int  # accepted + completed + declined + expired
+    accepted: int  # accepted + completed
+    rate: float | None  # accepted / decided (0-1); None when nothing is decided yet
+
+
+class IntroAcceptance(BaseModel):
+    """Do cross-sector (bridge) intros work as well as local ones?"""
+
+    local: AcceptanceGroup
+    bridge: AcceptanceGroup

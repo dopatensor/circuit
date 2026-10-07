@@ -89,24 +89,39 @@ async def story1_bridge(ctx: Ctx) -> str:
 
 
 async def story2_circuit(ctx: Ctx) -> str:
-    people = {k: await ctx.get(k, "/api/members/me") for k in ("asha", "priya", "arjun")}
-    needs = {k: {n["capability_id"] for n in p["needs"]} for k, p in people.items()}
-    offers = {k: {o["capability_id"] for o in p["offers"]} for k, p in people.items()}
-    loop = [
-        ("asha", "arjun", "hiring"),
-        ("arjun", "priya", "fundraising"),
-        ("priya", "asha", "marketing"),
-    ]
-    for giver, receiver, cap in loop:
-        expect(
-            cap in offers[giver] and cap in needs[receiver],
-            f"{giver} can't help {receiver} with {cap}",
-        )
-    expect(
-        all(p["circuits_opt_in"] for p in people.values()),
-        "someone in the loop opted out of circuits",
+    story = {str(member_id(k)) for k in ("asha", "priya", "arjun")}
+    open_circuits = await ctx.session.scalar(
+        text(
+            """
+            SELECT count(*) FROM circuits c JOIN circuit_legs l ON l.circuit_id = c.id
+            WHERE l.giver_id = ANY(CAST(:ids AS uuid[]))
+              AND (c.status = 'active' OR (c.status = 'proposed' AND c.expires_at > now()))
+            """
+        ),
+        {"ids": sorted(story)},
     )
-    return "Asha → Arjun (hiring) → Priya (fundraising) → Asha (marketing): all edges present"
+    expect(open_circuits == 0, "Asha, Priya or Arjun is already in an open circuit (reset-demo)")
+    # A dry run: the same round "Run round now" runs, but nothing is saved.
+    r = await ctx.client.post(
+        "/api/admin/circuits/run", headers=await ctx.as_("nandini"), params={"dry_run": True}
+    )
+    expect(r.status_code == 200, f"circuit round (dry run) returned {r.status_code}")
+    result = r.json()
+    hit = next((c for c in result["circuits"] if {m["id"] for m in c["members"]} == story), None)
+    expect(
+        hit is not None,
+        f"the round didn't choose Asha, Priya and Arjun ({result['cycles_found']} loops found)",
+    )
+    for step in (
+        "Asha Reddy helps Arjun Nair with hiring",
+        "Arjun Nair helps Priya Sharma with fundraising",
+        "Priya Sharma helps Asha Reddy with marketing",
+    ):
+        expect(step in hit["sentence"], f"the loop is different: {hit['sentence']}")
+    return (
+        f"round {result['round_key']} chooses the loop (score {hit['score']}): Asha → Arjun "
+        "(hiring) → Priya (fundraising) → Asha (marketing)"
+    )
 
 
 async def story3_student(ctx: Ctx) -> str:
@@ -165,24 +180,24 @@ async def story4_warm_intro(ctx: Ctx) -> str:
 
 
 async def story5_gap(ctx: Ctx) -> str:
-    rows = (
-        await ctx.session.execute(
-            text(
-                """
-                SELECT id, needs, offers FROM (
-                  SELECT c.id,
-                    (SELECT count(*) FROM needs n WHERE n.capability_id = c.id AND n.active)
-                      AS needs,
-                    (SELECT count(*) FROM offers o WHERE o.capability_id = c.id AND o.active)
-                      AS offers
-                  FROM capabilities c
-                ) t ORDER BY needs - offers DESC LIMIT 1
-                """
-            )
-        )
-    ).one()
-    expect(rows.id == "regulatory_affairs", f"biggest gap is {rows.id}, not regulatory_affairs")
-    return f"regulatory_affairs: {rows.needs} needs vs {rows.offers} offers"
+    gaps = (await ctx.get("nandini", "/api/dashboard/gaps", limit=3))["items"]
+    expect(gaps, "the dashboard shows no capability gaps")
+    top = gaps[0]
+    expect(
+        top["capability_id"] == "regulatory_affairs",
+        f"biggest gap is {top['capability_id']}, not regulatory_affairs",
+    )
+    expect(top["needs"] >= 5 * max(top["offers"], 1), "the regulatory gap isn't striking")
+    areas = await ctx.get("nandini", "/api/dashboard/gaps/areas", capability="regulatory_affairs")
+    hot = [c for c in areas["cells"] if c["gap"] > 0]
+    expect(len(hot) >= 5, f"the heat layer has only {len(hot)} cells with a regulatory gap")
+    intros = await ctx.get("nandini", "/api/dashboard/intros")
+    local, bridge = intros["local"]["rate"], intros["bridge"]["rate"]
+    expect(local is not None and bridge is not None, "no decided intros for the acceptance split")
+    return (
+        f"dashboard: {top['name']} {top['needs']} needs vs {top['offers']} offers, "
+        f"{len(hot)} hot map cells; intro acceptance local {local:.0%} vs bridge {bridge:.0%}"
+    )
 
 
 STORIES: list[tuple[str, Callable[[Ctx], Awaitable[str]]]] = [

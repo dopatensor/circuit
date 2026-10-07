@@ -24,6 +24,16 @@ class Tie:
 
 
 @dataclass(frozen=True)
+class CanHelp:
+    """giver has an offer for something receiver needs (exchange circuits, F6)."""
+
+    giver: uuid.UUID
+    receiver: uuid.UUID
+    capability_id: str
+    similarity: float | None  # cosine similarity of the offer and need texts
+
+
+@dataclass(frozen=True)
 class Path:
     members: list[uuid.UUID]  # start ... goal
     weakest: float  # the weakest tie on the path
@@ -43,6 +53,8 @@ class GraphStore(Protocol):
     async def connect(
         self, session, a: uuid.UUID, b: uuid.UUID, strength: float, source: str
     ) -> None: ...
+
+    async def can_help(self, session, min_level: int) -> list[CanHelp]: ...
 
 
 class PostgresGraph:
@@ -98,6 +110,43 @@ class PostgresGraph:
             .values(member_a=min(a, b), member_b=max(a, b), strength=strength, source=source)
             .on_conflict_do_nothing(constraint="uq_connections_pair")
         )
+
+    async def can_help(self, session, min_level):
+        """CAN_HELP edges between members who opted in to circuits and have at least
+        min_level. A founder's needs include their startup's needs (as in matching)."""
+        rows = await session.execute(
+            text(
+                """
+                WITH member_needs AS (
+                    SELECT owner_id AS member_id, capability_id, embedding
+                    FROM needs WHERE owner_type = 'member' AND active
+                    UNION ALL
+                    SELECT team.member_id, n.capability_id, n.embedding
+                    FROM needs n
+                    JOIN (
+                        SELECT startup_id, member_id FROM startup_members
+                        UNION
+                        SELECT id, claimed_by_member_id FROM startups
+                        WHERE claimed_by_member_id IS NOT NULL
+                    ) team ON team.startup_id = n.owner_id
+                    WHERE n.owner_type = 'startup' AND n.active
+                ), pool AS (
+                    SELECT id FROM members
+                    WHERE circuits_opt_in AND verification_level >= :min_level
+                )
+                SELECT o.member_id, n.member_id, o.capability_id,
+                       MAX(1 - (o.embedding <=> n.embedding)) AS similarity
+                FROM offers o
+                JOIN member_needs n ON n.capability_id = o.capability_id
+                WHERE o.active AND o.member_id <> n.member_id
+                  AND o.member_id IN (SELECT id FROM pool)
+                  AND n.member_id IN (SELECT id FROM pool)
+                GROUP BY o.member_id, n.member_id, o.capability_id
+                """
+            ),
+            {"min_level": min_level},
+        )
+        return [CanHelp(g, r, cap, sim) for g, r, cap, sim in rows]
 
 
 def best_trust_path(adj: Adjacency, a: uuid.UUID, b: uuid.UUID) -> TrustPath | None:

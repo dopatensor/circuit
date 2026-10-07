@@ -4,9 +4,10 @@ A startup ecosystem platform that matches people on what they **need** and what 
 can **offer**, across sectors, with exchange circuits and a map of who is hiring nearby.
 See [CLAUDE.md](CLAUDE.md) for the full MVP spec and build phases.
 
-**Status:** Phases 0–5 done: auth, profiles, smart onboarding, the startup map,
-claiming, jobs (F11), matching with reasons and Bridge badges (F4), and warm intros
-with weekly capacity (F5) and events for every action (F10).
+**Status:** Phases 0–7 done, i.e. the whole backend: auth, profiles, smart onboarding,
+the startup map, claiming, jobs (F11), matching with reasons and Bridge badges (F4),
+warm intros with weekly capacity (F5), events for every action (F10), exchange
+circuits (F6) and the partner dashboard API (F8). The frontend comes next.
 `make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
 
@@ -17,6 +18,7 @@ backend/    FastAPI app (Python 3.12, uv)
   app/        config, logging middleware, db, models, API routers, CLI
   app/seed/   capability/trait lists, demo stories, generator, loader
   app/matching/ pure scoring, ranking and reasons; the compute service; the eval
+  app/circuits/ exchange circuits: pure engine (networkx + CP-SAT) and the round service
   app/graph/  people-graph interface (Postgres today, Neo4j later)
   app/cache/  match-cache interface (match_results today, Redis later)
   migrations/ Alembic database migrations
@@ -215,6 +217,54 @@ never logged or stored by the suggest step.
 - Requests nobody answers within `INTRO_EXPIRY_DAYS` (14) expire (hourly job).
 - Each request records whether the match was a **Bridge match**, for the partner
   dashboard's local vs bridge acceptance rate.
+
+## Exchange circuits (F6)
+
+A circuit is a loop of three people who each help the next: *"You help Arjun Nair with
+hiring, Arjun Nair helps Priya Sharma with fundraising, Priya Sharma helps you with
+marketing."* Nobody owes anybody, because everybody gives once and gets once.
+
+How a round works (`app/circuits/engine.py` is pure and unit-tested; `service.py` reads
+and writes the database):
+1. **CAN_HELP edges**: giver → receiver when one of the giver's active offers is the same
+   capability as one of the receiver's active needs (a founder's needs include their
+   startup's). Only members who opted in (`circuits_opt_in`) with verification level 2+,
+   and not already in an open circuit. Edge weight = 0.4 + 0.4 × how closely the offer
+   and need texts match (embeddings) + 0.2 × how well they already know each other.
+2. **Cycles**: every 3-person loop, found with networkx.
+3. **Score**: a loop is only as strong as its weakest link (its lowest edge weight).
+4. **Choice**: OR-Tools CP-SAT picks the set of loops with the highest total score
+   where nobody appears twice. Simply taking the best loop first can do worse; there's
+   a test showing that case.
+5. Each chosen loop is saved as a `proposed` circuit. Each person accepts or declines the
+   leg where they give help within **72 hours** (`CIRCUIT_CONSENT_HOURS`). All three
+   accept → `active`; anyone declines → `declined` (and the same three aren't proposed
+   again for 4 weeks); time runs out → `expired`. Once active, each person marks the
+   help they received as done and rates it 1–5; all three → `completed`.
+
+Endpoints: `GET /api/circuits/me` (loop cards, each listing your `actions`),
+`POST /api/circuits/{id}/accept|decline|rate`, and for admins
+`POST /api/admin/circuits/run` ("Run round now"; `?dry_run=true` previews without
+saving). The round also runs weekly (`CIRCUIT_ROUND_DAY`, `CIRCUIT_ROUND_HOUR`, UTC), and
+an hourly job expires circuits nobody fully accepted in time.
+
+## Partner dashboard API (F8)
+
+Partner admins only (role `partner_admin`, level 3); everyone else gets 403.
+
+- `GET /api/dashboard/gaps`: per capability, active needs (from members and startups)
+  vs active offers, biggest gap first. On the seed, regulatory affairs leads with 35
+  needs vs 2 offers (story 5).
+- `GET /api/dashboard/gaps/areas?capability=regulatory_affairs&cell_km=2`: the same on a
+  grid of square cells (about `cell_km` across), each with its centre `lat`/`lng`, for
+  the map's heat layer. A need sits where its startup (or member) is; an offer where
+  the member is.
+- `GET /api/dashboard/stats`: members by role, startups (claimed, hiring), open jobs,
+  applications, needs and offers, connections, intros, students who showed interest,
+  and circuits by status.
+- `GET /api/dashboard/intros`: intro acceptance rate for local vs bridge matches.
+  Accepted and completed intros count as accepted; declined and expired as not; open
+  and withdrawn ones are left out. On the seed: local 52%, bridge 80%.
 
 ## Logs
 

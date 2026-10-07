@@ -4,7 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -64,6 +64,11 @@ class Settings(BaseSettings):
     # covers requests they receive and requests they are asked to pass on.
     intro_requests_per_week: int = 5  # how many requests one member may send per week
     intro_expiry_days: int = 14  # unanswered requests expire after this
+
+    # Exchange circuits (F6): a weekly round (UTC), and 72 hours to accept or decline.
+    circuit_round_day: Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"] = "mon"
+    circuit_round_hour: int = Field(default=4, ge=0, le=23)
+    circuit_consent_hours: int = 72
 
     # LLM onboarding (F1). Without a key the app falls back to manual pickers.
     anthropic_api_key: str | None = None
