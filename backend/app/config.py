@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://circuit:circuit@localhost:5432/circuit"
     db_connect_timeout_s: int = 5
 
+    city_name: str = "Bengaluru"
     city_center_lat: float = 12.9716
     city_center_lng: float = 77.5946
 

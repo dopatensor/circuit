@@ -4,14 +4,16 @@ A startup ecosystem platform that matches people on what they **need** and what 
 can **offer**, across sectors, with exchange circuits and a map of who is hiring nearby.
 See [CLAUDE.md](CLAUDE.md) for the full MVP spec and build phases.
 
-**Status:** Phase 0 (scaffold) — backend and frontend start, Postgres with PostGIS +
-pgvector runs in Docker, request logging and health checks are in place.
+**Status:** Phase 1 (data model + seed) — all tables and indexes are migrated, and a
+deterministic seed with the five demo stories loads with one command.
 
 ## Layout
 
 ```
 backend/    FastAPI app (Python 3.12, uv)
-  app/        config, logging middleware, db, API routers
+  app/        config, logging middleware, db, models, API routers, CLI
+  app/seed/   capability/trait lists, demo stories, generator, loader
+  migrations/ Alembic database migrations
   tests/      pytest suite
 frontend/   React + TypeScript + Vite app
 db/         Postgres 16 + PostGIS + pgvector Dockerfile and init script
@@ -41,6 +43,7 @@ cp .env.example .env            # then edit if needed; never commit .env
 docker compose up -d --wait     # builds and starts Postgres (first build takes a minute)
 cd backend && uv sync && cd ..  # creates backend/.venv with all Python packages
 cd frontend && npm install && cd ..
+cd backend && uv run python -m app.cli reset-demo && cd ..   # tables + demo data
 ```
 
 ## Run
@@ -83,8 +86,40 @@ The API writes one JSON line per request with `request_id`, `method`, `path`,
 logged, so personal data and tokens stay out of logs. Every response carries an
 `X-Request-ID` header matching its log line.
 
+## Demo data
+
+```bash
+cd backend
+uv run python -m app.cli reset-demo   # wipe everything, restore the demo (~2 s). Run before every demo.
+uv run python -m app.cli seed         # add/refresh seed data but keep live activity (claims, views)
+uv run python -m app.cli migrate      # only apply migrations
+uv run python -m app.cli dump-seed    # print the generated startups as crawler-shaped JSON
+```
+
+The seed is generated around `CITY_CENTER_LAT`/`CITY_CENTER_LNG` (`CITY_NAME` for
+addresses) and is identical on every run: ~150 startups and ~300 members, students the
+largest group. Startup domains end in `.example` (a reserved domain) so no seed record
+points at a real company. It always contains the five demo stories:
+
+| # | Story | Who |
+| --- | --- | --- |
+| 1 | Bridge match: biotech needing marketing ↔ deep-tech marketer | HelixRoot Biosciences (Dr. Meera Iyer) ↔ Kavya Menon |
+| 2 | 3-person exchange circuit | Asha → Arjun (hiring), Arjun → Priya (fundraising), Priya → Asha (marketing) |
+| 3 | Lower-tier college student matched on skills to a nearby hiring startup | Ravi Kumar ↔ LedgerLoop (about 1 km away) |
+| 4 | Warm intro through a respected mentor | Rohan Mehta → Dr. Lakshmi Narayan → Vikram Shah |
+| 5 | Capability gap | regulatory affairs: 36 needs, 2 offers |
+
+Demo personas (used by the persona switcher later): student Ravi, founder Meera,
+mentor Lakshmi, investor Vikram, partner admin Nandini. TerraGrid Energy (Rohan's
+startup) is deliberately unclaimed, with 63 views and 14 interested students, for the
+claim-flow demo.
+
 ## Database
 
+- Schema changes go through Alembic: edit `app/models.py`, then
+  `uv run alembic revision --autogenerate -m "what changed"`, review the file in
+  `migrations/versions/`, and `uv run alembic upgrade head`.
+- The `events` table is append-only: a database trigger rejects UPDATE and DELETE.
 - `docker compose up -d --wait` starts Postgres on port 5432 (change `POSTGRES_PORT`
   in `.env` if something else uses it — and update the URLs to match).
 - Two databases are created on first start: `circuit` (app) and `circuit_test` (tests),
