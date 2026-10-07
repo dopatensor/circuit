@@ -8,6 +8,7 @@ from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+DEV_DEMO_SECRET = "dev-only-demo-secret-change-me-0123456789"
 
 
 class Settings(BaseSettings):
@@ -15,6 +16,7 @@ class Settings(BaseSettings):
         env_file=(REPO_ROOT / ".env", ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
+        env_ignore_empty=True,  # "KEY=" in .env means "use the default"
     )
 
     env: Literal["development", "test", "production"] = "development"
@@ -24,14 +26,44 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://circuit:circuit@localhost:5432/circuit"
     db_connect_timeout_s: int = 5
 
+    city_name: str = "Bengaluru"
     city_center_lat: float = 12.9716
     city_center_lng: float = 77.5946
 
+    # Real logins: tokens signed by the auth provider (Clerk or Supabase), checked
+    # against its published keys (JWKS). Issuer/audience are checked when set.
     jwks_url: str | None = None
+    jwt_issuer: str | None = None
+    jwt_audience: str | None = None
+
+    # Demo logins: we sign short-lived tokens for seeded personas ourselves.
     demo_auth: bool = False
     demo_public: bool = False
+    demo_jwt_secret: str = DEV_DEMO_SECRET
+    demo_token_ttl_minutes: int = 8 * 60
 
+    # Embeddings (Phase 4): "fastembed" runs BAAI/bge-small-en-v1.5 locally (downloads
+    # ~130 MB once); "fake" is a fast deterministic stand-in for tests and offline use.
+    embedding_provider: Literal["fastembed", "fake"] = "fastembed"
+    embedding_cache_dir: str = str(Path.home() / ".cache" / "circuit" / "fastembed")
+
+    # Matching weights (Phase 4): score = w1*complementarity + w2*affinity
+    #   + w3*trust_path + w4*timing - w5*load_penalty
+    match_w_complementarity: float = 0.50
+    match_w_affinity: float = 0.20
+    match_w_trust_path: float = 0.15
+    match_w_timing: float = 0.10
+    match_w_load_penalty: float = 0.15
+    match_results_per_member: int = 20
+    match_bridge_share: float = 0.25  # share of results reserved for bridge matches
+    student_radius_km: float = 10.0  # hard distance filter for students
+    match_refresh_hours: float = 6.0  # background job interval
+    scheduler_enabled: bool = True
+
+    # LLM onboarding (F1). Without a key the app falls back to manual pickers.
     anthropic_api_key: str | None = None
+    anthropic_model: str = "claude-haiku-4-5-20251001"
+    anthropic_timeout_s: float = 20.0
 
     @property
     def cors_origin_list(self) -> list[str]:
@@ -44,6 +76,12 @@ class Settings(BaseSettings):
                 "DEMO_AUTH=true is not allowed when ENV=production. "
                 "Set DEMO_PUBLIC=true only for a demo deployment that holds fake data."
             )
+        if (
+            self.env == "production"
+            and self.demo_auth
+            and (self.demo_jwt_secret == DEV_DEMO_SECRET or len(self.demo_jwt_secret) < 32)
+        ):
+            raise ValueError("Set a random DEMO_JWT_SECRET of at least 32 characters.")
         return self
 
 
