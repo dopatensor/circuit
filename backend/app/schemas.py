@@ -212,7 +212,6 @@ class StartupCreate(BaseModel):
     address: str | None = Field(default=None, max_length=300)
     location: LatLng
     hiring: bool = False
-    open_roles: list[OpenRoleIO] = Field(default_factory=list, max_length=20)
     tech_stack: list[str] = Field(default_factory=list, max_length=20)
 
     @field_validator("website_domain")
@@ -229,7 +228,6 @@ class StartupUpdate(BaseModel):
     address: str | None = Field(default=None, max_length=300)
     location: LatLng | None = None
     hiring: bool | None = None
-    open_roles: list[OpenRoleIO] | None = Field(default=None, max_length=20)
     tech_stack: list[str] | None = Field(default=None, max_length=20)
 
 
@@ -243,7 +241,7 @@ class StartupOut(BaseModel):
     address: str | None
     location: LatLng | None
     hiring: bool
-    open_roles: list[OpenRoleIO]
+    jobs: list["JobBrief"]
     tech_stack: list[str]
     claimed: bool
     claimed_by_member_id: uuid.UUID | None
@@ -357,7 +355,7 @@ class MapStartup(BaseModel):
     hiring: bool
     location: LatLng
     distance_km: float | None
-    open_roles: list[OpenRoleIO]
+    jobs: list["JobBrief"]
     claimed: bool
     interest_count: int
     interested: bool  # has the current user pressed "I'm interested"?
@@ -379,6 +377,9 @@ class StartupStats(BaseModel):
     student_viewers_30d: int
     interested_students: int
     interested_total: int
+    # Applications waiting for this startup. On an unclaimed startup they are saved
+    # and shown to the founder once they claim the page.
+    applications_waiting: int
 
 
 class InterestOut(BaseModel):
@@ -401,3 +402,119 @@ class ClaimStartOut(BaseModel):
 class ClaimVerifyIn(BaseModel):
     claim_id: uuid.UUID
     code: str = Field(pattern=r"^\d{6}$")
+
+
+# --- jobs and applications (F11) ----------------------------------------------------------
+
+JobType = Literal["internship", "full_time", "part_time", "contract"]
+ApplicationStatus = Literal["submitted", "shortlisted", "rejected", "hired", "withdrawn"]
+
+
+class JobCapabilityIO(BaseModel):
+    capability_id: CapabilityId
+    min_level: int = Field(default=2, ge=1, le=3)
+
+
+class JobBrief(BaseModel):
+    id: uuid.UUID
+    title: str
+    type: JobType
+    paid: bool
+    compensation: str | None
+
+
+class JobStartup(BaseModel):
+    id: uuid.UUID
+    name: str
+    sector: str
+    claimed: bool
+    location: LatLng | None
+    address: str | None
+
+
+class JobOut(BaseModel):
+    id: uuid.UUID
+    title: str
+    description: str
+    type: JobType
+    paid: bool
+    compensation: str | None
+    status: Literal["open", "closed"]
+    capabilities: list[JobCapabilityIO]
+    startup: JobStartup
+    distance_km: float | None
+    match: SkillMatchOut | None  # students only
+    has_applied: bool
+    created_at: datetime
+
+
+class JobIn(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+    description: str = Field(default="", max_length=4000)
+    type: JobType = "full_time"
+    paid: bool = True
+    compensation: str | None = Field(default=None, max_length=120)
+    capabilities: list[JobCapabilityIO] = Field(min_length=1, max_length=10)
+
+
+class JobUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=120)
+    description: str | None = Field(default=None, max_length=4000)
+    type: JobType | None = None
+    paid: bool | None = None
+    compensation: str | None = Field(default=None, max_length=120)
+    status: Literal["open", "closed"] | None = None
+    capabilities: list[JobCapabilityIO] | None = Field(default=None, min_length=1, max_length=10)
+
+
+class ApplyIn(BaseModel):
+    note: str = Field(default="", max_length=500)
+
+
+class ApplicationJob(BaseModel):
+    id: uuid.UUID
+    title: str
+    type: JobType
+    paid: bool
+    startup_id: uuid.UUID
+    startup_name: str
+    startup_claimed: bool
+
+
+class ApplicationOut(BaseModel):
+    id: uuid.UUID
+    job: ApplicationJob
+    status: ApplicationStatus
+    note: str
+    match_score_at_apply: int
+    created_at: datetime
+    status_changed_at: datetime | None
+
+
+class ApplicantMember(BaseModel):
+    """What a founder sees about an applicant: skills, not college."""
+
+    id: uuid.UUID
+    display_name: str
+    city: str | None
+    verification_level: int
+
+
+class ApplicantOut(BaseModel):
+    application_id: uuid.UUID
+    job_id: uuid.UUID
+    job_title: str
+    member: ApplicantMember
+    skills: list[SkillIn]
+    match: SkillMatchOut  # live score against the job
+    note: str
+    status: ApplicationStatus
+    created_at: datetime
+
+
+class ApplicationStatusIn(BaseModel):
+    status: Literal["submitted", "shortlisted", "rejected", "hired"]
+
+
+StartupOut.model_rebuild()
+MapStartup.model_rebuild()

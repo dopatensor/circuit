@@ -17,6 +17,7 @@ from app.models import (
     StartupTrait,
 )
 from app.schemas import (
+    JobBrief,
     LatLng,
     MemberMe,
     MemberPublic,
@@ -111,6 +112,8 @@ async def member_me(session: AsyncSession, member: Member, is_demo: bool) -> Mem
 
 
 async def startup_out(session: AsyncSession, startup: Startup) -> StartupOut:
+    from app.jobs import job_roles  # local import: app.jobs imports from this module's deps
+
     traits = (
         await session.scalars(
             select(StartupTrait.trait_id).where(StartupTrait.startup_id == startup.id)
@@ -140,7 +143,10 @@ async def startup_out(session: AsyncSession, startup: Startup) -> StartupOut:
         address=startup.address,
         location=await _location(session, Startup, startup.id),
         hiring=startup.hiring,
-        open_roles=startup.open_roles,
+        jobs=[
+            JobBrief(**{k: j[k] for k in ("id", "title", "type", "paid", "compensation")})
+            for j in (await job_roles(session, [startup.id])).get(startup.id, [])
+        ],
         tech_stack=startup.tech_stack,
         claimed=startup.claimed_by_member_id is not None,
         claimed_by_member_id=startup.claimed_by_member_id,

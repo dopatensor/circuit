@@ -17,20 +17,17 @@ from sqlalchemy import cast, exists, func, null, or_, select
 
 from app.auth import LEVEL_BROWSE, CurrentUser, SessionDep, SettingsDep, require_level
 from app.events import record_event
-from app.models import Event, Member, MemberSkill, Need, Startup
+from app.geo import member_center, point
+from app.jobs import job_roles, match_out, member_skills, startup_need_caps
+from app.models import Event, Job, JobCapability, Need, Startup
 from app.profiles import lat_lng_columns
-from app.schemas import LatLng, MapResult, MapStartup, RoleFitOut, SkillMatchOut
-from app.skill_match import skill_match
+from app.schemas import JobBrief, LatLng, MapResult, MapStartup
 
 router = APIRouter(prefix="/api/map", tags=["map"])
 BrowseUser = Annotated[CurrentUser, Depends(require_level(LEVEL_BROWSE))]
 
 MAX_RADIUS_KM = 50.0
 MAX_RESULTS = 300
-
-
-def _point(lat: float, lng: float):
-    return cast(func.ST_SetSRID(func.ST_MakePoint(lng, lat), 4326), Geography)
 
 
 def _filters(hiring: bool | None, sector: str | None, capability: str | None) -> list:
@@ -43,7 +40,12 @@ def _filters(hiring: bool | None, sector: str | None, capability: str | None) ->
         # Either an open role asks for it, or the startup has an active need for it.
         filters.append(
             or_(
-                Startup.open_roles.contains([{"capabilities": [capability]}]),
+                exists().where(
+                    Job.startup_id == Startup.id,
+                    Job.status == "open",
+                    JobCapability.job_id == Job.id,
+                    JobCapability.capability_id == capability,
+                ),
                 exists().where(
                     Need.owner_type == "startup",
                     Need.owner_id == Startup.id,
@@ -53,24 +55,6 @@ def _filters(hiring: bool | None, sector: str | None, capability: str | None) ->
             )
         )
     return filters
-
-
-def _match_out(skills: dict[str, int], open_roles: list[dict], needs: list[str]) -> SkillMatchOut:
-    m = skill_match(skills, open_roles, needs)
-    best = m.best_role
-    return SkillMatchOut(
-        score=m.score,
-        best_role=RoleFitOut(
-            title=best.title,
-            score=round(best.score * 100),
-            matched=best.matched,
-            missing=best.missing,
-        )
-        if best
-        else None,
-        matched=m.matched,
-        missing=m.missing,
-    )
 
 
 async def _pins(session, rows, user: CurrentUser) -> list[MapStartup]:
@@ -99,26 +83,12 @@ async def _pins(session, rows, user: CurrentUser) -> list[MapStartup]:
             )
         ).all()
     )
+    roles = await job_roles(session, ids)
     skills: dict[str, int] = {}
     needs: dict[uuid.UUID, list[str]] = {}
     if user.role == "student":
-        skills = dict(
-            (
-                await session.execute(
-                    select(MemberSkill.capability_id, MemberSkill.level).where(
-                        MemberSkill.member_id == user.member_id
-                    )
-                )
-            ).all()
-        )
-        for owner, cap in (
-            await session.execute(
-                select(Need.owner_id, Need.capability_id).where(
-                    Need.owner_type == "startup", Need.owner_id.in_(ids), Need.active
-                )
-            )
-        ).all():
-            needs.setdefault(owner, []).append(cap)
+        skills = await member_skills(session, user.member_id)
+        needs = await startup_need_caps(session, ids)
 
     pins = []
     for r in rows:
@@ -132,11 +102,14 @@ async def _pins(session, rows, user: CurrentUser) -> list[MapStartup]:
                 hiring=s.hiring,
                 location=LatLng(lat=r.lat, lng=r.lng),
                 distance_km=round(r.distance_km, 2) if r.distance_km is not None else None,
-                open_roles=s.open_roles,
+                jobs=[
+                    JobBrief(**{k: j[k] for k in ("id", "title", "type", "paid", "compensation")})
+                    for j in roles.get(s.id, [])
+                ],
                 claimed=s.claimed_by_member_id is not None,
                 interest_count=counts.get(str(s.id), 0),
                 interested=str(s.id) in mine,
-                match=_match_out(skills, s.open_roles, needs.get(s.id, []))
+                match=match_out(skills, roles.get(s.id, []), needs.get(s.id, []))
                 if user.role == "student"
                 else None,
             )
@@ -164,14 +137,8 @@ async def nearby(
     if (lat is None) != (lng is None):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Send both lat and lng")
     if lat is None:
-        mlat, mlng = lat_lng_columns(Member.location)
-        row = (await session.execute(select(mlat, mlng).where(Member.id == user.member_id))).one()
-        lat, lng = (
-            (row.lat, row.lng)
-            if row.lat is not None
-            else (settings.city_center_lat, settings.city_center_lng)
-        )
-    origin = _point(lat, lng)
+        lat, lng = await member_center(session, user.member_id, settings)
+    origin = point(lat, lng)
     slat, slng = lat_lng_columns(Startup.location)
     distance_km = (func.ST_Distance(Startup.location, origin) / 1000.0).label("distance_km")
     rows = (

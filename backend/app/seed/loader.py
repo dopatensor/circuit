@@ -21,6 +21,8 @@ from app.models import (
     Connection,
     Event,
     IntroRequest,
+    Job,
+    JobCapability,
     Member,
     MemberSkill,
     MemberTrait,
@@ -210,6 +212,40 @@ async def load_dataset(session: AsyncSession, data: Dataset) -> None:
     ]
     if rows:
         await session.execute(insert(StartupMember), rows)
+
+    # --- jobs (F11): one per open role; ids are stable so applications survive a re-seed
+    job_rows, job_caps = [], []
+    for s in data.startups:
+        for i, j in enumerate(s.jobs):
+            jid = seed_uuid("job", f"{s.record.website_domain}:{i}")
+            job_rows.append(
+                {
+                    "id": jid,
+                    "startup_id": startup_ids[s.record.website_domain],
+                    "title": j.title,
+                    "description": j.description,
+                    "type": j.type,
+                    "paid": j.paid,
+                    "compensation": j.compensation,
+                    "source": "seed",
+                }
+            )
+            job_caps += [
+                {"job_id": jid, "capability_id": c, "min_level": lvl}
+                for c, lvl in j.capabilities.items()
+            ]
+    if job_rows:
+        await _upsert(
+            session,
+            Job,
+            job_rows,
+            ["id"],
+            {"cols": ["title", "description", "type", "paid", "compensation"]},
+        )
+        await session.execute(
+            delete(JobCapability).where(JobCapability.job_id.in_([r["id"] for r in job_rows]))
+        )
+        await session.execute(insert(JobCapability), job_caps)
 
     # --- needs and offers (embeddings are filled in later by the matching job) ---
     need_rows = []

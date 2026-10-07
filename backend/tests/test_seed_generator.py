@@ -173,3 +173,34 @@ def test_unclaimed_startup_with_student_interest_for_claim_demo(data, startups):
     interest = [e for e in data.events if e.target_key == "terragrid.example"]
     assert len(interest) >= 10
     assert sum(s.claimed_by is None for s in data.startups) > 50
+
+
+# --- jobs (F11) --------------------------------------------------------------------------
+
+
+def test_hiring_startups_have_jobs_matching_their_open_roles(data):
+    for s in data.startups:
+        assert [j.title for j in s.jobs] == [r.title for r in s.record.open_roles]
+        for j in s.jobs:
+            assert j.capabilities and set(j.capabilities) <= CAPABILITY_IDS
+            assert all(1 <= lvl <= 3 for lvl in j.capabilities.values())
+            assert j.paid or j.type == "internship"  # only internships may be unpaid
+
+
+def test_job_mix_has_paid_and_unpaid_internships_and_full_time(data):
+    kinds = Counter((j.type, j.paid) for s in data.startups for j in s.jobs)
+    assert kinds[("internship", True)] >= 10
+    assert kinds[("internship", False)] >= 5
+    assert kinds[("full_time", True)] >= 50
+
+
+def test_story3_internship(startups):
+    (intern,) = [j for j in startups["ledgerloop.example"].jobs if j.type == "internship"]
+    assert intern.title == "Backend Engineering Intern" and intern.paid
+    assert intern.capabilities == {"backend_development": 2, "data_engineering": 2}
+
+
+def test_adding_jobs_did_not_change_other_seed_data(data):
+    # Jobs use their own random stream; these numbers are from before jobs existed.
+    assert sum(len(s.needs) for s in data.startups) + sum(len(m.needs) for m in data.members) > 300
+    assert len(data.connections) > 800

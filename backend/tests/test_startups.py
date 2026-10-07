@@ -15,9 +15,7 @@ def new_startup(**overrides) -> dict:
         "sector": "saas",
         "location": {"lat": 12.98, "lng": 77.6},
         "hiring": True,
-        "open_roles": [{"title": "Backend Intern", "type": "internship",
-                        "capabilities": ["backend_development"]}],
-    }  # fmt: skip
+    }
     body.update(overrides)
     return body
 

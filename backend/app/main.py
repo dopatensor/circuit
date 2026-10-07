@@ -11,6 +11,7 @@ from app.api import (
     auth,
     catalog,
     health,
+    jobs,
     members,
     needs,
     onboarding,
@@ -44,7 +45,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     # Added last so it is the outermost layer and also times CORS handling.
     app.add_middleware(RequestLoggingMiddleware)
-    for module in (health, auth, catalog, members, needs, startups, startup_map, onboarding, admin):
+    for module in (
+        health,
+        auth,
+        catalog,
+        members,
+        needs,
+        startups,
+        startup_map,
+        jobs,
+        onboarding,
+        admin,
+    ):
         app.include_router(module.router)
     if explicit_settings:
         # Tests (and scripts) can run the app with their own settings.

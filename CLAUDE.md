@@ -188,3 +188,34 @@ GIST indexes on locations, HNSW indexes on embeddings.
 Tests pass, new endpoints log correctly, migrations apply from scratch, README
 updated, committed, and explained to me. From Phase 8 on: every screen works at
 phone width and on a laptop, because demos happen on both.
+
+## Spec additions (agreed 2026-10-07)
+
+F11. Jobs and applications: hiring startups post jobs (internships and full-time,
+    paid and unpaid, with required capabilities). Students browse and filter jobs,
+    see their skill match, apply once per job with a short note, and track status.
+    Founders see applicants ranked by skill match and update their status.
+    Applications to unclaimed startups are saved and appear when the founder claims.
+- Phase 1: jobs, job_capabilities and applications tables and indexes. Seed jobs for
+  hiring startups, including the specific internship used in demo story 3.
+- Phase 3: jobs list with filters (role, capability, distance, type, paid), job detail
+  with the student's skill match, apply (one per student per job), "my applications"
+  with status, founder's applicant list ranked by skill match, status updates, saved
+  interest for unclaimed startups shown on claim. Events for view, apply and status
+  change. API tests incl. failure cases (applying twice, a founder from another
+  startup changing status, a student without the right level).
+- Phase 4: the student's top match is the story 3 internship, using the same scoring
+  as startup matching.
+- Phase 9: jobs list, job page, apply with a short note, "My applications" with status
+  badges, founder applicants view, job pins or counts in the map popup.
+- Phase 12: DEMO.md story 3 includes applying and shortlisting.
+
+## Testing
+- Write tests during each phase, not at the end. Never move to the next phase with
+  failing tests.
+- Keep `make demo-check` up to date from Phase 1 onward; it prints PASS or FAIL per
+  demo story.
+- Frontend (Phases 8–11): every call goes through the generated OpenAPI client (no
+  hand-written fetch); every screen has loading, empty and error states and works at
+  phone and laptop width; the persona switcher reaches every demo story in a few
+  clicks; Playwright tests cover each demo story through the UI at both widths.

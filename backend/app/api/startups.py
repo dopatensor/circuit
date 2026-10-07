@@ -18,7 +18,16 @@ from app.auth import (
     require_level,
 )
 from app.events import record_event
-from app.models import Event, Member, Need, Startup, StartupClaim, StartupMember
+from app.models import (
+    Application,
+    Event,
+    Job,
+    Member,
+    Need,
+    Startup,
+    StartupClaim,
+    StartupMember,
+)
 from app.profiles import point_wkt, startup_out
 from app.schemas import (
     ClaimStartIn,
@@ -114,8 +123,7 @@ async def create_startup(body: StartupCreate, user: CurrentUserDep, session: Ses
             },
         )
     startup = Startup(
-        **body.model_dump(exclude={"location", "open_roles"}),
-        open_roles=[r.model_dump() for r in body.open_roles],
+        **body.model_dump(exclude={"location"}),
         location=point_wkt(body.location),
         source="user",
         claimed_by_member_id=user.member_id,
@@ -233,7 +241,13 @@ async def startup_stats(startup_id: uuid.UUID, user: BrowseUser, session: Sessio
         .join(Member, Member.id == Event.actor_id)
         .where(*_interest_filter(startup.id), student)
     )
+    waiting = await session.scalar(
+        select(func.count(Application.id))
+        .join(Job, Job.id == Application.job_id)
+        .where(Job.startup_id == startup.id, Application.status == "submitted")
+    )
     return StartupStats(
+        applications_waiting=waiting or 0,
         view_count=startup.view_count,
         student_viewers_30d=viewers or 0,
         interested_students=interested_students or 0,
@@ -376,9 +390,6 @@ async def update_startup(
     if "location" in changes:
         startup.location = point_wkt(body.location) if body.location else None
         changes.pop("location")
-    if "open_roles" in changes:
-        startup.open_roles = [r.model_dump() for r in body.open_roles or []]
-        changes.pop("open_roles")
     for field, value in changes.items():
         setattr(startup, field, value)
     await record_event(

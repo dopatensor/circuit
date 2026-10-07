@@ -63,6 +63,16 @@ class SeedOffer:
 
 
 @dataclass
+class SeedJob:
+    title: str
+    type: str  # internship | full_time | part_time | contract
+    paid: bool
+    compensation: str | None
+    description: str
+    capabilities: dict[str, int]  # capability id -> minimum level 1..3
+
+
+@dataclass
 class SeedStartup:
     """A crawler-shaped record plus what our platform knows on top of it."""
 
@@ -72,6 +82,7 @@ class SeedStartup:
     team: list[tuple[str, str]] = field(default_factory=list)  # (member key, title)
     claimed_by: str | None = None  # member key
     view_count: int = 0
+    jobs: list[SeedJob] = field(default_factory=list)
 
 
 @dataclass

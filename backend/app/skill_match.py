@@ -7,7 +7,8 @@ the score cannot favour a famous college name.
 
 Score (0-100):
 - For each open role, how much of the role's required capabilities the student
-  covers, weighted by skill level (strong 1.0, solid 0.8, basic 0.5).
+  covers, weighted by skill level (strong 1.0, solid 0.8, basic 0.5). A skill below
+  the role's minimum level counts at 60%.
 - The best-fitting role counts for 80%; covering the startup's other needs adds up
   to 20%. Startups with no open roles are scored on their needs alone.
 """
@@ -15,6 +16,7 @@ Score (0-100):
 from dataclasses import dataclass, field
 
 LEVEL_WEIGHT = {1: 0.5, 2: 0.8, 3: 1.0}
+BELOW_MIN_FACTOR = 0.6
 ROLE_WEIGHT = 0.8
 NEEDS_WEIGHT = 0.2
 
@@ -35,17 +37,30 @@ class SkillMatch:
     missing: list[str] = field(default_factory=list)  # what the best role still needs
 
 
-def _coverage(skills: dict[str, int], required: list[str]) -> float:
+def _weight(level: int, min_level: int) -> float:
+    w = LEVEL_WEIGHT.get(level, 0.0)
+    return w if level >= min_level else w * BELOW_MIN_FACTOR
+
+
+def _coverage(
+    skills: dict[str, int], required: list[str], min_levels: dict[str, int] | None = None
+) -> float:
     if not required:
         return 0.0
-    return sum(LEVEL_WEIGHT.get(skills.get(c, 0), 0.0) for c in required) / len(required)
+    mins = min_levels or {}
+    return sum(_weight(skills.get(c, 0), mins.get(c, 1)) for c in required) / len(required)
 
 
-def role_fit(skills: dict[str, int], title: str, required: list[str]) -> RoleFit:
+def role_fit(
+    skills: dict[str, int],
+    title: str,
+    required: list[str],
+    min_levels: dict[str, int] | None = None,
+) -> RoleFit:
     required = list(dict.fromkeys(required))
     return RoleFit(
         title=title,
-        score=_coverage(skills, required),
+        score=_coverage(skills, required, min_levels),
         matched=[c for c in required if c in skills],
         missing=[c for c in required if c not in skills],
     )
@@ -54,9 +69,10 @@ def role_fit(skills: dict[str, int], title: str, required: list[str]) -> RoleFit
 def skill_match(
     skills: dict[str, int], open_roles: list[dict], need_capabilities: list[str]
 ) -> SkillMatch:
-    """skills: {capability_id: level 1..3}; open_roles: [{"title", "capabilities"}]."""
+    """skills: {capability_id: level 1..3}; open_roles (or jobs):
+    [{"title", "capabilities": [ids], "min_levels": {id: 1..3} (optional)}]."""
     fits = [
-        role_fit(skills, r.get("title", ""), r.get("capabilities", []))
+        role_fit(skills, r.get("title", ""), r.get("capabilities", []), r.get("min_levels"))
         for r in open_roles
         if r.get("capabilities")
     ]

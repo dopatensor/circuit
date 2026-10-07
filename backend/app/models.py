@@ -45,6 +45,9 @@ INTRO_STATUSES = ("pending", "accepted", "declined", "expired", "completed")
 CIRCUIT_STATUSES = ("proposed", "active", "declined", "expired", "completed")
 CONSENT_STATES = ("pending", "accepted", "declined")
 CLAIM_STATUSES = ("pending", "verified", "expired", "superseded")
+JOB_TYPES = ("internship", "full_time", "part_time", "contract")
+JOB_STATUSES = ("open", "closed")
+APPLICATION_STATUSES = ("submitted", "shortlisted", "rejected", "hired", "withdrawn")
 
 
 def _in(column: str, values: tuple[str, ...]) -> str:
@@ -204,6 +207,79 @@ class StartupClaim(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     created_at: Mapped[datetime] = _created_at()
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+# --- Jobs and applications (F11) -----------------------------------------------------
+
+
+class Job(Base):
+    """A job a startup is hiring for. Seeded and crawled jobs come from the startup's
+    open_roles; claimed startups manage their jobs directly."""
+
+    __tablename__ = "jobs"
+    __table_args__ = (
+        CheckConstraint(_in("type", JOB_TYPES), name="type"),
+        CheckConstraint(_in("status", JOB_STATUSES), name="status"),
+        CheckConstraint(_in("source", STARTUP_SOURCES), name="source"),
+        Index("ix_jobs_startup_id", "startup_id"),
+        Index("ix_jobs_open_type_paid", "type", "paid", postgresql_where=text("status = 'open'")),
+    )
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    startup_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("startups.id", ondelete="CASCADE"), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    type: Mapped[str] = mapped_column(String(16), nullable=False, default="full_time")
+    paid: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    compensation: Mapped[str | None] = mapped_column(String(120))  # e.g. "₹20,000/month"
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="open")
+    source: Mapped[str] = mapped_column(String(16), nullable=False, default="user")
+    created_at: Mapped[datetime] = _created_at()
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+
+class JobCapability(Base):
+    """A capability a job requires. min_level: 1 basic, 2 solid, 3 strong."""
+
+    __tablename__ = "job_capabilities"
+    __table_args__ = (CheckConstraint("min_level BETWEEN 1 AND 3", name="min_level"),)
+
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True
+    )
+    capability_id: Mapped[str] = mapped_column(
+        ForeignKey("capabilities.id"), primary_key=True, index=True
+    )
+    min_level: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=2)
+
+
+class Application(Base):
+    """A student's application to a job. One per student per job."""
+
+    __tablename__ = "applications"
+    __table_args__ = (
+        CheckConstraint(_in("status", APPLICATION_STATUSES), name="status"),
+        UniqueConstraint("job_id", "member_id", name="uq_applications_job_member"),
+        Index("ix_applications_member_id", "member_id"),
+    )
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False
+    )
+    member_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("members.id", ondelete="CASCADE"), nullable=False
+    )
+    note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="submitted")
+    # Skill match when the student applied (the founder's list uses the live score).
+    match_score_at_apply: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
+    created_at: Mapped[datetime] = _created_at()
+    status_changed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 # --- Needs, offers, traits, skills ----------------------------------------------------

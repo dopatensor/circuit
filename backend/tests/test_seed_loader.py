@@ -14,7 +14,7 @@ pytestmark = pytest.mark.anyio
 TABLES = (
     "members", "startups", "startup_members", "capabilities", "traits", "needs", "offers",
     "member_traits", "startup_traits", "member_skills", "connections", "intro_requests",
-    "events",
+    "events", "jobs", "job_capabilities",
 )  # fmt: skip
 
 
@@ -137,3 +137,24 @@ async def test_two_hop_warm_path_found_with_recursive_sql(session, dataset):
     best_path, weakest = paths[0]
     assert best_path[1] == member_id("lakshmi")
     assert weakest >= 0.8
+
+
+async def test_jobs_are_loaded_with_capabilities(session, dataset):
+    await reset(session, dataset)
+    n_jobs = sum(len(s.jobs) for s in dataset.startups)
+    assert await session.scalar(text("SELECT count(*) FROM jobs")) == n_jobs
+    row = (
+        await session.execute(
+            text(
+                "SELECT j.title, j.paid, array_agg(c.capability_id ORDER BY c.capability_id) "
+                "FROM jobs j JOIN startups s ON s.id = j.startup_id "
+                "JOIN job_capabilities c ON c.job_id = j.id "
+                "WHERE s.website_domain = 'ledgerloop.example' AND j.type = 'internship' "
+                "GROUP BY j.id"
+            )
+        )
+    ).one()
+    assert row == ("Backend Engineering Intern", True, ["backend_development", "data_engineering"])
+    await load_dataset(session, dataset)  # idempotent
+    await session.commit()
+    assert await session.scalar(text("SELECT count(*) FROM jobs")) == n_jobs

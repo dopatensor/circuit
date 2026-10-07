@@ -4,9 +4,10 @@ A startup ecosystem platform that matches people on what they **need** and what 
 can **offer**, across sectors, with exchange circuits and a map of who is hiring nearby.
 See [CLAUDE.md](CLAUDE.md) for the full MVP spec and build phases.
 
-**Status:** Phase 3 (map + claim) — map endpoints with a student skill-match score,
-view and interest tracking, and claiming a startup via an email on its domain, on top
-of auth, profiles and smart onboarding. Browse the API at http://localhost:8000/docs.
+**Status:** Phases 0–3 done, including jobs and applications (F11): auth, profiles,
+smart onboarding, the startup map with a student skill-match score, claiming, and
+jobs. `make demo-check` prints PASS/FAIL per demo story. Browse the API at
+http://localhost:8000/docs.
 
 ## Layout
 
@@ -98,6 +99,22 @@ npm run build               # type-checks and builds
 - Try it in the browser: open http://localhost:8000/docs, call the demo login, copy the
   `access_token`, click **Authorize** and paste it.
 
+## Everyday commands
+
+From the repo root (macOS and WSL both have `make`):
+
+```bash
+make db           # start Postgres
+make reset-demo   # wipe and reload the demo seed
+make demo-check   # PASS/FAIL for each of the five demo stories
+make test         # backend tests + frontend build
+make lint         # ruff lint + format check
+make dev-api      # API on :8000
+make dev-web      # web app on :5173
+```
+
+Run `make reset-demo && make demo-check` before every demo.
+
 ## Smart onboarding (F1)
 
 `POST /api/onboarding/suggest {"text": "...pasted bio..."}` asks Claude
@@ -126,6 +143,22 @@ never logged or stored by the suggest step.
   claiming, the founder can edit the page and see who is interested
   (`GET /api/startups/{id}/interested`).
 
+## Jobs and applications (F11)
+
+- `GET /api/jobs` lists open jobs with filters: `q` (title), `capability`, `type`
+  (internship, full_time, …), `paid`, and `radius_km` (a hard distance filter from
+  your location). Students get a skill match per job and default to best match first.
+  `GET /api/jobs/{id}` adds the full description.
+- Students apply once per job with a short note (`POST /api/jobs/{id}/apply`, level 1+)
+  and follow their status in `GET /api/applications/me` (submitted, shortlisted,
+  rejected, hired, withdrawn).
+- The founder who claimed the startup posts and edits jobs, sees applicants ranked by
+  skill match (`GET /api/startups/{id}/applicants`; skills are shown, colleges are
+  not) and changes status (`PATCH /api/applications/{id}`).
+- Applying to a job at an unclaimed startup works: the application waits, the
+  startup's stats show `applications_waiting`, and the founder sees it after claiming.
+- The map, job list and job page all use the same scoring (`app/skill_match.py`).
+
 ## Logs
 
 The API writes one JSON line per request with `request_id`, `method`, `path`,
@@ -147,17 +180,17 @@ uv run python -m app.cli dump-seed    # print the generated startups as crawler-
 ```
 
 The seed is generated around `CITY_CENTER_LAT`/`CITY_CENTER_LNG` (`CITY_NAME` for
-addresses) and is identical on every run: ~150 startups and ~300 members, students the
-largest group. Startup domains end in `.example` (a reserved domain) so no seed record
+addresses) and is identical on every run: ~150 startups, ~160 jobs (full-time and
+internships, paid and unpaid) and ~300 members, students the largest group. Startup domains end in `.example` (a reserved domain) so no seed record
 points at a real company. It always contains the five demo stories:
 
 | # | Story | Who |
 | --- | --- | --- |
 | 1 | Bridge match: biotech needing marketing ↔ deep-tech marketer | HelixRoot Biosciences (Dr. Meera Iyer) ↔ Kavya Menon |
 | 2 | 3-person exchange circuit | Asha → Arjun (hiring), Arjun → Priya (fundraising), Priya → Asha (marketing) |
-| 3 | Lower-tier college student matched on skills to a nearby hiring startup | Ravi Kumar ↔ LedgerLoop (about 1 km away) |
+| 3 | Lower-tier college student matched on skills to a nearby hiring startup | Ravi Kumar → LedgerLoop's paid Backend Engineering Intern role (about 1 km away, 100% match) |
 | 4 | Warm intro through a respected mentor | Rohan Mehta → Dr. Lakshmi Narayan → Vikram Shah |
-| 5 | Capability gap | regulatory affairs: 36 needs, 2 offers |
+| 5 | Capability gap | regulatory affairs: 35 needs, 2 offers |
 
 Demo personas (used by the persona switcher later): student Ravi, founder Meera,
 mentor Lakshmi, investor Vikram, partner admin Nandini. TerraGrid Energy (Rohan's

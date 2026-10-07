@@ -16,6 +16,7 @@ from app.seed.schema import (
     SeedConnection,
     SeedEvent,
     SeedIntro,
+    SeedJob,
     SeedMember,
     SeedNeed,
     SeedOffer,
@@ -24,6 +25,7 @@ from app.seed.schema import (
 )
 from app.seed.stories import (
     FORBIDDEN_CONNECTIONS,
+    STORY_JOBS,
     STORY_MEMBER_KEYS,
     story_connections,
     story_members,
@@ -674,6 +676,49 @@ class _Gen:
         return events
 
 
+STIPENDS = ("₹8,000/month", "₹10,000/month", "₹12,000/month", "₹15,000/month", "₹25,000/month")
+SALARIES = ("₹4–6 LPA", "₹6–9 LPA", "₹8–12 LPA", "₹12–18 LPA")
+
+
+def jobs_for(s: SeedStartup) -> list[SeedJob]:
+    """One job per open role. Uses its own random stream (seeded by the domain) so
+    adding jobs never changes the rest of the generated data."""
+    rng = random.Random(f"jobs:{s.record.website_domain}")
+    jobs = []
+    for role in s.record.open_roles:
+        story_job = STORY_JOBS.get((s.record.website_domain, role.title))
+        if story_job is not None:
+            jobs.append(story_job)
+            continue
+        internship = role.type == "internship"
+        paid = not internship or rng.random() < 0.7
+        if internship:
+            compensation = rng.choice(STIPENDS) if paid else "Unpaid (certificate and letter)"
+        else:
+            compensation = rng.choice(SALARIES)
+        skills = ", ".join(CAP_NAME[c].lower() for c in role.capabilities)
+        length = rng.choice(("three", "six")) if internship else None
+        description = (
+            f"{length.capitalize()}-month internship at {s.record.name}. "
+            if length
+            else f"Full-time role at {s.record.name}. "
+        ) + f"{s.record.description} You'll work on {skills}."
+        jobs.append(
+            SeedJob(
+                title=role.title,
+                type=role.type,
+                paid=paid,
+                compensation=compensation,
+                description=description,
+                capabilities={
+                    c: (rng.choice((1, 2)) if internship else rng.choice((2, 2, 3)))
+                    for c in role.capabilities
+                },
+            )
+        )
+    return jobs
+
+
 def build_dataset(center: Point, city: str, seed: int = 42) -> Dataset:
     g = _Gen(center, city, seed)
     g.used_names.update(m.display_name for m in story_members(center, city))
@@ -695,6 +740,9 @@ def build_dataset(center: Point, city: str, seed: int = 42) -> Dataset:
     members.extend(g.mentor(i) for i in range(N_MENTORS))
     members.extend(g.investor(i) for i in range(N_INVESTORS))
     members.extend(g.partner_admin(i) for i in range(N_PARTNER_ADMINS))
+
+    for s in startups:
+        s.jobs = jobs_for(s)
 
     students = [m for m in members if m.role == "student"]
     return Dataset(

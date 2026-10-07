@@ -16,6 +16,7 @@ from app.seed.geo import AREA_BY_NAME, Point, offset
 from app.seed.schema import (
     OpenRole,
     SeedConnection,
+    SeedJob,
     SeedMember,
     SeedNeed,
     SeedOffer,
@@ -158,7 +159,7 @@ def story_startups(center: Point, city: str) -> list[SeedStartup]:
             traits=["b2b", "tier2_tier3_focus", "vernacular_users", "bootstrapped"],
             needs=[
                 SeedNeed("backend_development", "Hiring backend engineers who ship fast."),
-                SeedNeed("regulatory_affairs", "Need help with RBI account aggregator rules."),
+                SeedNeed("data_engineering", "Turning invoice photos into clean GST data."),
             ],
             team=[("deepak", "Co-founder & CTO")],
             claimed_by="deepak",
@@ -260,6 +261,26 @@ def story_startups(center: Point, city: str) -> list[SeedStartup]:
             view_count=17,
         ),
     ]
+
+
+# Story 3: the internship Ravi should match best. Jobs for the other story startups are
+# derived from their open roles like everyone else's.
+STORY3_JOB_TITLE = "Backend Engineering Intern"
+STORY_JOBS: dict[tuple[str, str], SeedJob] = {
+    (LEDGERLOOP, STORY3_JOB_TITLE): SeedJob(
+        title=STORY3_JOB_TITLE,
+        type="internship",
+        paid=True,
+        compensation="₹20,000/month",
+        description=(
+            "Six-month internship on the team that turns photos of handwritten invoices "
+            "into GST-ready data. You'll build FastAPI endpoints and data pipelines on "
+            "Postgres, and ship to real shop owners in the first month. We hire for "
+            "skills, not college names."
+        ),
+        capabilities={"backend_development": 2, "data_engineering": 2},
+    ),
+}
 
 
 def story_members(center: Point, city: str) -> list[SeedMember]:

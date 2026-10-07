@@ -55,3 +55,10 @@ def test_college_is_not_an_input():
     assert list(inspect.signature(skill_match).parameters) == [
         "skills", "open_roles", "need_capabilities",
     ]  # fmt: skip
+
+
+def test_below_minimum_level_counts_less():
+    job = {"title": "Senior Backend", "capabilities": ["backend_development"],
+           "min_levels": {"backend_development": 3}}  # fmt: skip
+    assert skill_match({"backend_development": 3}, [job], []).score == 100
+    assert skill_match({"backend_development": 2}, [job], []).score == 48  # 0.8 * 0.6
