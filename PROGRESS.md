@@ -6,14 +6,14 @@ must also follow [DESIGN.md](DESIGN.md)**, the user's design and PWA brief for P
 8–11. Setup details are in [README.md](README.md).
 
 Branch: `claude/circuit-context-rebuild-vqqtw8` (Phase 10 onward). Phases 0–9 are
-merged into `main` (pull requests #1–#7 in `dopatensor/circuit`). Phase 10 is committed
-and pushed on this branch; no pull request has been opened for it yet. Each new session
+merged into `main` (pull requests #1–#7 in `dopatensor/circuit`). Phases 10 and 11 are
+committed and pushed on this branch; no pull request has been opened for them yet. Each new session
 gets its own branch name: start it from this branch (or `main`, once merged).
 
 ## Where we stopped (2026-10-08)
 
-- **Phase 10 is finished, committed and pushed.** The working tree is clean.
-- **Waiting for the user's OK** to start Phase 11 (dashboard UI). The plan is below.
+- **Phase 11 is finished, committed and pushed.** The working tree is clean.
+- **Waiting for the user's OK** to start Phase 12 (demo readiness). The plan is below.
 - The user chose **not** to add map pin clustering (2026-10-08). It stays in "Known
   issues" as an option.
 - **How we work:** one phase at a time. Write tests during the phase; run the backend
@@ -38,19 +38,19 @@ gets its own branch name: start it from this branch (or `main`, once merged).
 | 7 Dashboard API (F8 backend) | ✅ done |
 | 8 Frontend shell (F9) + PWA + redesign | ✅ done |
 | 9 Map view + jobs UI (F2, F3, F11) | ✅ done |
-| 10 Network app (F1 UI, matches, intros, circuits) | ✅ done (waiting for the user's OK) |
-| **11 Dashboard UI (F8)** | ⏭️ **next: not started** |
-| 12 Demo readiness | not started |
+| 10 Network app (F1 UI, matches, intros, circuits) | ✅ done |
+| 11 Dashboard UI (F8) | ✅ done (waiting for the user's OK) |
+| **12 Demo readiness** | ⏭️ **next: not started** |
 
-Last verified (2026-10-08, Phase 10 commit):
+Last verified (2026-10-08, Phase 11 commit):
 
-- Backend tests: **225 passed, 1 skipped**. `ruff` and `alembic check` are clean.
-- Browser tests: **49 passed, 1 skipped**. One run of three had one failure in
-  `pwa.spec.ts` (offline cache test, phone); it didn't happen again in about 60 more
-  runs of that test. See "Known issues".
-- `npm run size`: 96.8 KB first-load JavaScript, gzipped.
-- Lighthouse (mobile, slow 4G): `/me/profile`, `/matches`, `/intros`, `/circuits` and
-  `/dashboard` signed in: 100/100/100/100. Earlier screens unchanged (see Phase 9).
+- Backend tests: **225 passed, 1 skipped** (no backend changes in Phase 11). `ruff` clean.
+- Browser tests: **53 passed, 1 skipped** in two full runs (the second after the last changes).
+- `npm run size`: 96.8 KB first-load JavaScript, gzipped. Service worker precache
+  435 KB (MapLibre, its worker and the dashboard chunk are cached on first use instead).
+- Lighthouse (mobile, slow 4G): `/dashboard` as Nandini 95–96 / 100 / 100 / 100. `/jobs`
+  99. `/map` as Ravi 73–86 Performance on this machine, and the unchanged Phase 10 build
+  scores the same here (it was 89–92 on the Phase 9 machine), so it's not a regression.
 - `make demo-check`: **5/5 PASS**.
 
 ## What Phase 5 built (warm intros, F5)
@@ -248,34 +248,76 @@ Last verified (2026-10-08, Phase 10 commit):
 - `scripts/screenshots.mjs` has Phase 10 shots (onboarding, intro sheet, intros, run
   round, circuits).
 
-## Phase 11: the plan (dashboard UI, F8)
+## What Phase 11 built (partner dashboard UI, F8)
 
-Spec: gap map (ranked chart and map heat layer), network stats, intro acceptance local
-vs bridge. Follow DESIGN.md ("three big numbers at the top, then one ranked bar chart of
-capability gaps, then the gap map").
+- **Dependency:** `recharts` 3.10.1 (on the spec's list). It lives only in the lazy
+  Dashboard chunk (~106 KB gzipped).
+- **`src/screens/Dashboard.tsx`**, top to bottom, each section with its own query,
+  loading block (sized like the real section, `SIZE`), error state and retry:
+  1. `Stats`: members, startups hiring, intros made (`/api/dashboard/stats`).
+  2. `Gaps`: the 10 biggest gaps (`/api/dashboard/gaps?limit=100`, first 10 shown): one
+     sentence ("Regulatory affairs: 35 needs, 2 offers."), a legend, a horizontal
+     Recharts bar chart (needs `#2f8cff`, offers `#1a9e58`, 12px bars with 4px rounded
+     ends, values at the bar ends, hairline grid, custom tooltip, labels wrap on phones)
+     and "Show as a table". Empty state when nobody has needs yet.
+  3. `GapMap`: capability `<select>` (every capability with needs, default the biggest
+     gap), a status line ("Regulatory affairs: 17 areas (about 2 km across) with more
+     needs than offers.") and the heat map. Old data stays (dimmed) while a new
+     capability loads. The map loads only when it's within 200px of the screen
+     (IntersectionObserver), which took the page's blocking time from 1.8 s to 0.2 s.
+  4. `IntroSplit`: local vs bridge acceptance as two bars with %, "x of y accepted".
+  5. `RunRound` (from Phase 10), now also refreshing the stats.
+- **Chart colours** were checked with the dataviz palette validator on the card surface
+  `#0c0d10`: both pass the lightness band, chroma, colour-blind separation (ΔE 25) and
+  3:1 contrast. The neon green `#39ff8f` fails the lightness band for filled marks,
+  hence the darker green.
+- **`src/map/HeatMap.tsx`**: a MapLibre `heatmap` layer, weight = gap / max gap (cells
+  with gap ≤ 0 left out), one blue hue (dark to light), radius growing with zoom so
+  neighbouring 2 km cells merge into areas. The heat source and layer are part of the
+  style from the start, because MapLibre's `load` event never fires when the street
+  tiles can't be reached. Fits the cells; `data-heat-settled` for tests;
+  `cooperativeGestures` so one finger scrolls the page on phones.
+- **Fixed a hidden Phase 9 bug:** MapLibre 6 looks for its worker file next to its own
+  code, but the build bundles that code into a hashed chunk, so the worker failed to
+  load and production builds drew no street tiles (tests block tiles, so nothing
+  noticed). `src/map/setup.ts` imports the worker with Vite's `?url` and calls
+  `setWorkerUrl`. The story 5 test fails if a worker error is logged (checked by
+  removing the fix).
+- **Build:** `vite.config.ts` puts MapLibre in a named `maplibre` chunk (it's shared by
+  the map and the dashboard now) and leaves `maplibre-*` and `Dashboard-*` out of the
+  precache; they're cached on first use (`circuit-map` cache, CacheFirst).
+- **Tests:** `e2e/dashboard.spec.ts` (both widths): story 5 (numbers, "35 needs, 2
+  offers", table's first row, 17 areas, picker switches to clinical trials, 52% vs
+  80%, no worker errors) and a failing section showing its error and retrying while the
+  others still work. `network.spec.ts` now finds the round result by test id.
+- `scripts/screenshots.mjs`: `partner-dashboard` and `partner-gap-map`.
 
-1. **Recharts** is on the spec's list; add it, lazy-loaded with the dashboard chunk so
-   the first load stays under budget.
-2. Three `Stat` tiles from `/api/dashboard/stats`.
-3. Ranked horizontal bar chart from `/api/dashboard/gaps` (needs vs offers per
-   capability, biggest gap first; regulatory affairs 35 vs 2 on top in the seed).
-4. Gap map: MapLibre heatmap layer from `/api/dashboard/gaps/areas` (weight by `gap`,
-   clipped at 0) with a capability picker (default: the biggest gap).
-5. Local vs bridge intro acceptance bars from `/api/dashboard/intros` (52% vs 80%).
-6. Keep the "Run round now" card (below the charts, or in its own section).
-7. Loading, empty and error states; phone and laptop widths; Playwright test for story
-   5; Lighthouse; screenshots; README; PROGRESS; commit; stop for OK.
+## Phase 12: the plan (demo readiness)
 
-## Remaining phases after 11 (from CLAUDE.md)
+From CLAUDE.md:
+1. **DEMO.md**: a 5-minute demo script following the five stories, with the persona to
+   switch to at each step and what to say. Story 3 includes applying and shortlisting
+   (CLAUDE.md F11). Start with `make reset-demo && make demo-check`. Note that "Run
+   round now" uses up story 2 until the next reset.
+2. **reset-demo verified** from scratch (fresh database, migrations, seed).
+3. **README** setup for Mac (Apple Silicon) and WSL2, checked end to end.
+4. **Deployment config** for Railway or Render: one backend service, one static
+   frontend, managed Postgres with PostGIS and pgvector. Ask the user which provider.
+   `DEMO_PUBLIC=true` only for a fake-data demo deployment; `VITE_API_URL` for the static
+   frontend; CORS origins; the embedding model download on first start.
+5. All tests passing; a Playwright run that walks the whole DEMO.md path in order.
+6. Consider before demos: a rate limit on `/api/onboarding/suggest` (see known issues).
 
-- **12 Demo readiness**: DEMO.md 5-minute script (story 3 includes applying and
-  shortlisting), Railway or Render config, final README.
+## Remaining phases after 12
+
+None: Phase 12 is the last phase in CLAUDE.md.
 
 ## Decisions and deviations from CLAUDE.md
 
 All of these were explained at the end of their phase; the user confirmed by continuing.
 
 **Dependencies** (approved by the user, or on the spec's list):
+- **From the spec's list (Phase 11):** recharts 3.10.1.
 - **Added with approval:** uvicorn, pydantic-settings, ruff (dev), @vitejs/plugin-react,
   @types/react and @types/react-dom (Phase 0); PyJWT[crypto] (Phase 2).
 - **From the spec's list:** networkx and ortools (Phase 6; OR-Tools also brings pandas
@@ -321,6 +363,13 @@ All of these were explained at the end of their phase; the user confirmed by con
 - The Dashboard tab holds "Run round now" until Phase 11 builds the full dashboard.
 - Onboarding: a new suggestion replaces the chips (it describes the whole person);
   the user can still change any chip before saving.
+
+**Phase 11:**
+- The three dashboard numbers are members, startups hiring and intros made.
+- The chart shows the 10 biggest gaps (needs minus offers), not the 10 most-needed
+  capabilities; the full list is in the map's picker.
+- Offers use a darker green (`#1a9e58`) than the brand neon, which fails the
+  chart lightness check.
 
 **Map:** pins and pages show **jobs**, not the raw `open_roles` JSON. `open_roles` stays as
 crawler input and seeded jobs are derived from it. `StartupCreate`/`Update` no longer
@@ -405,6 +454,8 @@ are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per st
   not cleared when every job closes.
 - **`jobs.searched` events are noisy:** one is written on every jobs list call, including
   pagination.
+- **On the Phase 11 machine the map scores 73–86 for Performance** (the same for the
+  Phase 10 build there). Earlier note, from the Phase 9 machine:
 - **The map scores 89–92 for Lighthouse Performance** (MapLibre's start-up on a simulated
   budget phone) and 95 for Accessibility: in dense clusters pins sit closer than 24px.
   **Pin clustering** (count bubbles that zoom in when tapped) would fix both and help on

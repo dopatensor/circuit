@@ -37,17 +37,18 @@ export default defineConfig(({ mode }) => {
         workbox: {
           // The app shell: precached, so the app opens instantly and offline.
           globPatterns: ["**/*.{js,css,html,svg,png}"],
-          // The map library (~280 KB gzipped) isn't pre-downloaded on install: founders
-          // never open the map. It's cached the first time someone does (below).
-          globIgnores: ["**/MapView-*"],
+          // The map library (~280 KB gzipped, plus its worker) and the dashboard's charts
+          // (~100 KB) aren't pre-downloaded on install: founders never open the map, and
+          // only partner admins see the dashboard. They're cached on first use (below).
+          globIgnores: ["**/maplibre-*", "**/Dashboard-*"],
           navigateFallback: "/index.html",
           navigateFallbackDenylist: [/^\/api\//, /^\/health/, /^\/docs/],
           cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
-              urlPattern: ({ url }) => url.pathname.startsWith("/assets/MapView-"),
+              urlPattern: ({ url }) => /^\/assets\/(maplibre-|Dashboard-)/.test(url.pathname),
               handler: "CacheFirst", // file names change with every build, so never stale
-              options: { cacheName: "circuit-map", expiration: { maxEntries: 6 } },
+              options: { cacheName: "circuit-map", expiration: { maxEntries: 10 } },
             },
             {
               // API data that stays readable offline (network first, cache as fallback):
@@ -78,6 +79,15 @@ export default defineConfig(({ mode }) => {
     ],
     server: { host: true, proxy }, // host: reachable from a phone on the same Wi-Fi
     preview: { host: true, proxy },
-    build: { target: "es2022" },
+    build: {
+      target: "es2022",
+      rolldownOptions: {
+        output: {
+          // MapLibre in one named chunk (shared by the map and the dashboard's heat map),
+          // so the service worker can leave it out of the install download.
+          codeSplitting: { groups: [{ name: "maplibre", test: /node_modules[\\/]maplibre-gl/ }] },
+        },
+      },
+    },
   };
 });

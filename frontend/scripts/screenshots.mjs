@@ -48,6 +48,14 @@ const shots = [
     await page.getByTestId("intro-path").waitFor();
   }],
   ["mentor-intros", "Lakshmi", "/intros", async (page) => page.getByTestId("intro-capacity").waitFor()],
+  ["partner-dashboard", "Nandini", "/dashboard", async (page) => {
+    await page.getByText("Show as a table").waitFor();
+    await page.mouse.move(0, 0); // no chart tooltip in the picture
+  }],
+  ["partner-gap-map", "Nandini", "/dashboard", async (page) => {
+    await page.getByRole("img", { name: /^Map of where/ }).scrollIntoViewIfNeeded();
+    await page.locator("[data-heat-settled]").waitFor();
+  }],
   // Runs a real round (changes the database): run `make reset-demo` afterwards.
   ["partner-run-round", "Nandini", "/dashboard", async (page) => {
     await page.getByRole("button", { name: "Run round now" }).click();

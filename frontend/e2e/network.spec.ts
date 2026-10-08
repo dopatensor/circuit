@@ -82,7 +82,7 @@ test("story 2: the admin runs a round; Asha, Priya and Arjun accept the loop", a
   await signInAs(page, "Nandini");
   await goToTab(page, "Dashboard");
   await page.getByRole("button", { name: "Run round now" }).click();
-  const result = page.getByRole("status");
+  const result = page.getByTestId("round-result");
   await expect(result).toContainText("1 proposed");
   await expect(result).toContainText("Asha Reddy");
 
@@ -112,7 +112,7 @@ test("a declined circuit is called off for everyone", async ({ page }) => {
   await signInAs(page, "Nandini");
   await goToTab(page, "Dashboard");
   await page.getByRole("button", { name: "Run round now" }).click();
-  await expect(page.getByRole("status")).toContainText("1 proposed");
+  await expect(page.getByTestId("round-result")).toContainText("1 proposed");
   await switchTo(page, "Priya");
   await goToTab(page, "Circuits");
   await page.getByTestId("loop-card").getByRole("button", { name: "Decline" }).click();
