@@ -35,6 +35,25 @@ async def test_story1_from_kavyas_side(client, login):
     assert {"Dr. Meera Iyer", "HelixRoot Biosciences"} & {m["title"] for m in items}
 
 
+async def test_matches_say_who_an_intro_would_go_to(client, login, session):
+    items = await top(client, await login("kavya"), 50)
+    people = [m for m in items if m["candidate_type"] == "member"]
+    startups = [m for m in items if m["candidate_type"] == "startup"]
+    assert people and startups
+    # People: the person themselves.
+    assert all(m["intro_member_id"] == m["candidate_id"] for m in people)
+    # Startups: the founder who claimed it, or nobody yet.
+    claimed_by = dict(
+        (await session.execute(text("SELECT id::text, claimed_by_member_id::text FROM startups")))
+        .tuples()
+        .all()
+    )
+    assert all(m["intro_member_id"] == claimed_by[m["candidate_id"]] for m in startups)
+    # Jobs (students) have no intro target.
+    ravi = await top(client, await login("ravi"))
+    assert all(m["intro_member_id"] is None for m in ravi if m["candidate_type"] == "job")
+
+
 async def test_story3_ravis_top_match_is_the_internship(client, login):
     items = await top(client, await login("ravi"))
     first = items[0]

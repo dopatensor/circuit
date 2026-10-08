@@ -5,25 +5,24 @@ Snapshot for picking the work up in a new session. The spec is [CLAUDE.md](CLAUD
 must also follow [DESIGN.md](DESIGN.md)**, the user's design and PWA brief for Phases
 8–11. Setup details are in [README.md](README.md).
 
-Branch: `claude/kind-noether-bp70jm`. Phases 0–4 are merged into `main` (pull requests
-#1–#3 in `dopatensor/circuit`). Phases 5–9 are committed and pushed on this branch
-but not merged yet; no pull request has been opened for them.
+Branch: `claude/circuit-context-rebuild-vqqtw8` (Phase 10 onward). Phases 0–9 are
+merged into `main` (pull requests #1–#7 in `dopatensor/circuit`). Phase 10 is committed
+and pushed on this branch; no pull request has been opened for it yet. Each new session
+gets its own branch name: start it from this branch (or `main`, once merged).
 
-## Where we stopped (2026-10-07)
+## Where we stopped (2026-10-08)
 
-- **Phase 9 is finished, committed and pushed** (`4aa2a03`). The working tree is clean.
-- **Waiting for the user** on two things before Phase 10 starts:
-  1. An OK to start Phase 10 (onboarding chips, match-card actions, the warm intro
-     flow and Intros tab, the circuits loop card). The step-by-step plan is below.
-  2. Whether to add **map pin clustering** first: nearby pins merge into a count bubble
-     that zooms in when tapped. It would lift the map's Lighthouse Accessibility (95) and
-     Performance (89–92) and help on small screens. See "Known issues".
+- **Phase 10 is finished, committed and pushed.** The working tree is clean.
+- **Waiting for the user's OK** to start Phase 11 (dashboard UI). The plan is below.
+- The user chose **not** to add map pin clustering (2026-10-08). It stays in "Known
+  issues" as an option.
 - **How we work:** one phase at a time. Write tests during the phase; run the backend
   tests, `make demo-check`, the browser tests, `npm run size` and Lighthouse; update
   README and this file; commit and push; explain in plain language with screenshots;
   then stop for the user's OK.
 - **Screenshots** for the user: build, run `npx vite preview --port 4183` with the API
   on :8000, then `npm run screenshots -- http://localhost:4183 <dir>` and send the PNGs.
+  The script runs a real circuit round, so run `make reset-demo` afterwards.
 
 ## Status at a glance
 
@@ -38,19 +37,20 @@ but not merged yet; no pull request has been opened for them.
 | 6 Circuits (F6) | ✅ done |
 | 7 Dashboard API (F8 backend) | ✅ done |
 | 8 Frontend shell (F9) + PWA + redesign | ✅ done |
-| 9 Map view + jobs UI (F2, F3, F11) | ✅ done (waiting for the user's OK) |
-| **10 Network app (F1 UI, matches, intros, circuits)** | ⏭️ **next: not started** |
-| 11–12 | not started |
+| 9 Map view + jobs UI (F2, F3, F11) | ✅ done |
+| 10 Network app (F1 UI, matches, intros, circuits) | ✅ done (waiting for the user's OK) |
+| **11 Dashboard UI (F8)** | ⏭️ **next: not started** |
+| 12 Demo readiness | not started |
 
-Last verified (2026-10-07, Phase 9 commit):
+Last verified (2026-10-08, Phase 10 commit):
 
-- Backend tests: **224 passed, 1 skipped**. `ruff` and `alembic check` are clean.
-- Browser tests: **35 passed, 1 skipped** (twice in a row).
-- `npm run size`: 96.6 KB first-load JavaScript, gzipped. MapLibre (283 KB gzipped) is
-  its own lazy chunk and isn't pre-cached on install (404 KB precache).
-- Lighthouse (mobile, slow 4G): welcome 98/100/100/100; `/jobs` and `/matches` signed in
-  99–100; `/map` as Ravi 89–92 Performance, 95 Accessibility, 96 Best Practices (see
-  known issues).
+- Backend tests: **225 passed, 1 skipped**. `ruff` and `alembic check` are clean.
+- Browser tests: **49 passed, 1 skipped**. One run of three had one failure in
+  `pwa.spec.ts` (offline cache test, phone); it didn't happen again in about 60 more
+  runs of that test. See "Known issues".
+- `npm run size`: 96.8 KB first-load JavaScript, gzipped.
+- Lighthouse (mobile, slow 4G): `/me/profile`, `/matches`, `/intros`, `/circuits` and
+  `/dashboard` signed in: 100/100/100/100. Earlier screens unchanged (see Phase 9).
 - `make demo-check`: **5/5 PASS**.
 
 ## What Phase 5 built (warm intros, F5)
@@ -201,38 +201,73 @@ Last verified (2026-10-07, Phase 9 commit):
 - `scripts/lighthouse.mjs` takes `--as <persona>` (signs in through Playwright first)
   and `--details`.
 
-## Phase 10: exactly what's left (all of it)
+## What Phase 10 built (network app: F1 UI, F4 actions, F5, F6)
 
-Spec: F1 onboarding UI, matches with reasons and Bridge badges (the list exists),
-warm intro flow, circuits loop card. Follow DESIGN.md.
+- **Backend:** `MatchOut.intro_member_id`: who a warm intro goes to (the person, or the
+  founder who claimed a startup; `None` for jobs and unclaimed startups). Test:
+  `test_matches_say_who_an_intro_would_go_to`.
+- **Onboarding** (`src/screens/Onboarding.tsx`, route `/me/profile`, not for partner
+  admins): a textarea (saved as the bio) and "Suggest chips" (`/api/onboarding/suggest`).
+  `source: "llm"` replaces the chips with the suggestion and says how many were picked;
+  `"manual"` says suggestions are off and keeps your current chips. Pickers
+  (`src/components/Chips.tsx`): chosen and suggested chips first, "Show all 62" for the
+  full list grouped by category, with the API's limits (10 needs, 10 offers, 15 skills,
+  10 traits). Students get "Your skills" instead of needs and offers (their existing
+  needs and offers are sent back unchanged, because confirm replaces everything).
+  Need and offer texts are kept from the profile or the suggestion. "Save and see
+  matches" → `/api/onboarding/confirm`, then `/api/matches/refresh` (level 2+), then
+  Matches with "Saved". Entry points: Me ("Edit") and Matches (link, and the empty state).
+- **Matches:** one action per card: "Ask for intro" (people, claimed startups; not for
+  students), "View job", "View startup".
+- **Intro sheet** (`src/components/IntroSheet.tsx`): the path as avatars (You → mutual →
+  them), the API's `sentence`, then one of: the form (reason 10–500 characters, "Send
+  request"), "You already asked" (`open_request_id`), or `blocked_reason` as-is. After
+  sending: "Sent. <mutual> will see it first and pass it on."
+- **Intros tab** (`src/screens/Intros.tsx`): capacity line, sections "To pass on", "For
+  you", "You asked"; each card has a headline, status pill, path, reason, Bridge badge,
+  and the buttons in `actions` (Pass it on, Accept, Decline, Withdraw; rating 1–5 via
+  `src/components/Rating.tsx`).
+- **Circuits tab** (`src/screens/Circuits.tsx`): loop card with an SVG circle (three
+  avatars, clockwise arrowheads drawn halfway along each arc; SVG markers looked like
+  they pointed the wrong way), the three "who helps whom" lines with each giver's answer,
+  Accept / Decline with hours left, "You accepted. Waiting for the others.", and "Rate the
+  help you got from X with Y" once active.
+- **Dashboard tab** (`src/screens/Dashboard.tsx`): for now only the "Run round now" card
+  (`/api/admin/circuits/run`), showing the round's numbers and the proposed loops.
+  Phase 11 adds the rest. The old placeholder screens (`placeholders.tsx`, `Soon.tsx`)
+  are gone.
+- **Partner admins get an Intros tab** (Dashboard · Map · Intros · Me), because in story
+  1 the mutual is Nandini (a partner admin) and she had no way to pass requests on.
+  DESIGN.md updated.
+- **Tests** (`e2e/network.spec.ts`, both widths): story 1 (Bridge card → intro path via
+  Nandini → send → "You already asked"), story 4 (Rohan → Lakshmi passes on → Vikram
+  accepts → Rohan rates 5), level-2 founder sees why she can't ask, story 2 (Nandini
+  runs the round → Asha, Priya, Arjun accept → active → Arjun rates), a decline calls the
+  circuit off, onboarding by hand, and onboarding with suggested chips (the suggest
+  response is stubbed in the browser, since tests have no API key).
+- `scripts/screenshots.mjs` has Phase 10 shots (onboarding, intro sheet, intros, run
+  round, circuits).
 
-1. **Onboarding (F1)**: `POST /api/onboarding/suggest` (paste a bio → suggested needs,
-   offers, capabilities, traits from the fixed lists) and `POST /api/onboarding/confirm`.
-   Tap-to-select chips; without an API key the endpoint falls back to manual pickers
-   (check the response shape). Entry point: Me ("Edit what you need and offer"), and for
-   new profiles.
-2. **Matches**: add one action per card. Members → "Ask for intro" (opens the intro
-   sheet); startups → "View startup"; jobs (students) → "View job". For a startup
-   match, the intro target would be its claiming founder (not in the API yet).
-3. **Warm intro flow (F5)**: the sheet shows `GET /api/intros/path/{id}`'s sentence and
-   via person, a reason field (10–500 characters) and "Send request". Show 429/403
-   messages as-is (`blocked_reason` when `can_request` is false). The **Intros tab**
-   lists sent, to-forward and received requests, each with the `actions` the API lists
-   (forward, accept, decline, withdraw, rate 1–5).
-4. **Circuits tab (F6)**: `GET /api/circuits/me` loop cards: three names in a simple
-   circle, the three "who helps whom" lines, Accept / Decline (72 h countdown), then
-   "Rate the help you got" once active. Partner admins: "Run round now" (Dashboard, Phase
-   11, or a small admin card).
-5. Playwright: story 1 (Meera → Kavya Bridge card → intro path), story 4 (Rohan →
-   Vikram via Lakshmi: request → Lakshmi forwards → Vikram accepts → Rohan rates), story 2
-   (admin runs the round → Asha, Priya and Arjun accept → active). Use `resetDemo()`.
-6. Screenshots, Lighthouse, size, README, PROGRESS, commit, stop for OK.
+## Phase 11: the plan (dashboard UI, F8)
 
-## Remaining phases after 10 (from CLAUDE.md)
+Spec: gap map (ranked chart and map heat layer), network stats, intro acceptance local
+vs bridge. Follow DESIGN.md ("three big numbers at the top, then one ranked bar chart of
+capability gaps, then the gap map").
 
-- **11 Dashboard UI**: gap chart (Recharts) from `/api/dashboard/gaps`, MapLibre heatmap
-  layer from `/api/dashboard/gaps/areas` (weight by `gap`, clipped at 0, with a
-  capability picker), stat tiles from `/stats`, local vs bridge bars from `/intros`.
+1. **Recharts** is on the spec's list; add it, lazy-loaded with the dashboard chunk so
+   the first load stays under budget.
+2. Three `Stat` tiles from `/api/dashboard/stats`.
+3. Ranked horizontal bar chart from `/api/dashboard/gaps` (needs vs offers per
+   capability, biggest gap first; regulatory affairs 35 vs 2 on top in the seed).
+4. Gap map: MapLibre heatmap layer from `/api/dashboard/gaps/areas` (weight by `gap`,
+   clipped at 0) with a capability picker (default: the biggest gap).
+5. Local vs bridge intro acceptance bars from `/api/dashboard/intros` (52% vs 80%).
+6. Keep the "Run round now" card (below the charts, or in its own section).
+7. Loading, empty and error states; phone and laptop widths; Playwright test for story
+   5; Lighthouse; screenshots; README; PROGRESS; commit; stop for OK.
+
+## Remaining phases after 11 (from CLAUDE.md)
+
 - **12 Demo readiness**: DEMO.md 5-minute script (story 3 includes applying and
   shortlisting), Railway or Render config, final README.
 
@@ -278,6 +313,14 @@ All of these were explained at the end of their phase; the user confirmed by con
 - Demo tokens are HS256 with `DEMO_JWT_SECRET`, which must be 32+ random characters when
   demo auth runs in production.
 - `env_ignore_empty=True`, so `KEY=` in `.env` means "use the default".
+
+**Phase 10:**
+- `MatchOut.intro_member_id` added so startup matches can lead to an intro with the
+  claiming founder.
+- Partner admins have an Intros tab (they can be the mutual in an intro).
+- The Dashboard tab holds "Run round now" until Phase 11 builds the full dashboard.
+- Onboarding: a new suggestion replaces the chips (it describes the whole person);
+  the user can still change any chip before saving.
 
 **Map:** pins and pages show **jobs**, not the raw `open_roles` JSON. `open_roles` stays as
 crawler input and seeded jobs are derived from it. `StartupCreate`/`Update` no longer
@@ -338,8 +381,18 @@ are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per st
   against offers, which is also the scorer's main signal. Some good pairs sit close to
   the 0.40 threshold (Meera→Sunil 0.49, founder-008-0→Lakshmi 0.43). Labels from real
   users would be a harder test.
-- **Intro paths are only for members.** A startup match has no intro target in the API
-  yet (Phase 10 should use the claiming founder).
+- **Unclaimed startups have no intro target**, so their match card says "View startup".
+- **One unexplained browser-test failure** (2026-10-08): `pwa.spec.ts` "jobs, matches and
+  applications stay readable offline" failed once at phone width in a full run, then
+  passed in about 60 further runs (alone, with the other files, and in full runs). The
+  error output was lost when the next run overwrote `test-results/`. If it fails again,
+  keep `test-results/` and read the trace. It's probably the service-worker cache
+  timing mentioned under "Offline e2e tests" below.
+- **The real AI suggestion path is only tested with a stubbed response in the browser**
+  (and a fake Messages API server on the backend). Try "Suggest chips" once with a real
+  `ANTHROPIC_API_KEY`.
+- **Intros tab has no paging and no "older" folding**: done and declined requests stay
+  in the lists (at most 200 from the API).
 - **`GET /api/intros/me` returns at most 200 requests**, newest first, with no paging.
 - **The seed has only one possible circuit** (story 2). A live "Run round now" shows
   one loop. More background loops in the seed would make the round look richer, but
@@ -379,7 +432,7 @@ are matched only to jobs within `STUDENT_RADIUS_KM` (10 km), with one job per st
 
 ```bash
 git clone <repo> && cd circuit
-git checkout claude/kind-noether-bp70jm   # or main once Phase 5 is merged
+git checkout claude/circuit-context-rebuild-vqqtw8   # or main once Phase 10 is merged
 cp .env.example .env               # set DEMO_AUTH=true for the persona logins
 make db                            # docker compose up -d --wait  (Postgres+PostGIS+pgvector)
 cd backend && uv sync && cd ..     # Python 3.12 deps (uv downloads Python itself)
@@ -391,7 +444,7 @@ make reset-demo                    # migrate + seed + embed + compute matches (~
 
 ```bash
 make dev-api        # API on http://localhost:8000  (docs: /docs)
-make dev-web        # web app on http://localhost:5173  (still the Phase 0 placeholder)
+make dev-web        # web app on http://localhost:5173
 make reset-demo     # restore the demo data
 make demo-check     # PASS/FAIL per demo story (expects a fresh reset-demo)
 make eval           # match scorer vs tests/eval/pairs.json

@@ -18,7 +18,8 @@ export function tabsFor(role: Role): Tab[] {
     case "student":
       return [T.map, T.jobs, T.matches, T.me];
     case "partner_admin":
-      return [T.dashboard, T.map, T.me];
+      // Partner admins are often the mutual connection in a warm intro.
+      return [T.dashboard, T.map, T.intros, T.me];
     default: // founder, mentor, investor
       return [T.matches, T.circuits, T.intros, T.me];
   }

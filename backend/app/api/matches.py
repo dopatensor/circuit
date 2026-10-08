@@ -54,17 +54,17 @@ async def _describe(session, matches: list[CachedMatch]) -> list[MatchOut]:
     for m in matches:
         if m.candidate_type == "member" and m.candidate_id in members:
             p = members[m.candidate_id]
-            title, sector = p.display_name, p.sector
+            title, sector, intro_to = p.display_name, p.sector, p.id
             subtitle = " · ".join(x for x in (ROLE_LABEL.get(p.role, p.role), p.sector) if x)
         elif m.candidate_type == "startup" and m.candidate_id in startups:
             s = startups[m.candidate_id]
-            title, sector = s.name, s.sector
+            title, sector, intro_to = s.name, s.sector, s.claimed_by_member_id
             subtitle = f"Startup · {s.sector}" + (
                 "" if s.claimed_by_member_id else " · not on Circuit yet"
             )
         elif m.candidate_type == "job" and m.candidate_id in jobs:
             j, s = jobs[m.candidate_id]
-            title, sector = j.title, s.sector
+            title, sector, intro_to = j.title, s.sector, None
             subtitle = f"{s.name} · {j.compensation or ('paid' if j.paid else 'unpaid')}"
         else:
             continue  # the candidate was deleted since the last computation
@@ -78,6 +78,7 @@ async def _describe(session, matches: list[CachedMatch]) -> list[MatchOut]:
                 score=round(m.score * 100),
                 reason=m.reason,
                 is_bridge=m.is_bridge,
+                intro_member_id=intro_to,
                 components=m.components,
                 computed_at=m.computed_at,
             )

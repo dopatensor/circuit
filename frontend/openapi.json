@@ -1778,6 +1778,18 @@
             ],
             "title": "Computed At"
           },
+          "intro_member_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intro Member Id"
+          },
           "is_bridge": {
             "title": "Is Bridge",
             "type": "boolean"
@@ -1819,6 +1831,7 @@
           "score",
           "reason",
           "is_bridge",
+          "intro_member_id",
           "components",
           "computed_at"
         ],

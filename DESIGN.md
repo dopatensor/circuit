@@ -45,7 +45,8 @@ the original design rules below wherever they conflict:
 - Mobile: bottom tab bar with at most 4 tabs, chosen by role:
   - Student: Map · Jobs · Matches · Me
   - Founder / mentor / investor: Matches · Circuits · Intros · Me
-  - Partner admin: Dashboard · Map · Me
+  - Partner admin: Dashboard · Map · Intros · Me (Intros added in Phase 10: partner
+    admins are often the mutual connection in a warm intro)
 - Desktop: the same tabs as a slim left sidebar, content in a centred column with max
   width ~720px. The map and dashboard may use full width.
 - Tap targets at least 44px; primary buttons within thumb reach at the bottom of mobile

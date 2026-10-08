@@ -1781,6 +1781,8 @@ export interface components {
             };
             /** Computed At */
             computed_at: string | null;
+            /** Intro Member Id */
+            intro_member_id: string | null;
             /** Is Bridge */
             is_bridge: boolean;
             /** Reason */

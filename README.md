@@ -9,9 +9,11 @@ the startup map, claiming, jobs (F11), matching with reasons and Bridge badges (
 warm intros with weekly capacity (F5), events for every action (F10), exchange
 circuits (F6) and the partner dashboard API (F8). Phase 8 added the frontend shell:
 an installable app (PWA) with role-based tabs, the demo persona switcher and
-verification badges. The map, jobs, matches, intros, circuits and dashboard screens
-come in Phases 9–11. Phase 9 added the map, startup pages with claiming, and jobs
-with applications.
+verification badges. Phase 9 added the map, startup pages with claiming, and jobs
+with applications. Phase 10 added the network app: onboarding with tap-to-select chips
+(F1), an action on every match, the warm intro flow and Intros tab (F5), and the
+Circuits loop card with accept, decline and rating (F6). The dashboard screen (F8 UI)
+comes in Phase 11.
 `make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
 
@@ -102,7 +104,8 @@ npm run lighthouse -- http://localhost:4183/welcome
 npm run lighthouse -- http://localhost:4183/map --as ravi --details   # signed in
 ```
 
-Last run (Phase 9): welcome 98/100/100/100; jobs and matches 99–100 across the board;
+Last run (Phase 10): onboarding, matches, intros, circuits and the dashboard's
+"Run round now" all 100/100/100/100. Phase 9: welcome 98/100/100/100; jobs and matches 99–100 across the board;
 the map 89–92 Performance (MapLibre's start-up work on a simulated budget phone), 95
 Accessibility (pins in dense clusters sit closer than 24px) and 96 Best Practices
 (only because this sandbox can't reach the tile server). Lighthouse
@@ -158,15 +161,32 @@ Run `make reset-demo && make demo-check` before every demo.
 - **Layout**: phones get a bottom tab bar, laptops a slim left sidebar, and content sits
   in a 720px column (the map and dashboard use the full width). Tabs depend on role:
   students get Map · Jobs · Matches · Me; founders, mentors and investors get Matches ·
-  Circuits · Intros · Me; partner admins get Dashboard · Map · Me. Tap targets are 44px+.
+  Circuits · Intros · Me; partner admins get Dashboard · Map · Intros · Me (they're often
+the mutual in a warm intro). Tap targets are 44px+.
 - **Data**: every call goes through the typed client generated from the API's OpenAPI
   spec (`src/api/schema.d.ts`; regenerate with `make api-client`), with TanStack Query.
   A backend test fails if `frontend/openapi.json` is out of date.
 - **Demo mode (F9)**: signed out, the welcome screen shows the pitch and the demo people
   grouped by the five stories. Signed in, **Me** shows your profile, verification, three
   stats for your role and a "Switch person" button that opens the same story list.
-- **Matches** already lists your real matches as cards (reason, score, Bridge badge);
-  the intro action arrives in Phase 10.
+- **Matches (F4)**: one card per match (score, one-line reason, Bridge badge) with one
+  action: "Ask for intro" for people and for startups a founder has claimed, otherwise
+  "View startup" or (students) "View job".
+- **Onboarding (F1)**: Me → "Edit" (or the link on Matches) opens "What you need and
+  offer". Paste a bio and tap "Suggest chips": with an API key the suggested needs,
+  offers (students: skills) and traits come pre-selected; without one, the same chips
+  are picked by hand from the full lists. "Save and see matches" saves and recomputes
+  your matches straight away.
+- **Warm intros (F5)**: "Ask for intro" opens a sheet with the path (You → mutual →
+  them), the API's one-line explanation, a short reason (10–500 characters) and "Send
+  request". If you can't ask yet (verification level, a full week), it says why. The
+  **Intros** tab lists "To pass on", "For you" and "You asked", each card with the
+  buttons the API allows (pass it on, accept, decline, withdraw, rate 1–5), and your
+  capacity this week.
+- **Circuits (F6)**: each loop card shows the three people in a circle with clockwise
+  arrows, the three "who helps whom" lines with everyone's answer, Accept and Decline
+  with the hours left, and once active "Rate the help you got". Partner admins have
+  **Run round now** on the Dashboard tab.
 - **Installable (PWA)**: a manifest (name, standalone, "C" icons at 192/512/maskable plus
   an apple-touch-icon; regenerate with `npm run icons`) and a service worker
   (vite-plugin-pwa):

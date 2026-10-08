@@ -9,8 +9,6 @@ import { tabsFor } from "./nav";
 // coming in later phases, are the heavy ones).
 const Welcome = lazy(() => import("./screens/Welcome"));
 const Me = lazy(() => import("./screens/Me"));
-const screens = (name: keyof typeof import("./screens/placeholders")) =>
-  lazy(() => import("./screens/placeholders").then((m) => ({ default: m[name] })));
 const MapScreen = lazy(() => import("./screens/MapScreen"));
 const JobsScreen = lazy(() => import("./screens/Jobs"));
 const JobPage = lazy(() => import("./screens/JobPage"));
@@ -18,9 +16,10 @@ const StartupPage = lazy(() => import("./screens/StartupPage"));
 const FindStartup = lazy(() => import("./screens/FindStartup"));
 const Applicants = lazy(() => import("./screens/Applicants"));
 const MatchesScreen = lazy(() => import("./screens/Matches"));
-const CircuitsScreen = screens("CircuitsScreen");
-const IntrosScreen = screens("IntrosScreen");
-const DashboardScreen = screens("DashboardScreen");
+const CircuitsScreen = lazy(() => import("./screens/Circuits"));
+const IntrosScreen = lazy(() => import("./screens/Intros"));
+const DashboardScreen = lazy(() => import("./screens/Dashboard"));
+const Onboarding = lazy(() => import("./screens/Onboarding"));
 
 export default function App() {
   const { token, member, loading } = useAuth();
@@ -58,6 +57,7 @@ export default function App() {
         {tab("/intros", <IntrosScreen />)}
         {tab("/dashboard", <DashboardScreen />)}
         <Route path="/me" element={<Me />} />
+        {member.role !== "partner_admin" && <Route path="/me/profile" element={<Onboarding />} />}
         {/* Pages reached from a tab (or a link), open to every signed-in role. */}
         <Route path="/jobs/:jobId" element={<JobPage />} />
         <Route path="/startups" element={<FindStartup />} />

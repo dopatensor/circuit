@@ -114,6 +114,25 @@ export default function Me() {
         ))}
       </div>
 
+      {member.role !== "partner_admin" && (
+        <Card className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-1">
+            <Eyebrow>{member.role === "student" ? "Your skills" : "What you need and offer"}</Eyebrow>
+            <p>
+              {member.role === "student"
+                ? "Jobs are matched to your skills, not your college."
+                : "Your matches and circuits come from this."}
+            </p>
+          </div>
+          <Link
+            to="/me/profile"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-line bg-raised px-5 font-semibold hover:border-muted"
+          >
+            Edit
+          </Link>
+        </Card>
+      )}
+
       {member.role === "founder" && <YourStartups />}
 
       {isDemo && (
