@@ -12,8 +12,9 @@ an installable app (PWA) with role-based tabs, the demo persona switcher and
 verification badges. Phase 9 added the map, startup pages with claiming, and jobs
 with applications. Phase 10 added the network app: onboarding with tap-to-select chips
 (F1), an action on every match, the warm intro flow and Intros tab (F5), and the
-Circuits loop card with accept, decline and rating (F6). The dashboard screen (F8 UI)
-comes in Phase 11.
+Circuits loop card with accept, decline and rating (F6). Phase 11 added the partner
+dashboard (F8 UI): three numbers, the ranked capability-gap chart, the gap heat map and
+local vs bridge intro acceptance. Phase 12 (demo readiness) is next.
 `make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
 
@@ -104,7 +105,9 @@ npm run lighthouse -- http://localhost:4183/welcome
 npm run lighthouse -- http://localhost:4183/map --as ravi --details   # signed in
 ```
 
-Last run (Phase 10): onboarding, matches, intros, circuits and the dashboard's
+Last run (Phase 11): the dashboard 95–96/100/100/100. On this session's machine the map
+measures 73–86 for Performance, and so does the unchanged Phase 10 build, so that's the
+machine, not a regression. Phase 10: onboarding, matches, intros, circuits and the dashboard's
 "Run round now" all 100/100/100/100. Phase 9: welcome 98/100/100/100; jobs and matches 99–100 across the board;
 the map 89–92 Performance (MapLibre's start-up work on a simulated budget phone), 95
 Accessibility (pins in dense clusters sit closer than 24px) and 96 Best Practices
@@ -185,8 +188,23 @@ the mutual in a warm intro). Tap targets are 44px+.
   capacity this week.
 - **Circuits (F6)**: each loop card shows the three people in a circle with clockwise
   arrows, the three "who helps whom" lines with everyone's answer, Accept and Decline
-  with the hours left, and once active "Rate the help you got". Partner admins have
-  **Run round now** on the Dashboard tab.
+  with the hours left, and once active "Rate the help you got".
+- **Dashboard (F8)**, for partner admins, top to bottom:
+  - three numbers: members, startups hiring, intros made;
+  - "What your ecosystem lacks": a ranked bar chart (Recharts) of the 10 biggest gaps,
+    needs in blue next to offers in green, values at the bar ends, a tooltip on hover
+    and "Show as a table";
+  - "Where it's missing": a heat map (MapLibre heatmap layer, one blue hue, brighter =
+    bigger gap) with a capability picker that starts on the biggest gap. The map only
+    loads when it's about to scroll into view;
+  - "Do bridge intros work?": acceptance rate for local vs bridge matches;
+  - **Run round now** for exchange circuits.
+  Each section loads, fails and retries on its own, and its loading block has the
+  section's real size, so nothing jumps. The chart colours were checked for colour
+  blindness and contrast on the dark cards.
+- **MapLibre's worker**: MapLibre draws street tiles and the heat layer in a web worker.
+  `src/map/setup.ts` tells it where the build put the worker file; without that,
+  production builds silently drew no streets and no heat.
 - **Installable (PWA)**: a manifest (name, standalone, "C" icons at 192/512/maskable plus
   an apple-touch-icon; regenerate with `npm run icons`) and a service worker
   (vite-plugin-pwa):

@@ -1,5 +1,5 @@
 import "maplibre-gl/dist/maplibre-gl.css";
-import * as maplibregl from "maplibre-gl";
+import { maplibregl } from "./setup";
 import { useEffect, useRef, useState } from "react";
 import { darkStyle } from "./style";
 
