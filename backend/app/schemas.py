@@ -535,6 +535,9 @@ class MatchOut(BaseModel):
     score: int  # 0-100
     reason: str  # one line, built from the components
     is_bridge: bool  # cross-sector: shown as a "Bridge match" badge
+    # Who a warm intro would go to: the person, or the founder who claimed the startup.
+    # None for jobs and unclaimed startups.
+    intro_member_id: uuid.UUID | None
     components: dict
     computed_at: datetime | None
 

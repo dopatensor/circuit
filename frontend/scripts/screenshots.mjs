@@ -41,6 +41,19 @@ const shots = [
     await page.getByRole("heading", { name: "Applicants" }).waitFor();
   }],
   ["partner-map", "Nandini", "/map", async (page) => page.locator("[data-map-settled]").waitFor()],
+  ["founder-onboarding", "Meera", "/me/profile", async (page) =>
+    page.getByRole("button", { name: "Save and see matches" }).waitFor()],
+  ["founder-intro-sheet", "Rohan", "/matches", async (page) => {
+    await page.getByRole("article").filter({ hasText: "Vikram Shah" }).getByRole("button", { name: "Ask for intro" }).click();
+    await page.getByTestId("intro-path").waitFor();
+  }],
+  ["mentor-intros", "Lakshmi", "/intros", async (page) => page.getByTestId("intro-capacity").waitFor()],
+  // Runs a real round (changes the database): run `make reset-demo` afterwards.
+  ["partner-run-round", "Nandini", "/dashboard", async (page) => {
+    await page.getByRole("button", { name: "Run round now" }).click();
+    await page.getByRole("status").waitFor();
+  }],
+  ["founder-circuits", "Asha", "/circuits", async (page) => page.getByTestId("loop-card").waitFor()],
 ];
 
 const browser = await chromium.launch();

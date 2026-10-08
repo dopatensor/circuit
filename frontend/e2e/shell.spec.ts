@@ -24,7 +24,7 @@ test("each role gets its own tabs and home tab", async ({ page }) => {
 
   await switchTo(page, "Nandini");
   await expect(page).toHaveURL(/\/dashboard$/);
-  expect(await tabLabels(page)).toEqual(["Dashboard", "Map", "Me"]);
+  expect(await tabLabels(page)).toEqual(["Dashboard", "Map", "Intros", "Me"]);
 });
 
 test("tabs a role doesn't have send you home", async ({ page }) => {

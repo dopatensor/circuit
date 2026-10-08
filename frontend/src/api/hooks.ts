@@ -20,3 +20,12 @@ export function useMyProfile(enabled = true) {
     enabled,
   });
 }
+
+/** The fixed trait list ("long sales cycle", "technical buyers", ...). */
+export function useTraits() {
+  return useQuery({
+    queryKey: ["traits"],
+    queryFn: () => unwrap(api.GET("/api/traits")),
+    staleTime: Infinity,
+  });
+}
