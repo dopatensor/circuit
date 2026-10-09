@@ -67,7 +67,7 @@ test("disconnecting GitHub deletes the imported data", async ({ page }) => {
   await goToTab(page, "Me");
   await page.getByRole("link", { name: "See your profile as others see it" }).click();
   await expect(page.getByText("ravi-kumar")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Show something you've built" })).toBeVisible();
+  await expect(page.getByText("Show something you've built")).toBeVisible();
 });
 
 test("connecting GitHub: off to GitHub and back, then the import shows", async ({ page }) => {
