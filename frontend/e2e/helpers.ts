@@ -31,7 +31,8 @@ export async function tabLabels(page: Page): Promise<string[]> {
 
 // Older destinations and where they live now: Discover's tabs, and Inbox for intros.
 const DISCOVER_TABS = new Set(["Map", "Jobs", "Matches", "Startups"]);
-const RENAMED: Record<string, string> = { Intros: "Inbox", Dashboard: "Gaps" };
+// The centre action is short on phones ("Gaps") and spelled out on laptops.
+const RENAMED: Record<string, RegExp> = { Intros: /^Inbox$/, Dashboard: /^(Gaps|Ecosystem gaps)$/ };
 
 /** Go somewhere through the navigation, the way a person would: the main nav, Me
  *  (your avatar on phones), or a Discover tab. */
@@ -43,9 +44,8 @@ export async function goToTab(page: Page, label: string) {
     return;
   }
   await expect(nav).toBeVisible();
-  const name = RENAMED[label] ?? label;
   // The student's centre button is "Jobs"; the partner admin's is "Gaps".
-  const direct = nav.getByRole("link", { name, exact: true });
+  const direct = nav.getByRole("link", { name: RENAMED[label] ?? new RegExp(`^${label}$`) });
   if ((await direct.count()) > 0) return direct.click();
   if (!DISCOVER_TABS.has(label)) throw new Error(`No way to reach "${label}" from the navigation`);
   await nav.getByRole("link", { name: "Discover", exact: true }).click();

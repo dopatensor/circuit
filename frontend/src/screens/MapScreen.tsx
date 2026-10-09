@@ -63,16 +63,17 @@ export default function MapScreen() {
   const activeFilters = Number(filters.hiringOnly) + Number(!!filters.capability);
 
   return (
-    // The map fills the screen between the top and the tab bar (sidebar on laptops).
-    <div className="fixed inset-x-0 top-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] md:bottom-0 md:left-60">
+    // The map fills the rest of the screen below Discover's tabs, in a bordered box, so
+    // the page itself never scrolls (heights: top bar, tabs and the page's own padding).
+    <div className="relative mt-3 h-[calc(100dvh-14.5rem-env(safe-area-inset-top))] min-h-80 overflow-hidden rounded-xl border border-line md:mt-4 md:h-[calc(100dvh-10rem)]">
       {startups.isError && !startups.data ? (
-        <div className="p-4 pt-[max(1rem,env(safe-area-inset-top))]">
+        <div className="p-4">
           <ErrorState error={startups.error} retry={startups.refetch} />
         </div>
       ) : noMap ? (
         <StartupList items={items} onSelect={onSelect} />
       ) : (
-        <Suspense fallback={<div className="absolute inset-0 animate-pulse bg-surface" />}>
+        <Suspense fallback={<div className="absolute inset-0 animate-pulse bg-raised" />}>
           <MapView
             center={center}
             zoom={ZOOM[filters.radiusKm] ?? 11}
@@ -86,7 +87,7 @@ export default function MapScreen() {
       )}
 
       {/* One line of context and one filter button, floating over the map. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 pt-[max(1rem,env(safe-area-inset-top))]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
         <div className="pointer-events-auto rounded-lg border border-line bg-panel/95 px-4 py-2.5 text-sm whitespace-nowrap">
           {startups.isPending ? (
             "Finding startups…"
