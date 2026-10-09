@@ -1,239 +1,176 @@
 # Circuit — design system (redesign, R1–R7)
 
-**Status: proposal, waiting for the user's OK (2026-10-08).** This replaces the Phase 8
-"pure black and neon" brief. The PWA, performance and testing rules at the end carry
-over from that brief and still apply.
+**Status: proposal v2, waiting for the user's OK (2026-10-09).** v1 (warm feed of cards)
+was rejected as "a vibecoded LinkedIn knock-off". v2 takes **Bloomberg Terminal** and
+**Notion** as references. The PWA, performance and testing rules at the end carry over
+and still apply.
 
-Approved dependencies for the redesign: `motion`, `@tanstack/react-virtual`,
-`@use-gesture/react`. Anything else: ask first. (Icons are hand-drawn inline SVG, so
-no icon library is needed. Fonts are files we commit, not npm packages.)
+Approved dependencies: `motion`, `@tanstack/react-virtual`, `@use-gesture/react`.
+Anything else: ask first. Icons are hand-drawn inline SVG; fonts are committed files.
 
-## 1. What the product should feel like
+## 1. The idea
 
-A tool that students and founders open every day to find their next real opportunity.
-Warm and confident, never corporate, never "AI startup". Three qualities we borrow, not
-layouts:
+**Opportunities as a terminal, people as documents.**
 
-- **Linear**: precision and restraint. Every pixel aligned to the grid, nothing extra.
-- **Read.cv**: profiles that lead with work, written in the person's own voice.
-- **Zerodha Kite**: fast, dense and trustworthy on a ₹10,000 phone on a 4G train.
-
-The test for every screen: would a final-year student in Hubballi trust this with their
-first job application, and would a founder in Koramangala use it between meetings?
+- **Bloomberg** gives us the *Brief* (home), Discover and the dashboard: dense, ranked
+  tables you scan in seconds; a ticker of what moved in your city; watchlists and alerts;
+  keyboard first (⌘K command bar, `G` then a letter to jump, `A` apply, `S` save); a
+  status bar saying how fresh the data is. Numbers are the interface.
+- **Notion** gives us profiles, startup pages and job pages: a calm document with a big
+  title, a properties table (College, Based in, Open to, Verified…), then blocks, with
+  **Proof of work as a database** (table or gallery view, expandable rows), callouts and
+  toggles. You add work by pasting a link, like pasting into Notion.
+- What we never do: a social feed of cards, follower counts, likes, a "post something"
+  box. That's the LinkedIn shape, and it's what made v1 look generic.
 
 ## 2. Colour
 
-Near-black and off-white neutrals carry the whole interface. Two colours have a job and
-are never used for anything else:
+Two themes with their own character, same tokens:
 
-- **Accent, "Kiln"** (burnt orange): primary actions only. One filled accent button per
-  screen at most; the active nav item uses the accent as a 2px marker, not a fill.
-- **Signal, "Circuit"** (deep teal): Bridge matches, exchange circuits and the line
-  motif. If something is teal, it's a cross-sector connection or a loop. Nothing else.
+- **Terminal** (dark): near-black panels, amber accent. Feels like a trading desk.
+- **Paper** (light): Notion-white page, a deeper amber. Feels like a document.
 
-Status (hiring, accepted, shortlisted) is shown with neutral text, weight and a small
-solid or hollow dot, not with colour. Red exists only for errors and destructive
-confirmations.
-
-| Token | Light | Dark | Used for |
+| Token | Paper (light) | Terminal (dark) | Used for |
 | --- | --- | --- | --- |
-| `bg` | `#F6F5F1` | `#121110` | Page background |
-| `surface` | `#FFFFFF` | `#1A1917` | Cards, sheets, nav |
-| `sunken` | `#EEECE6` | `#0D0C0B` | Inputs, chips, cover strip, skeletons |
-| `line` | `#E2DFD7` | `#2E2C28` | 1px borders and dividers |
-| `line-strong` | `#CFCBC1` | `#45423D` | Hover borders, input borders |
-| `fg` | `#1A1917` | `#EEECE7` | Headings and body text |
-| `fg-2` | `#45423D` | `#C9C5BD` | Secondary text |
-| `muted` | `#6B675F` | `#9C978E` | Meta text, captions, placeholders |
-| `accent` | `#B8461B` | `#EE7D50` | Primary buttons, active nav marker, focus ring |
-| `accent-ink` | `#FFFFFF` | `#1A0A03` | Text on accent |
-| `accent-tint` | `#FBEBE3` | `#3A2016` | Pressed/selected state behind accent text |
-| `signal` | `#0B7468` | `#4FC2B0` | Bridge badge, circuit loop, line motif |
-| `signal-tint` | `#E3F1EE` | `#15302C` | Bridge badge background |
-| `danger` | `#B42318` | `#F97066` | Errors only |
+| `bg` | `#FBFAF8` | `#0B0B0A` | Page |
+| `panel` | `#FFFFFF` | `#121211` | Panels, tables, sheets |
+| `raised` | `#F3F1ED` | `#1B1B19` | Tags, chips, callouts, inputs |
+| `line` / `line2` | `#E7E4DE` / `#D6D2CA` | `#272724` / `#3A3A36` | Rules; input and button borders |
+| `fg` | `#2B2A27` | `#E9E6DF` | Text |
+| `fg2` | `#55524C` | `#BDB8AE` | Secondary text, sparklines |
+| `muted` | `#6E6A63` | `#8E897F` | Labels, meta |
+| `accent` | `#A35A00` | `#F2A33A` | Primary action, selected row marker, active tab |
+| `ink` | `#FFFFFF` | `#1A1000` | Text on accent |
+| `signal` | `#0A6B82` | `#5CC6D9` | Bridge matches, circuits, the connecting line. Nothing else |
+| `signal-bg` | `#E2F1F4` | `#0F2A30` | Bridge tag background |
 
-Contrast, checked with the WCAG formula (script in the R1 commit):
-`fg` ≥ 14.8:1 everywhere; `muted` ≥ 4.77:1 on every surface (light) and ≥ 6.05:1 (dark);
-`accent` text ≥ 4.52:1, white on accent 5.34:1, dark ink on dark accent 7.06:1;
-`signal` ≥ 4.79:1 (light) and ≥ 8.09:1 (dark), and 4.87:1 on its own tint. All AA.
+All AA (WCAG formula): `fg` ≥ 12.7:1; `muted` ≥ 4.5:1 on every surface; amber text
+≥ 4.63:1 (paper) and ≥ 8.28:1 (terminal); text on amber 5.22:1 / 9.01:1; signal ≥ 5.41:1.
 
-Light and dark follow the system setting, with a Light / Dark / System choice on Me.
+Rules: one amber button per view. Up and down movement uses ▲ ▼ glyphs in neutral text,
+not green and red, so colour keeps its two meanings. Red only for errors.
 
-## 3. Typography
+## 3. Typography: IBM Plex
 
-- **Text: Instrument Sans**, 400 and 600 only. A slightly condensed grotesque with warm,
-  open shapes: confident without looking like every other SaaS app. Self-hosted WOFF2,
-  subset to Latin plus `₹ – — ’ “ ” · →` (about 18 KB per weight), `font-display: swap`,
-  the 400 weight preloaded.
-- **Numbers: IBM Plex Mono 500**, one weight, subset to digits and `% ₹ , . : + − km`
-  (about 4 KB). Used only for numbers that stand on their own: match scores, stat
-  tiles, counts in badges, stipends in a job's meta line. Never for words, and never
-  for a number inside a sentence ("Used by 40 shops" stays in the text font; mono
-  digits mid-sentence looked broken in the mockups).
-- Left-aligned everywhere. Nothing is centred except a lone number inside a stat tile
-  and the empty-state illustration line.
+- **IBM Plex Sans** 400/600 for text, **IBM Plex Mono** 400/500 for data. A single
+  family that was designed for technical interfaces; it reads as "terminal" in mono and
+  "document" in sans. (Plex Sans Devanagari exists if we add Hindi later.)
+- Self-hosted WOFF2, Latin plus `₹ ▲ ▼ → ·`, preloaded 400. About 70 KB for all four
+  files; the mono files are subset to the characters tables need.
+- **Mono is for data**: scores, counts, distances, pay, dates in tables, the ticker,
+  column headers and section labels (uppercase, +0.06em), keyboard hints. **Sans is for
+  language**: names, titles, sentences.
+- Scale (px): 11 mono labels · 12 meta · 13 dense table text (desktop) · 14 body desktop ·
+  15 body mobile · 16 panel titles · 18 section headings · 26/32 page titles.
 
-Type scale (px, line height). Six steps, nothing in between:
+## 4. Space, shape, density
 
-| Token | Size / line | Weight | Use |
-| --- | --- | --- | --- |
-| `text-xs` | 12 / 16 | 400, 600 caps +0.04em | Meta, badge labels, section labels |
-| `text-sm` | 14 / 20 | 400, 600 | Secondary text; body text on desktop lists |
-| `text-base` | 16 / 24 | 400, 600 | Body on mobile, card titles |
-| `text-lg` | 20 / 28 | 600 | Screen titles on mobile, profile name |
-| `text-xl` | 24 / 32 | 600 | Screen titles on desktop |
-| `text-2xl` | 32 / 40 | 600 | Big numbers (mono), profile name on desktop |
-
-Headings use `letter-spacing: -0.01em` at 20px and up. Body text max 68 characters per
-line.
-
-## 4. Spacing, radius, borders
-
-- **8px grid.** Tokens: 4 (half step, only inside components), 8, 12, 16, 24, 32, 48, 64.
-  Mobile screen gutter 16; desktop column gutter 24; space between cards 12 on mobile,
-  8 in dense desktop lists.
-- **Radius is ranked, not uniform** (no rounded-everything):
-  cards and sheets 12; buttons and inputs 8; chips 6; badges 4; people avatars are
-  circles; startup avatars are 8px-rounded squares (so people and companies never get
-  confused); the bottom sheet's top corners 16.
-- **Borders over shadows.** Cards are `surface` + 1px `line`. The only shadows: sheets
-  and modals (`0 8px 32px rgb(0 0 0 / .12)` light, none in dark, where a `line-strong`
-  border is used instead) and the floating centre action button (a 1px ring).
-- Tap targets ≥ 44px on mobile; desktop rows may be 36px with a 44px hit area.
+- 4px base, 8px rhythm. Table rows 44px desktop with a 7px cell padding; 64px+ on mobile.
+- **Square-ish**: panels 6px radius, buttons and tags 3–4px, bottom sheet 12px top
+  corners. People avatars are circles, startups 4px squares. No pills.
+- Borders, never shadows (only the bottom sheet's scrim darkens the page).
+- Desktop is information-dense like a tool; mobile is one ranked list with the top item
+  expanded, like Kite's watchlist.
 
 ## 5. Layout and navigation
 
-- **Mobile (<768px)**: top bar (title left, search and notifications right), content,
-  bottom tab bar `Home · Discover · [action] · Circuits · Inbox`, with **Me** reached
-  from the avatar in the top bar. Five slots: the centre is the role's main action
-  (student: "Find jobs"; founder: "Post" → need or job; mentor/investor: "Offer help";
-  partner admin: "Dashboard"). Unread counts as a small mono number in a neutral pill.
-  _Change from the brief, to confirm:_ five tabs plus a centre button is six slots, and
-  with five tabs the button can't sit in the middle (two tabs on one side, three on the
-  other). I propose Home · Discover · [action] · Circuits · Inbox, with Me on your
-  avatar in the top bar (where people look for it anyway). Alternative: keep Me as a
-  tab and move Inbox to the top bar next to notifications.
-- **Desktop (≥1200px)**: three columns. Left sidebar 232px (logo, nav with labels,
-  the main action as a button, persona switcher in demo mode, you at the bottom),
-  centre content max 680px, right rail 304px (profile strength, suggested connections,
-  nearby jobs). Map and dashboard may span centre + rail.
-- **Tablet (768–1199px)**: sidebar collapses to a 72px icon rail with labels on hover
-  and focus; right rail hidden; its modules appear at the top of Home.
-- **Global search**: Ctrl/⌘K on desktop opens a command-style modal; the search icon on
-  mobile opens a full-screen sheet. Results grouped: People, Startups, Jobs, Skills.
+- **Desktop (≥1200px)**: Notion-style left sidebar (232px): you and your role at the top,
+  nav with keyboard hints, **Watchlist** (followed startups with what changed) and
+  **Alerts** (saved searches with new-match counts), main action pinned at the bottom.
+  Main area: command bar → ticker → workspace panels → status bar. Profiles and other
+  pages are documents centred at 760px with a breadcrumb.
+  _This replaces the brief's "centre 680px + right rail" on the Brief screen._ The right
+  rail's content moves into panels (Selected item, Skills market) and the sidebar
+  (watchlist, alerts); profile strength becomes a callout on your own profile.
+- **Tablet (768–1199px)**: sidebar collapses to icons; the Selected panel becomes a
+  sheet.
+- **Mobile**: top bar (title, search, notifications, your avatar → Me), ticker,
+  segmented filter, ranked list. Bottom bar: **Brief · Discover · [action] · Circuits ·
+  Inbox**, centre action per role (student "Jobs", founder "Post", mentor/investor
+  "Offer", partner admin "Gaps").
+- **⌘K command bar** searches people, startups, jobs and skills, and runs commands
+  (`jobs backend <5km`, `intro kavya`, `watch ledgerloop`). Search icon on mobile opens
+  the same thing full screen.
 
-## 6. Components (built first, shown on `/design`, dev only)
+## 6. Screens and their one job
 
-Avatar (initials fallback, deterministic neutral tint from the name, sizes 24/32/40/
-56/88), Card, Badge (`L1/L2/L3` verification, `Bridge`, `Hiring`), Button (primary,
-secondary, ghost, danger; sizes 36/44), Chip (selectable, removable), BottomSheet,
-Modal, Tabs, Toast (with Undo), Skeleton (shimmer), EmptyState, plus Icon (inline SVG,
-1.5px stroke, 20px grid), Meter (profile strength), Line (the motif).
+- **Brief** (home): "What changed that I should act on?" → the ranked **Opportunities**
+  table with a **Selected** panel that explains the top row (properties, why you match,
+  actions with keyboard keys). Plus **Skills market** (demand vs supply near you,
+  7-day change, 30-day sparkline) and the city **ticker**.
+- **Profile**: "Can this person do the work?" → **Proof of work** database. Above it:
+  activity strip (real commit activity from linked repos, not decoration), title,
+  one-line bio, properties. Founders' profiles lead with **Needs / Offers** as a
+  database instead.
+- **Add work** sheet: paste a link → we detect the kind and show what we found, with an
+  ownership check, then "What did you do?" and "Skills this proves".
 
-Badge rules:
-- **Verification**: a small square-ish badge with a check mark and the level:
-  `✓ Email` (L1), `✓ Work` (L2), `✓ Role verified` (L3). Neutral (`fg` on `sunken`);
-  L3 gets a 1px `fg` border. Never colourful: trust comes from restraint.
-- **Bridge**: `signal` on `signal-tint` with a tiny two-node line glyph, label
-  "Bridge · fintech ↔ biotech" when there's room, "Bridge" when there isn't.
-- **Hiring**: neutral with a solid `fg` dot; "Not hiring" is a hollow dot.
+## 7. Proof of work (new feature)
 
-## 7. The line motif ("circuits")
+| Kind | What we fetch or ask | Check |
+| --- | --- | --- |
+| GitHub repo | name, description, languages, stars, commits in 90 days, your share of commits, last push | Repo owner (or a commit author) matches your linked GitHub account |
+| Live app / website | page title, favicon | Add a `circuit-verify` meta tag or DNS TXT, or skip (shown as "unverified") |
+| Kaggle, Hugging Face, Figma, Play Store, Behance | title, owner handle, one headline number (medal, downloads, likes) | Owner handle matches the account you link |
+| Case study / anything else | your write-up | A rating from the person you did it for (founder endorsement) |
 
-A thin **1px line in `signal`** connecting things that are actually related. Used in
-exactly these places and nowhere else:
+- Every item links to skills; skill chips show **evidence counts** ("Backend L3 · 3 proofs")
+  and the match explanation cites them ("2 proofs").
+- Founders see "Deepak opened your repo" signals (counts only, no tracking pixels).
+- Backend uses `httpx` (already a dependency) to call the public GitHub API, with caching
+  and a timeout; seed data ships with cached results so demos work offline and without
+  rate limits. A GitHub token in `.env` is optional.
 
-1. **Circuit loop**: the three avatars joined by a drawn loop (the signature moment).
-2. **Warm-intro path**: You — mutual — them, avatars joined by a line with the mutual's
-   name under it.
-3. **Match reason**: on a match card, a short line from the score to the reason text
-   ("why you're matched"), so the reason reads as the explanation of the number.
-4. **Bridge badge glyph** (two dots joined by a line).
-5. **Profile strength meter**: segments joined by the line as steps are completed.
+## 8. The connecting line
 
-Never as a background pattern, a divider or decoration. If a line doesn't connect two
-real things, it's not there.
+1px `signal` line, only where two real things are connected: the circuit loop, the
+warm-intro path, a match score to its reason ("why you match"), the Bridge tag glyph,
+and the ownership check on a proof. Never decoration.
 
-The profile **cover strip** is a plain `sunken` band (72px mobile, 112px desktop). No
-pattern: an early mockup drew circuit lines on it and that broke the rule above.
+## 9. Motion
 
-## 8. Motion
+Fast and mechanical, like a good terminal: 120–200ms, 300ms max; springs only for things
+you drag. Only `transform` and `opacity`. Reduced motion → instant or 120ms fades.
 
-Purposeful, fast, never decorative. Built with `motion`.
+- Selected panel cross-fades its content as you move with ↑/↓ (no sliding).
+- Ticker scrolls only on hover/touch or when new data arrives (a single tick), never on
+  a loop.
+- New rows flash their background once (`sel` colour, 600ms fade) when data refreshes.
+- Numbers that change count to the new value (mono keeps the width fixed).
+- Sheets spring open and drag to dismiss; swipe a mobile opportunity row right to save
+  or apply, left to skip, with buttons always present.
+- Circuit moment (signature): the loop draws itself through the three avatars, one
+  arc per person; when all three accept, it closes and pulses once. No confetti.
+- Optimistic connect / follow / watch / apply with an Undo toast.
 
-- **Durations**: 150ms (press, toggle), 200ms (fade, small moves), 300ms max (sheets,
-  page transitions). Springs for anything the user drags or taps:
-  `{ type: "spring", stiffness: 500, damping: 38 }` (snappy, no visible bounce);
-  sheets `{ stiffness: 380, damping: 36 }`.
-- **Only `transform` and `opacity`.** Never width, height, top, left or margin.
-- **Reduced motion**: every animation goes through one `useMotionPrefs()` helper; with
-  `prefers-reduced-motion: reduce`, moves become 120ms fades and the circuit loop is
-  drawn complete with no pulse.
-- Page transitions: 12px slide + fade on mobile, 150ms fade on desktop.
-- Shared element: match card avatar and name → profile header (`layoutId`).
-- Lists: first 8 cards fade and rise 8px, 30ms stagger. Later items appear instantly.
-- Sheets/modals: spring open; on mobile drag down to dismiss (`@use-gesture/react`).
-- Match cards: swipe right = ask for intro, left = skip, with visible buttons doing the
-  same; the card follows the finger, a 1px signal line grows from the edge to show
-  which action will fire.
-- Circuit moment: the loop draws itself around the three avatars (600ms total, the one
-  exception to the 300ms cap, split into three 200ms arcs, one per person). When all
-  three accept, the loop closes and a single ring pulse expands once from the centre
-  (300ms) and the status reads "Circuit active". No confetti.
-- Micro: buttons scale to 0.97 on press; a verification badge pops (scale 0.8 → 1)
-  when the level rises; connect, follow and apply are optimistic with an Undo toast
-  (5 s).
-- Skeletons shimmer (a translateX'd highlight); dashboard numbers count up once (mono
-  digits keep the width stable).
+## 10. Voice
 
-## 9. Voice and tone
-
-Plain, specific, human. Write like a helpful senior who knows the city. Indian context
-without making a show of it: ₹, real cities and areas, real role names.
+Terse and specific, like a good analyst's note. Indian context throughout.
 
 | Don't | Do |
 | --- | --- |
-| Unlock your potential | Ravi, 3 startups within 5 km are hiring backend interns |
-| Seamless networking, AI-powered | Matched on what you need and what you can offer |
-| No data found | No intro requests yet. When someone asks you to pass one on, it shows up here. |
-| Error 500: something went wrong | We couldn't load your matches. Check your connection and try again. |
-| Empower your journey | Add one project link. Founders look at work before college. |
-| Successfully submitted! | Applied. Deepak at LedgerLoop usually replies within 3 days. |
-| Users | People |
-| Click here | Ask Lakshmi for an intro |
+| Unlock your potential | 3 backend internships within 5 km opened this week |
+| AI-powered matching | Both skills they ask for, at a higher level |
+| No data found | Nothing new since this morning. Your alerts will flag new roles. |
+| Something went wrong | Couldn't refresh. Showing data from 09:41. |
+| Add a post | Add work: paste a GitHub, Figma, Kaggle or Play Store link |
 
-Numbers: `₹20,000/month`, `2.4 km`, `92% match`, Indian digit grouping for lakhs
-(`₹4,50,000`). Dates: "Today", "Yesterday", then "3 Oct". Times: "4:30 pm".
+Formats: `₹20,000/month`, `₹6.5L/yr`, `1.1 km`, `2d`, `09:41`, Indian digit grouping.
 
-Seed data: names from across India (Ravi Kumar, Meera Iyer, Asha Reddy, Arjun Mehta,
-Nandini Rao…), specific roles ("Backend Engineering Intern", "Product Marketing
-Lead"), stipends in ₹, real-sounding but fake startups on `.example` domains,
-descriptions that say what the company actually does.
+## 11. Banned
 
-## 10. Banned
-
-Purple/blue gradients, glassmorphism, glows, neon, blobs, aurora backgrounds; emoji as
-icons or decoration; sparkles; "AI-powered" labels; hero clichés ("Unlock", "Revolutionise",
-"Seamless", "Empower"); lorem ipsum, "John Doe", stock photos, placeholder logos;
-everything centred; identical card grids everywhere; heavy drop shadows; rounded
-everything; animation for decoration.
-
-## 11. Per-screen intent (filled in as each screen is built)
-
-Each screen states what the user is trying to do and its single most important element.
-
-- **Home**: "What should I act on today?" → the top opportunity card.
-- **Profile**: "Can I trust this person and what can we do for each other?" → for
-  students, Proof of work; for founders, Needs and Offers.
+Purple/blue gradients, glassmorphism, glows, neon, blobs, aurora backgrounds; emoji
+icons; sparkles; "AI-powered"; hero clichés; lorem ipsum, "John Doe", stock photos,
+placeholder logos; everything centred; feeds of identical cards; heavy shadows;
+rounded-everything; decorative animation; likes, follower counts, public posts.
 
 ## 12. PWA, performance, testing (carried over, still binding)
 
-- Manifest, offline shell, update prompt, install prompt (unchanged; theme colours move
-  to the new `bg` tokens).
+- Manifest, offline shell, update prompt, install prompt; theme colours from `bg`.
 - Initial JS under ~250 KB gzipped (`npm run size`); lazy-load map, charts, motion-heavy
-  screens and the inbox. Virtualise long lists (`@tanstack/react-virtual`). Images lazy
-  with fixed sizes.
+  screens and the inbox; virtualise long tables (`@tanstack/react-virtual`).
 - Slow 4G + mid-range Android; Lighthouse 90+ Performance and Accessibility; PWA checks
   in `e2e/pwa.spec.ts`.
-- Keyboard and screen reader for everything; every swipe has a button.
+- Every table is a real `<table>` with headers; every row action has a button; keyboard
+  shortcuts never replace visible controls.
 - Playwright at 375px and 1280px for every demo story and every new feature.
