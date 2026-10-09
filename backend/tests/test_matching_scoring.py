@@ -8,6 +8,7 @@ import pytest
 from app.matching.ranking import Scored, rank
 from app.matching.reasons import job_reason, match_reason
 from app.matching.scoring import (
+    PROOF_SHARE,
     Components,
     Item,
     Party,
@@ -144,7 +145,10 @@ def test_weights_are_configurable():
 
 
 def test_student_job_score():
-    assert student_job_score(100, 0, 10) == pytest.approx(1.0)
+    # Without proof of work the score tops out below 1; full proof fills the rest.
+    assert student_job_score(100, 0, 10) == pytest.approx(1.0 - PROOF_SHARE)
+    assert student_job_score(100, 0, 10, PROOF_SHARE) == pytest.approx(1.0)
+    assert student_job_score(100, 0, 10, 5.0) == pytest.approx(1.0)  # the bonus is capped
     assert student_job_score(100, 1, 10) > student_job_score(100, 5, 10)
     assert student_job_score(100, 9, 10) > student_job_score(80, 0, 10)  # skills dominate
 

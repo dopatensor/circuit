@@ -11,7 +11,12 @@ async def test_scheduler_registers_the_jobs():
     scheduler = start_scheduler(make_test_settings(match_refresh_hours=6))
     try:
         jobs = {j.id: j for j in scheduler.get_jobs()}
-        assert set(jobs) == {"refresh_matches", "expire_stale", "circuit_round"}
+        assert set(jobs) == {
+            "refresh_matches",
+            "expire_stale",
+            "circuit_round",
+            "refresh_github",
+        }
         assert jobs["refresh_matches"].trigger.interval.total_seconds() == 6 * 3600
     finally:
         scheduler.shutdown(wait=False)

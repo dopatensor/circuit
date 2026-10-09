@@ -19,6 +19,7 @@ from app.api import (
     members,
     needs,
     onboarding,
+    proof,
     startup_map,
     startups,
 )
@@ -68,6 +69,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         circuits,
         dashboard,
         onboarding,
+        proof,
         admin,
     ):
         app.include_router(module.router)

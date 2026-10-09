@@ -6,16 +6,19 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy import delete, func, or_, select
 
+from app.api.proof import Transport as GitHubTransport
 from app.auth import (
     LEVEL_BROWSE,
     CurrentUser,
     CurrentUserDep,
     SessionDep,
+    SettingsDep,
     TokenClaims,
     get_token_claims,
     require_level,
 )
 from app.events import record_event
+from app.github import service as github_service
 from app.models import Member, MemberSkill, MemberTrait, Need, Offer
 from app.profiles import member_me, member_public, point_wkt
 from app.schemas import (
@@ -115,8 +118,11 @@ async def update_my_profile(body: MemberUpdate, user: CurrentUserDep, session: S
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_my_profile(user: CurrentUserDep, session: SessionDep) -> Response:
+async def delete_my_profile(
+    user: CurrentUserDep, session: SessionDep, settings: SettingsDep, transport: GitHubTransport
+) -> Response:
     """Delete your profile and everything attached to it."""
+    await github_service.disconnect(session, settings, user.member_id, transport)
     await session.execute(
         delete(Need).where(Need.owner_type == "member", Need.owner_id == user.member_id)
     )

@@ -136,6 +136,48 @@ class SeedEvent:
     payload: dict = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class SeedRepo:
+    key: str  # stable handle for the deterministic id
+    name: str
+    description: str
+    languages: dict[str, int]  # name -> bytes
+    frameworks: list[str]
+    commits_by_user: int
+    commits_total: int
+    readme_excerpt: str
+    pushed_days_ago: int
+    homepage_url: str | None = None
+    featured: bool = False
+
+
+@dataclass(frozen=True)
+class SeedGitHub:
+    """Saved results of a GitHub import, so the demo works offline. Seeded accounts
+    have no token, so the weekly refresh leaves them alone. URLs use the reserved
+    .example domain, like seeded startups, so nothing points at a real person."""
+
+    member: str  # member key
+    github_user_id: int
+    login: str
+    repos: list[SeedRepo]
+    external_prs: list[dict] = field(default_factory=list)  # {"repo", "url", "days_ago"}
+    active_weeks_90d: int = 0
+    last_active_days_ago: int | None = None
+    homepage_url: str | None = None
+
+
+@dataclass(frozen=True)
+class SeedProofItem:
+    key: str
+    member: str
+    kind: str
+    title: str
+    description: str
+    capability_ids: list[str]
+    url: str | None = None
+
+
 @dataclass
 class Dataset:
     members: list[SeedMember]
@@ -143,3 +185,5 @@ class Dataset:
     connections: list[SeedConnection]
     intros: list[SeedIntro]
     events: list[SeedEvent]
+    github: list[SeedGitHub] = field(default_factory=list)
+    proof_items: list[SeedProofItem] = field(default_factory=list)

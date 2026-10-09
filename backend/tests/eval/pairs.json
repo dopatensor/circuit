@@ -2,7 +2,7 @@
   "description": "Hand-labelled pairs from the demo seed. 'good' means the candidate should be shown to the member; 'bad' means they should not. Labels come from reading both sides' needs, offers, skills and distance, not from the scorer's output.",
   "thresholds": {
     "network": 0.4,
-    "job": 0.6
+    "job": 0.52
   },
   "pairs": [
     {

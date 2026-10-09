@@ -99,6 +99,13 @@
             "title": "Note",
             "type": "string"
           },
+          "proof": {
+            "$ref": "#/components/schemas/ApplicantProof"
+          },
+          "rank_score": {
+            "title": "Rank Score",
+            "type": "integer"
+          },
           "skills": {
             "items": {
               "$ref": "#/components/schemas/SkillIn"
@@ -125,11 +132,72 @@
           "member",
           "skills",
           "match",
+          "proof",
+          "rank_score",
           "note",
           "status",
           "created_at"
         ],
         "title": "ApplicantOut",
+        "type": "object"
+      },
+      "ApplicantProof": {
+        "description": "Proof of work behind an applicant's rank.",
+        "properties": {
+          "circuits_completed": {
+            "title": "Circuits Completed",
+            "type": "integer"
+          },
+          "components": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Components",
+            "type": "object"
+          },
+          "founder_rating_avg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Founder Rating Avg"
+          },
+          "github_profile_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Profile Url"
+          },
+          "portfolio_items": {
+            "title": "Portfolio Items",
+            "type": "integer"
+          },
+          "verified_capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Verified Capabilities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "verified_capabilities",
+          "github_profile_url",
+          "portfolio_items",
+          "founder_rating_avg",
+          "circuits_completed",
+          "components"
+        ],
+        "title": "ApplicantProof",
         "type": "object"
       },
       "ApplicationJob": {
@@ -776,6 +844,44 @@
         "title": "DepsHealth",
         "type": "object"
       },
+      "ExternalPROut": {
+        "properties": {
+          "merged_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merged At"
+          },
+          "repo": {
+            "title": "Repo",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "repo",
+          "url",
+          "merged_at"
+        ],
+        "title": "ExternalPROut",
+        "type": "object"
+      },
       "GapList": {
         "properties": {
           "items": {
@@ -790,6 +896,432 @@
           "items"
         ],
         "title": "GapList",
+        "type": "object"
+      },
+      "GitHubFinishIn": {
+        "properties": {
+          "code": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "state": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "state"
+        ],
+        "title": "GitHubFinishIn",
+        "type": "object"
+      },
+      "GitHubMe": {
+        "description": "Your own GitHub connection: every imported repo, and the import's status.",
+        "properties": {
+          "active_weeks_90d": {
+            "title": "Active Weeks 90D",
+            "type": "integer"
+          },
+          "connected_at": {
+            "format": "date-time",
+            "title": "Connected At",
+            "type": "string"
+          },
+          "external_prs": {
+            "items": {
+              "$ref": "#/components/schemas/ExternalPROut"
+            },
+            "title": "External Prs",
+            "type": "array"
+          },
+          "external_prs_total": {
+            "title": "External Prs Total",
+            "type": "integer"
+          },
+          "featured_repos": {
+            "items": {
+              "$ref": "#/components/schemas/GitHubRepoOut"
+            },
+            "title": "Featured Repos",
+            "type": "array"
+          },
+          "fetched_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fetched At"
+          },
+          "homepage_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Homepage Url"
+          },
+          "last_active_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active At"
+          },
+          "login": {
+            "title": "Login",
+            "type": "string"
+          },
+          "next_fetch_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Fetch At"
+          },
+          "original_repos": {
+            "title": "Original Repos",
+            "type": "integer"
+          },
+          "profile_url": {
+            "title": "Profile Url",
+            "type": "string"
+          },
+          "repos": {
+            "items": {
+              "$ref": "#/components/schemas/GitHubRepoOut"
+            },
+            "title": "Repos",
+            "type": "array"
+          },
+          "source": {
+            "enum": [
+              "oauth",
+              "seed"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "importing",
+              "ok",
+              "rate_limited",
+              "error"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "status_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Message"
+          },
+          "verified_capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/VerifiedCapabilityOut"
+            },
+            "title": "Verified Capabilities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "login",
+          "profile_url",
+          "homepage_url",
+          "verified_capabilities",
+          "featured_repos",
+          "original_repos",
+          "external_prs_total",
+          "external_prs",
+          "active_weeks_90d",
+          "last_active_at",
+          "fetched_at",
+          "status",
+          "status_message",
+          "source",
+          "connected_at",
+          "next_fetch_at",
+          "repos"
+        ],
+        "title": "GitHubMe",
+        "type": "object"
+      },
+      "GitHubPublic": {
+        "description": "GitHub proof on a profile: only repos the student chose to feature.",
+        "properties": {
+          "active_weeks_90d": {
+            "title": "Active Weeks 90D",
+            "type": "integer"
+          },
+          "external_prs": {
+            "items": {
+              "$ref": "#/components/schemas/ExternalPROut"
+            },
+            "title": "External Prs",
+            "type": "array"
+          },
+          "external_prs_total": {
+            "title": "External Prs Total",
+            "type": "integer"
+          },
+          "featured_repos": {
+            "items": {
+              "$ref": "#/components/schemas/GitHubRepoOut"
+            },
+            "title": "Featured Repos",
+            "type": "array"
+          },
+          "fetched_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fetched At"
+          },
+          "homepage_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Homepage Url"
+          },
+          "last_active_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Active At"
+          },
+          "login": {
+            "title": "Login",
+            "type": "string"
+          },
+          "original_repos": {
+            "title": "Original Repos",
+            "type": "integer"
+          },
+          "profile_url": {
+            "title": "Profile Url",
+            "type": "string"
+          },
+          "verified_capabilities": {
+            "items": {
+              "$ref": "#/components/schemas/VerifiedCapabilityOut"
+            },
+            "title": "Verified Capabilities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "login",
+          "profile_url",
+          "homepage_url",
+          "verified_capabilities",
+          "featured_repos",
+          "original_repos",
+          "external_prs_total",
+          "external_prs",
+          "active_weeks_90d",
+          "last_active_at",
+          "fetched_at"
+        ],
+        "title": "GitHubPublic",
+        "type": "object"
+      },
+      "GitHubRepoOut": {
+        "properties": {
+          "commits_by_user": {
+            "title": "Commits By User",
+            "type": "integer"
+          },
+          "commits_total": {
+            "title": "Commits Total",
+            "type": "integer"
+          },
+          "counts_as_proof": {
+            "title": "Counts As Proof",
+            "type": "boolean"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "featured": {
+            "title": "Featured",
+            "type": "boolean"
+          },
+          "frameworks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Frameworks",
+            "type": "array"
+          },
+          "hidden": {
+            "title": "Hidden",
+            "type": "boolean"
+          },
+          "homepage_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Homepage Url"
+          },
+          "html_url": {
+            "title": "Html Url",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Languages",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "primary_language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Language"
+          },
+          "pushed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pushed At"
+          },
+          "readme_excerpt": {
+            "title": "Readme Excerpt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "html_url",
+          "description",
+          "homepage_url",
+          "primary_language",
+          "languages",
+          "frameworks",
+          "commits_by_user",
+          "commits_total",
+          "readme_excerpt",
+          "pushed_at",
+          "featured",
+          "hidden",
+          "counts_as_proof"
+        ],
+        "title": "GitHubRepoOut",
+        "type": "object"
+      },
+      "GitHubRepoUpdate": {
+        "properties": {
+          "featured": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Featured"
+          },
+          "hidden": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hidden"
+          }
+        },
+        "title": "GitHubRepoUpdate",
+        "type": "object"
+      },
+      "GitHubStartOut": {
+        "properties": {
+          "authorize_url": {
+            "title": "Authorize Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "authorize_url"
+        ],
+        "title": "GitHubStartOut",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -2001,6 +2533,141 @@
             "title": "Open Intro Slots",
             "type": "integer"
           },
+          "proof": {
+            "$ref": "#/components/schemas/PublicProof"
+          },
+          "role": {
+            "enum": [
+              "student",
+              "founder",
+              "mentor",
+              "investor",
+              "partner_admin"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "show_college": {
+            "title": "Show College",
+            "type": "boolean"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillIn"
+            },
+            "title": "Skills",
+            "type": "array"
+          },
+          "startups": {
+            "items": {
+              "$ref": "#/components/schemas/StartupLink"
+            },
+            "title": "Startups",
+            "type": "array"
+          },
+          "trait_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Trait Ids",
+            "type": "array"
+          },
+          "verification_level": {
+            "title": "Verification Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "display_name",
+          "bio",
+          "sector",
+          "city",
+          "college",
+          "verification_level",
+          "trait_ids",
+          "skills",
+          "offers",
+          "needs",
+          "startups",
+          "proof",
+          "location",
+          "linkedin_url",
+          "open_intro_slots",
+          "circuits_opt_in",
+          "show_college",
+          "is_demo"
+        ],
+        "title": "MemberMe",
+        "type": "object"
+      },
+      "MemberPublic": {
+        "description": "What other members can see. No exact location: only the city. College only when\nthe student chose to show it.",
+        "properties": {
+          "bio": {
+            "title": "Bio",
+            "type": "string"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "college": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "College"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/NeedOut"
+            },
+            "title": "Needs",
+            "type": "array"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/OfferOut"
+            },
+            "title": "Offers",
+            "type": "array"
+          },
+          "proof": {
+            "$ref": "#/components/schemas/PublicProof"
+          },
           "role": {
             "enum": [
               "student",
@@ -2059,125 +2726,11 @@
           "college",
           "verification_level",
           "trait_ids",
+          "skills",
           "offers",
           "needs",
           "startups",
-          "location",
-          "linkedin_url",
-          "open_intro_slots",
-          "circuits_opt_in",
-          "skills",
-          "is_demo"
-        ],
-        "title": "MemberMe",
-        "type": "object"
-      },
-      "MemberPublic": {
-        "description": "What other members can see. No exact location: only the city.",
-        "properties": {
-          "bio": {
-            "title": "Bio",
-            "type": "string"
-          },
-          "city": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "City"
-          },
-          "college": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "College"
-          },
-          "display_name": {
-            "title": "Display Name",
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "needs": {
-            "items": {
-              "$ref": "#/components/schemas/NeedOut"
-            },
-            "title": "Needs",
-            "type": "array"
-          },
-          "offers": {
-            "items": {
-              "$ref": "#/components/schemas/OfferOut"
-            },
-            "title": "Offers",
-            "type": "array"
-          },
-          "role": {
-            "enum": [
-              "student",
-              "founder",
-              "mentor",
-              "investor",
-              "partner_admin"
-            ],
-            "title": "Role",
-            "type": "string"
-          },
-          "sector": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Sector"
-          },
-          "startups": {
-            "items": {
-              "$ref": "#/components/schemas/StartupLink"
-            },
-            "title": "Startups",
-            "type": "array"
-          },
-          "trait_ids": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Trait Ids",
-            "type": "array"
-          },
-          "verification_level": {
-            "title": "Verification Level",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "role",
-          "display_name",
-          "bio",
-          "sector",
-          "city",
-          "college",
-          "verification_level",
-          "trait_ids",
-          "offers",
-          "needs",
-          "startups"
+          "proof"
         ],
         "title": "MemberPublic",
         "type": "object"
@@ -2352,6 +2905,17 @@
               }
             ],
             "title": "Sector"
+          },
+          "show_college": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Show College"
           }
         },
         "title": "MemberUpdate",
@@ -2866,6 +3430,241 @@
           "story_title"
         ],
         "title": "Persona",
+        "type": "object"
+      },
+      "ProofItemIn": {
+        "description": "Non-code proof: a portfolio, Behance or Dribbble link, a case study, a live site.\n\nA GitHub link added here is kept as a plain link and never counts as verified:\nonly an OAuth connection does that.",
+        "properties": {
+          "capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Capability Ids",
+            "type": "array"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Description",
+            "type": "string"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "portfolio",
+                  "website",
+                  "case_study",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "maxLength": 2083,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "ProofItemIn",
+        "type": "object"
+      },
+      "ProofItemOut": {
+        "properties": {
+          "capability_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Capability Ids",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "portfolio",
+              "behance",
+              "dribbble",
+              "case_study",
+              "website",
+              "code",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "url",
+          "title",
+          "description",
+          "capability_ids",
+          "created_at"
+        ],
+        "title": "ProofItemOut",
+        "type": "object"
+      },
+      "ProofItemUpdate": {
+        "properties": {
+          "capability_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capability Ids"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "ProofItemUpdate",
+        "type": "object"
+      },
+      "ProofMe": {
+        "properties": {
+          "github": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GitHubMe"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "github_available": {
+            "title": "Github Available",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProofItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "max_featured": {
+            "title": "Max Featured",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "github_available",
+          "github",
+          "items",
+          "max_featured"
+        ],
+        "title": "ProofMe",
+        "type": "object"
+      },
+      "PublicProof": {
+        "properties": {
+          "github": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GitHubPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProofItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "github",
+          "items"
+        ],
+        "title": "PublicProof",
         "type": "object"
       },
       "RecomputeOut": {
@@ -3651,6 +4450,33 @@
           "level"
         ],
         "title": "VerificationUpdate",
+        "type": "object"
+      },
+      "VerifiedCapabilityOut": {
+        "description": "A capability shown by the student's own GitHub repos (\"Verified by GitHub\").",
+        "properties": {
+          "capability_id": {
+            "title": "Capability Id",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "repo_count": {
+            "title": "Repo Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "capability_id",
+          "evidence",
+          "repo_count"
+        ],
+        "title": "VerifiedCapabilityOut",
         "type": "object"
       }
     },
@@ -6331,6 +7157,330 @@
         "summary": "Suggest",
         "tags": [
           "onboarding"
+        ]
+      }
+    },
+    "/api/proof/github": {
+      "delete": {
+        "description": "Disconnect GitHub: deletes the account link, the token and every imported repo.",
+        "operationId": "disconnect_github_api_proof_github_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Disconnect Github",
+        "tags": [
+          "proof"
+        ]
+      }
+    },
+    "/api/proof/github/finish": {
+      "post": {
+        "description": "GitHub sent the student back with a code: link the account the token belongs to\nand start the import in the background.",
+        "operationId": "finish_github_api_proof_github_finish_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitHubFinishIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Finish Github",
+        "tags": [
+          "proof"
+        ]
+      }
+    },
+    "/api/proof/github/repos/{repo_id}": {
+      "patch": {
+        "description": "Feature a repo on your profile, or hide it (hidden repos aren't shown or used\nfor verified skills).",
+        "operationId": "update_repo_api_proof_github_repos__repo_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "repo_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Repo Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GitHubRepoUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubRepoOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Repo",
+        "tags": [
+          "proof"
+        ]
+      }
+    },
+    "/api/proof/github/start": {
+      "post": {
+        "description": "The GitHub page to send the student to. Asks for no scopes: read-only access to\npublic data.",
+        "operationId": "start_github_api_proof_github_start_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubStartOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start Github",
+        "tags": [
+          "proof"
+        ]
+      }
+    },
+    "/api/proof/items": {
+      "post": {
+        "description": "Add a portfolio, Behance or Dribbble link, a live site, or a case study (no link,\na write-up instead). Shown as \"Added by you\"; never as verified.",
+        "operationId": "add_item_api_proof_items_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProofItemIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProofItemOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Item",
+        "tags": [
+          "proof"
+        ]
+      }
+    },
+    "/api/proof/items/{item_id}": {
+      "delete": {
+        "operationId": "delete_item_api_proof_items__item_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Item",
+        "tags": [
+          "proof"
+        ]
+      },
+      "patch": {
+        "operationId": "update_item_api_proof_items__item_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProofItemUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProofItemOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Item",
+        "tags": [
+          "proof"
+        ]
+      }
+    },
+    "/api/proof/me": {
+      "get": {
+        "description": "Your proof of work: the GitHub connection with every imported repo, and your\nother items.",
+        "operationId": "my_proof_api_proof_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProofMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Proof",
+        "tags": [
+          "proof"
         ]
       }
     },

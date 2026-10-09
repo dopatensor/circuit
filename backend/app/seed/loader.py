@@ -20,6 +20,8 @@ from app.models import (
     Capability,
     Connection,
     Event,
+    GitHubAccount,
+    GitHubRepo,
     IntroRequest,
     Job,
     JobCapability,
@@ -28,6 +30,7 @@ from app.models import (
     MemberTrait,
     Need,
     Offer,
+    ProofItem,
     Startup,
     StartupMember,
     StartupTrait,
@@ -344,6 +347,88 @@ async def load_dataset(session: AsyncSession, data: Dataset) -> None:
     ]
     if intro_rows:
         await session.execute(pg_insert(IntroRequest).values(intro_rows).on_conflict_do_nothing())
+
+    # --- proof of work (R2): saved GitHub imports and non-code items ---
+    # Insert-only: a plain re-seed keeps what students changed (featured, hidden, or
+    # disconnected and reconnected); reset-demo starts from empty tables anyway.
+    for gh in data.github:
+        mid = member_ids[gh.member]
+        await session.execute(
+            pg_insert(GitHubAccount)
+            .values(
+                member_id=mid,
+                github_user_id=gh.github_user_id,
+                login=gh.login,
+                profile_url=f"https://github.example/{gh.login}",
+                homepage_url=gh.homepage_url,
+                access_token_enc=None,  # no token: the weekly refresh skips seeded rows
+                source="seed",
+                status="ok",
+                external_prs=[
+                    {
+                        "repo": p["repo"],
+                        "url": p["url"],
+                        "merged_at": (now - timedelta(days=p["days_ago"])).isoformat(),
+                    }
+                    for p in gh.external_prs
+                ],
+                external_prs_total=len(gh.external_prs),
+                active_weeks_90d=gh.active_weeks_90d,
+                last_active_at=now - timedelta(days=gh.last_active_days_ago)
+                if gh.last_active_days_ago is not None
+                else None,
+                connected_at=now - timedelta(days=30),
+                fetched_at=now - timedelta(days=2),
+                next_fetch_at=None,
+            )
+            .on_conflict_do_nothing()
+        )
+        repo_rows = [
+            {
+                "id": seed_uuid("github_repo", f"{gh.member}/{r.key}"),
+                "member_id": mid,
+                "github_repo_id": gh.github_user_id * 100 + i,
+                "name": r.name,
+                "html_url": f"https://github.example/{gh.login}/{r.name}",
+                "description": r.description,
+                "homepage_url": r.homepage_url,
+                "primary_language": max(r.languages, key=r.languages.get) if r.languages else None,
+                "languages": r.languages,
+                "frameworks": r.frameworks,
+                "commits_by_user": r.commits_by_user,
+                "commits_total": r.commits_total,
+                "readme_excerpt": r.readme_excerpt,
+                "pushed_at": now - timedelta(days=r.pushed_days_ago),
+                "featured": r.featured,
+                "hidden": False,
+            }
+            for i, r in enumerate(gh.repos)
+        ]
+        # Only when the account row is the seeded one (a student may have reconnected).
+        seeded = await session.scalar(
+            select(GitHubAccount.source).where(GitHubAccount.member_id == mid)
+        )
+        if repo_rows and seeded == "seed":
+            await session.execute(pg_insert(GitHubRepo).values(repo_rows).on_conflict_do_nothing())
+    if data.proof_items:
+        await session.execute(
+            pg_insert(ProofItem)
+            .values(
+                [
+                    {
+                        "id": seed_uuid("proof_item", p.key),
+                        "member_id": member_ids[p.member],
+                        "kind": p.kind,
+                        "url": p.url,
+                        "title": p.title,
+                        "description": p.description,
+                        "capability_ids": p.capability_ids,
+                    }
+                    for p in data.proof_items
+                ]
+            )
+            .on_conflict_do_nothing()
+        )
 
     # events is append-only, so seeded events are written once and never duplicated.
     already = await session.scalar(

@@ -864,6 +864,149 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/proof/github": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Disconnect Github
+         * @description Disconnect GitHub: deletes the account link, the token and every imported repo.
+         */
+        delete: operations["disconnect_github_api_proof_github_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proof/github/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Finish Github
+         * @description GitHub sent the student back with a code: link the account the token belongs to
+         *     and start the import in the background.
+         */
+        post: operations["finish_github_api_proof_github_finish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proof/github/repos/{repo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Repo
+         * @description Feature a repo on your profile, or hide it (hidden repos aren't shown or used
+         *     for verified skills).
+         */
+        patch: operations["update_repo_api_proof_github_repos__repo_id__patch"];
+        trace?: never;
+    };
+    "/api/proof/github/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Github
+         * @description The GitHub page to send the student to. Asks for no scopes: read-only access to
+         *     public data.
+         */
+        post: operations["start_github_api_proof_github_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proof/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Item
+         * @description Add a portfolio, Behance or Dribbble link, a live site, or a case study (no link,
+         *     a write-up instead). Shown as "Added by you"; never as verified.
+         */
+        post: operations["add_item_api_proof_items_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proof/items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Item */
+        delete: operations["delete_item_api_proof_items__item_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Item */
+        patch: operations["update_item_api_proof_items__item_id__patch"];
+        trace?: never;
+    };
+    "/api/proof/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Proof
+         * @description Your proof of work: the GitHub connection with every imported repo, and your
+         *     other items.
+         */
+        get: operations["my_proof_api_proof_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/startups": {
         parameters: {
             query?: never;
@@ -1179,6 +1322,9 @@ export interface components {
             member: components["schemas"]["ApplicantMember"];
             /** Note */
             note: string;
+            proof: components["schemas"]["ApplicantProof"];
+            /** Rank Score */
+            rank_score: number;
             /** Skills */
             skills: components["schemas"]["SkillIn"][];
             /**
@@ -1186,6 +1332,26 @@ export interface components {
              * @enum {string}
              */
             status: "submitted" | "shortlisted" | "rejected" | "hired" | "withdrawn";
+        };
+        /**
+         * ApplicantProof
+         * @description Proof of work behind an applicant's rank.
+         */
+        ApplicantProof: {
+            /** Circuits Completed */
+            circuits_completed: number;
+            /** Components */
+            components: {
+                [key: string]: number;
+            };
+            /** Founder Rating Avg */
+            founder_rating_avg: number | null;
+            /** Github Profile Url */
+            github_profile_url: string | null;
+            /** Portfolio Items */
+            portfolio_items: number;
+            /** Verified Capabilities */
+            verified_capabilities: string[];
         };
         /** ApplicationJob */
         ApplicationJob: {
@@ -1455,10 +1621,151 @@ export interface components {
              */
             status: "ok" | "degraded";
         };
+        /** ExternalPROut */
+        ExternalPROut: {
+            /** Merged At */
+            merged_at: string | null;
+            /** Repo */
+            repo: string;
+            /** Url */
+            url: string | null;
+        };
         /** GapList */
         GapList: {
             /** Items */
             items: components["schemas"]["CapabilityGap"][];
+        };
+        /** GitHubFinishIn */
+        GitHubFinishIn: {
+            /** Code */
+            code: string;
+            /** State */
+            state: string;
+        };
+        /**
+         * GitHubMe
+         * @description Your own GitHub connection: every imported repo, and the import's status.
+         */
+        GitHubMe: {
+            /** Active Weeks 90D */
+            active_weeks_90d: number;
+            /**
+             * Connected At
+             * Format: date-time
+             */
+            connected_at: string;
+            /** External Prs */
+            external_prs: components["schemas"]["ExternalPROut"][];
+            /** External Prs Total */
+            external_prs_total: number;
+            /** Featured Repos */
+            featured_repos: components["schemas"]["GitHubRepoOut"][];
+            /** Fetched At */
+            fetched_at: string | null;
+            /** Homepage Url */
+            homepage_url: string | null;
+            /** Last Active At */
+            last_active_at: string | null;
+            /** Login */
+            login: string;
+            /** Next Fetch At */
+            next_fetch_at: string | null;
+            /** Original Repos */
+            original_repos: number;
+            /** Profile Url */
+            profile_url: string;
+            /** Repos */
+            repos: components["schemas"]["GitHubRepoOut"][];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "oauth" | "seed";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "importing" | "ok" | "rate_limited" | "error";
+            /** Status Message */
+            status_message: string | null;
+            /** Verified Capabilities */
+            verified_capabilities: components["schemas"]["VerifiedCapabilityOut"][];
+        };
+        /**
+         * GitHubPublic
+         * @description GitHub proof on a profile: only repos the student chose to feature.
+         */
+        GitHubPublic: {
+            /** Active Weeks 90D */
+            active_weeks_90d: number;
+            /** External Prs */
+            external_prs: components["schemas"]["ExternalPROut"][];
+            /** External Prs Total */
+            external_prs_total: number;
+            /** Featured Repos */
+            featured_repos: components["schemas"]["GitHubRepoOut"][];
+            /** Fetched At */
+            fetched_at: string | null;
+            /** Homepage Url */
+            homepage_url: string | null;
+            /** Last Active At */
+            last_active_at: string | null;
+            /** Login */
+            login: string;
+            /** Original Repos */
+            original_repos: number;
+            /** Profile Url */
+            profile_url: string;
+            /** Verified Capabilities */
+            verified_capabilities: components["schemas"]["VerifiedCapabilityOut"][];
+        };
+        /** GitHubRepoOut */
+        GitHubRepoOut: {
+            /** Commits By User */
+            commits_by_user: number;
+            /** Commits Total */
+            commits_total: number;
+            /** Counts As Proof */
+            counts_as_proof: boolean;
+            /** Description */
+            description: string;
+            /** Featured */
+            featured: boolean;
+            /** Frameworks */
+            frameworks: string[];
+            /** Hidden */
+            hidden: boolean;
+            /** Homepage Url */
+            homepage_url: string | null;
+            /** Html Url */
+            html_url: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Languages */
+            languages: string[];
+            /** Name */
+            name: string;
+            /** Primary Language */
+            primary_language: string | null;
+            /** Pushed At */
+            pushed_at: string | null;
+            /** Readme Excerpt */
+            readme_excerpt: string;
+        };
+        /** GitHubRepoUpdate */
+        GitHubRepoUpdate: {
+            /** Featured */
+            featured?: boolean | null;
+            /** Hidden */
+            hidden?: boolean | null;
+        };
+        /** GitHubStartOut */
+        GitHubStartOut: {
+            /** Authorize Url */
+            authorize_url: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1849,6 +2156,7 @@ export interface components {
             offers: components["schemas"]["OfferOut"][];
             /** Open Intro Slots */
             open_intro_slots: number;
+            proof: components["schemas"]["PublicProof"];
             /**
              * Role
              * @enum {string}
@@ -1856,6 +2164,8 @@ export interface components {
             role: "student" | "founder" | "mentor" | "investor" | "partner_admin";
             /** Sector */
             sector: string | null;
+            /** Show College */
+            show_college: boolean;
             /** Skills */
             skills: components["schemas"]["SkillIn"][];
             /** Startups */
@@ -1867,7 +2177,8 @@ export interface components {
         };
         /**
          * MemberPublic
-         * @description What other members can see. No exact location: only the city.
+         * @description What other members can see. No exact location: only the city. College only when
+         *     the student chose to show it.
          */
         MemberPublic: {
             /** Bio */
@@ -1887,6 +2198,7 @@ export interface components {
             needs: components["schemas"]["NeedOut"][];
             /** Offers */
             offers: components["schemas"]["OfferOut"][];
+            proof: components["schemas"]["PublicProof"];
             /**
              * Role
              * @enum {string}
@@ -1894,6 +2206,8 @@ export interface components {
             role: "student" | "founder" | "mentor" | "investor" | "partner_admin";
             /** Sector */
             sector: string | null;
+            /** Skills */
+            skills: components["schemas"]["SkillIn"][];
             /** Startups */
             startups: components["schemas"]["StartupLink"][];
             /** Trait Ids */
@@ -1941,6 +2255,8 @@ export interface components {
             open_intro_slots?: number | null;
             /** Sector */
             sector?: string | null;
+            /** Show College */
+            show_college?: boolean | null;
         };
         /** NeedIn */
         NeedIn: {
@@ -2150,6 +2466,79 @@ export interface components {
             story_title: string;
             /** Verification Level */
             verification_level: number;
+        };
+        /**
+         * ProofItemIn
+         * @description Non-code proof: a portfolio, Behance or Dribbble link, a case study, a live site.
+         *
+         *     A GitHub link added here is kept as a plain link and never counts as verified:
+         *     only an OAuth connection does that.
+         */
+        ProofItemIn: {
+            /** Capability Ids */
+            capability_ids?: string[];
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Kind */
+            kind?: ("portfolio" | "website" | "case_study" | "other") | null;
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+        };
+        /** ProofItemOut */
+        ProofItemOut: {
+            /** Capability Ids */
+            capability_ids: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "portfolio" | "behance" | "dribbble" | "case_study" | "website" | "code" | "other";
+            /** Title */
+            title: string;
+            /** Url */
+            url: string | null;
+        };
+        /** ProofItemUpdate */
+        ProofItemUpdate: {
+            /** Capability Ids */
+            capability_ids?: string[] | null;
+            /** Description */
+            description?: string | null;
+            /** Title */
+            title?: string | null;
+        };
+        /** ProofMe */
+        ProofMe: {
+            github: components["schemas"]["GitHubMe"] | null;
+            /** Github Available */
+            github_available: boolean;
+            /** Items */
+            items: components["schemas"]["ProofItemOut"][];
+            /** Max Featured */
+            max_featured: number;
+        };
+        /** PublicProof */
+        PublicProof: {
+            github: components["schemas"]["GitHubPublic"] | null;
+            /** Items */
+            items: components["schemas"]["ProofItemOut"][];
         };
         /** RecomputeOut */
         RecomputeOut: {
@@ -2408,6 +2797,18 @@ export interface components {
         VerificationUpdate: {
             /** Level */
             level: number;
+        };
+        /**
+         * VerifiedCapabilityOut
+         * @description A capability shown by the student's own GitHub repos ("Verified by GitHub").
+         */
+        VerifiedCapabilityOut: {
+            /** Capability Id */
+            capability_id: string;
+            /** Evidence */
+            evidence: string[];
+            /** Repo Count */
+            repo_count: number;
         };
     };
     responses: never;
@@ -3909,6 +4310,229 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disconnect_github_api_proof_github_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    finish_github_api_proof_github_finish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GitHubFinishIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitHubMe"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_repo_api_proof_github_repos__repo_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                repo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GitHubRepoUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitHubRepoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_github_api_proof_github_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitHubStartOut"];
+                };
+            };
+        };
+    };
+    add_item_api_proof_items_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProofItemIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProofItemOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_item_api_proof_items__item_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_item_api_proof_items__item_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProofItemUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProofItemOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_proof_api_proof_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProofMe"];
                 };
             };
         };

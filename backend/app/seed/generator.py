@@ -25,10 +25,13 @@ from app.seed.schema import (
 )
 from app.seed.stories import (
     FORBIDDEN_CONNECTIONS,
+    LATE_STORY_MEMBERS,
     STORY_JOBS,
     STORY_MEMBER_KEYS,
     story_connections,
+    story_github,
     story_members,
+    story_proof_items,
     story_startups,
 )
 
@@ -726,7 +729,10 @@ def build_dataset(center: Point, city: str, seed: int = 42) -> Dataset:
     g.used_names.update(m.display_name for m in story_members(center, city))
     startups = story_startups(center, city)
     g.used_domains.update(s.record.website_domain for s in startups)
-    members = story_members(center, city)
+    # Members added to the stories later (R2) join after the random parts below, so
+    # the generated connections, intros and events stay exactly as they were.
+    members = [m for m in story_members(center, city) if m.key not in LATE_STORY_MEMBERS]
+    late = [m for m in story_members(center, city) if m.key in LATE_STORY_MEMBERS]
 
     sector_ids = list(SECTORS)
     weights = [SECTORS[s].weight for s in sector_ids]
@@ -747,10 +753,15 @@ def build_dataset(center: Point, city: str, seed: int = 42) -> Dataset:
         s.jobs = jobs_for(s)
 
     students = [m for m in members if m.role == "student"]
+    connections = g.connections(members, startups)
+    intros = g.intros(members)
+    events = g.interest_events(startups, students)
     return Dataset(
-        members=members,
+        members=members + late,
         startups=startups,
-        connections=g.connections(members, startups),
-        intros=g.intros(members),
-        events=g.interest_events(startups, students),
+        connections=connections,
+        intros=intros,
+        events=events,
+        github=story_github(),
+        proof_items=story_proof_items(),
     )

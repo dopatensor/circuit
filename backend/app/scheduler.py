@@ -3,6 +3,8 @@
 - Every MATCH_REFRESH_HOURS: embed new needs/offers and recompute everyone's matches.
 - Every hour: expire intro requests nobody answered within INTRO_EXPIRY_DAYS, and
   circuits nobody fully accepted within CIRCUIT_CONSENT_HOURS.
+- Every hour: import GitHub profiles that are due (each is refreshed weekly, sooner
+  after a rate limit or an error).
 - Weekly (CIRCUIT_ROUND_DAY at CIRCUIT_ROUND_HOUR, UTC): the exchange circuit round.
 Disabled with SCHEDULER_ENABLED=false (tests, or when a separate worker runs it).
 """
@@ -43,6 +45,18 @@ async def expire_stale(settings: Settings) -> None:
         log.exception("expire_stale_failed")
 
 
+async def refresh_github(settings: Settings) -> None:
+    from app.db import get_sessionmaker
+    from app.github.service import refresh_due
+
+    try:
+        done = await refresh_due(get_sessionmaker(), settings)
+        if done:
+            log.info("github_refreshed", accounts=done)
+    except Exception:
+        log.exception("refresh_github_failed")
+
+
 async def circuit_round(settings: Settings) -> None:
     from app.circuits.service import run_round
 
@@ -71,6 +85,15 @@ def start_scheduler(settings: Settings) -> AsyncIOScheduler:
         hours=1,
         args=[settings],
         id="expire_stale",
+        max_instances=1,
+        coalesce=True,
+    )
+    scheduler.add_job(
+        refresh_github,
+        "interval",
+        hours=1,
+        args=[settings],
+        id="refresh_github",
         max_instances=1,
         coalesce=True,
     )

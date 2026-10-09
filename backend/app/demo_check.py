@@ -144,9 +144,21 @@ async def story3_student(ctx: Ctx) -> str:
     pins = await ctx.get("ravi", "/api/map/startups/nearby", radius_km=5)
     pin = next((p for p in pins["items"] if p["name"] == "LedgerLoop"), None)
     expect(pin is not None and pin["hiring"], "LedgerLoop isn't a hiring pin near Ravi")
+    # R2 proof of work: saved GitHub results (offline) and a non-coder's portfolio.
+    github = ravi["proof"]["github"]
+    expect(github is not None, "Ravi's GitHub proof is missing (seeded data)")
+    verified = {v["capability_id"] for v in github["verified_capabilities"]}
+    expect(
+        {"backend_development", "data_engineering"} <= verified,
+        f"GitHub doesn't verify the internship's skills for Ravi ({sorted(verified)})",
+    )
+    expect(len(github["featured_repos"]) >= 2, "Ravi has fewer than two featured repos")
+    sneha = await ctx.get("sneha", "/api/members/me")
+    expect(len(sneha["proof"]["items"]) >= 2, "Sneha's portfolio items are missing")
     return (
         f"top match and top job: {top['title']} at LedgerLoop, {top['match']['score']}% "
-        f"skills, {top['distance_km']} km, {top['compensation']}"
+        f"skills, {top['distance_km']} km, {top['compensation']}; GitHub verifies "
+        f"{len(verified)} skills"
     )
 
 
