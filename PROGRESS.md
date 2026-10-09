@@ -105,6 +105,14 @@ gets its own branch name: start it from this branch (or `main`, once merged).
 already installed, and DESIGN.md v3 named it), and `cryptography` is now listed
 explicitly (it was already installed through `pyjwt[crypto]`; used for Fernet).
 
+Last verified (2026-10-09, R2):
+
+- Backend: **271 passed, 1 skipped**; ruff clean. `make demo-check`: **5/5 PASS**.
+  `make eval`: 53 pairs, 100% agreement.
+- Browser tests: **84 passed, 2 skipped** (full run, phone and laptop).
+- `npm run size`: **140.5 KB** first-load JavaScript gzipped (budget 250 KB).
+- Not run for R2: Lighthouse; a real GitHub OAuth App (no credentials here).
+
 ## What R1 built
 
 - **Tokens and fonts** (`src/index.css`): light (default) and dark themes, amber accent,
