@@ -172,9 +172,11 @@ dependencies = [
     { name = "alembic" },
     { name = "anthropic" },
     { name = "apscheduler" },
+    { name = "cryptography" },
     { name = "fastapi" },
     { name = "fastembed" },
     { name = "geoalchemy2" },
+    { name = "httpx" },
     { name = "networkx" },
     { name = "ortools" },
     { name = "pgvector" },
@@ -189,7 +191,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -199,9 +200,11 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.20.0" },
     { name = "anthropic", specifier = ">=1.11.0" },
     { name = "apscheduler", specifier = ">=3.10,<4" },
+    { name = "cryptography", specifier = ">=50.0.2" },
     { name = "fastapi", specifier = ">=0.142.2" },
     { name = "fastembed", specifier = ">=0.9.0" },
     { name = "geoalchemy2", specifier = ">=0.20.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "networkx", specifier = ">=3.7" },
     { name = "ortools", specifier = ">=9.15.6755" },
     { name = "pgvector", specifier = ">=0.5.0" },
@@ -216,7 +219,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "ruff", specifier = ">=0.16.10" },
 ]

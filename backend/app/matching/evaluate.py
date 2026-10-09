@@ -24,9 +24,10 @@ from app.db import make_engine
 from app.geo import member_center, point
 from app.graph import best_trust_path
 from app.jobs import job_roles, member_skills, startup_need_caps
-from app.matching.scoring import score_pair, student_job_score
+from app.matching.scoring import proof_bonus, score_pair, student_job_score
 from app.matching.service import load_context, weights_from
 from app.models import Job, Startup
+from app.proof import student_proofs
 from app.seed.ids import member_id
 from app.skill_match import skill_match
 
@@ -69,7 +70,8 @@ async def _job_score(session, settings: Settings, student_key: str, ref: str) ->
     )
     needs = (await startup_need_caps(session, [startup_id])).get(startup_id, [])
     m = skill_match(await member_skills(session, sid), [role], needs)
-    return student_job_score(m.score, km, settings.student_radius_km)
+    bonus, _ = proof_bonus((await student_proofs(session, [sid]))[sid], role["capabilities"])
+    return student_job_score(m.score, km, settings.student_radius_km, bonus)
 
 
 async def evaluate(session, settings: Settings, pairs_file: Path = PAIRS_FILE) -> list[Result]:

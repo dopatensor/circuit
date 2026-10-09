@@ -75,6 +75,26 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-haiku-4-5-20251001"
     anthropic_timeout_s: float = 20.0
 
+    # GitHub proof of work (R2). Students connect through OAuth with no scopes, which
+    # gives read-only access to public data. Without a client id and secret the
+    # "Connect GitHub" button explains that it isn't set up on this server.
+    github_client_id: str | None = None
+    github_client_secret: str | None = None
+    # Where GitHub sends the student back: the web app's callback page.
+    github_redirect_url: str = "http://localhost:5173/me/github/callback"
+    github_oauth_url: str = "https://github.com"
+    github_api_url: str = "https://api.github.com"
+    # Encrypts stored access tokens (a Fernet key). Defaults to one derived from the
+    # client secret; set it explicitly to rotate the secret without reconnecting.
+    github_token_key: str | None = None
+    github_refresh_days: int = Field(default=7, ge=1)
+    github_max_repos: int = Field(default=30, ge=1, le=100)
+    github_timeout_s: float = 10.0
+
+    @property
+    def github_configured(self) -> bool:
+        return bool(self.github_client_id and self.github_client_secret)
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

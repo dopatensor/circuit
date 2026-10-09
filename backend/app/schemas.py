@@ -133,6 +133,7 @@ class MemberUpdate(BaseModel):
     location: LatLng | None = None
     open_intro_slots: int | None = Field(default=None, ge=0, le=20)
     circuits_opt_in: bool | None = None
+    show_college: bool | None = None
     linkedin_url: HttpUrl | None = None
 
     @field_validator("linkedin_url")
@@ -151,8 +152,141 @@ class StartupLink(BaseModel):
     is_claimer: bool = False
 
 
+# --- proof of work (R2) ----------------------------------------------------------------
+
+GitHubStatus = Literal["importing", "ok", "rate_limited", "error"]
+ProofKind = Literal["portfolio", "behance", "dribbble", "case_study", "website", "code", "other"]
+
+
+class VerifiedCapabilityOut(BaseModel):
+    """A capability shown by the student's own GitHub repos ("Verified by GitHub")."""
+
+    capability_id: str
+    evidence: list[str]  # languages and frameworks, e.g. ["Python", "FastAPI"]
+    repo_count: int
+
+
+class GitHubRepoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    name: str
+    html_url: str
+    description: str
+    homepage_url: str | None
+    primary_language: str | None
+    languages: list[str]  # biggest first
+    frameworks: list[str]
+    commits_by_user: int
+    commits_total: int
+    readme_excerpt: str
+    pushed_at: datetime | None
+    featured: bool
+    hidden: bool
+    # Enough of the student's own commits to verify capabilities.
+    counts_as_proof: bool
+
+
+class ExternalPROut(BaseModel):
+    repo: str  # owner/name
+    url: str | None
+    merged_at: datetime | None
+
+
+class GitHubPublic(BaseModel):
+    """GitHub proof on a profile: only repos the student chose to feature."""
+
+    login: str
+    profile_url: str
+    homepage_url: str | None
+    verified_capabilities: list[VerifiedCapabilityOut]
+    featured_repos: list[GitHubRepoOut]
+    original_repos: int  # with the student's own commits, hidden ones left out
+    external_prs_total: int
+    external_prs: list[ExternalPROut]
+    active_weeks_90d: int
+    last_active_at: datetime | None
+    fetched_at: datetime | None
+
+
+class GitHubMe(GitHubPublic):
+    """Your own GitHub connection: every imported repo, and the import's status."""
+
+    status: GitHubStatus
+    # A plain sentence when something needs explaining (importing, waiting, failed).
+    status_message: str | None
+    source: Literal["oauth", "seed"]
+    connected_at: datetime
+    next_fetch_at: datetime | None
+    repos: list[GitHubRepoOut]
+
+
+class ProofItemIn(BaseModel):
+    """Non-code proof: a portfolio, Behance or Dribbble link, a case study, a live site.
+
+    A GitHub link added here is kept as a plain link and never counts as verified:
+    only an OAuth connection does that."""
+
+    url: HttpUrl | None = None
+    title: str = Field(min_length=1, max_length=120)
+    description: str = Field(default="", max_length=2000)
+    capability_ids: Annotated[list[CapabilityId], AfterValidator(_dedupe)] = Field(
+        default_factory=list, max_length=5
+    )
+    kind: Literal["portfolio", "website", "case_study", "other"] | None = None
+
+
+class ProofItemUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=120)
+    description: str | None = Field(default=None, max_length=2000)
+    capability_ids: Annotated[list[CapabilityId], AfterValidator(_dedupe)] | None = Field(
+        default=None, max_length=5
+    )
+
+
+class ProofItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    kind: ProofKind
+    url: str | None
+    title: str
+    description: str
+    capability_ids: list[str]
+    created_at: datetime
+
+
+class PublicProof(BaseModel):
+    github: GitHubPublic | None
+    items: list[ProofItemOut]
+
+
+class ProofMe(BaseModel):
+    # False when this server has no GitHub OAuth app configured.
+    github_available: bool
+    github: GitHubMe | None
+    items: list[ProofItemOut]
+    max_featured: int
+
+
+class GitHubStartOut(BaseModel):
+    authorize_url: str
+
+
+class GitHubFinishIn(BaseModel):
+    code: str = Field(min_length=1, max_length=200)
+    state: str = Field(min_length=1, max_length=2000)
+
+
+class GitHubRepoUpdate(BaseModel):
+    featured: bool | None = None
+    hidden: bool | None = None
+
+
+# --- members ------------------------------------------------------------------------------
+
+
 class MemberPublic(BaseModel):
-    """What other members can see. No exact location: only the city."""
+    """What other members can see. No exact location: only the city. College only when
+    the student chose to show it."""
 
     id: uuid.UUID
     role: Role
@@ -163,9 +297,11 @@ class MemberPublic(BaseModel):
     college: str | None
     verification_level: int
     trait_ids: list[str]
+    skills: list[SkillIn]
     offers: list[OfferOut]
     needs: list[NeedOut]
     startups: list[StartupLink]
+    proof: PublicProof
 
 
 class MemberMe(MemberPublic):
@@ -175,7 +311,7 @@ class MemberMe(MemberPublic):
     linkedin_url: str | None
     open_intro_slots: int
     circuits_opt_in: bool
-    skills: list[SkillIn]
+    show_college: bool
     is_demo: bool
 
 
@@ -505,6 +641,18 @@ class ApplicantMember(BaseModel):
     verification_level: int
 
 
+class ApplicantProof(BaseModel):
+    """Proof of work behind an applicant's rank."""
+
+    verified_capabilities: list[str]  # by GitHub
+    github_profile_url: str | None
+    portfolio_items: int
+    founder_rating_avg: float | None
+    circuits_completed: int
+    # The parts of the proof bonus (github_signal, portfolio_signal, founder_ratings, ...)
+    components: dict[str, float]
+
+
 class ApplicantOut(BaseModel):
     application_id: uuid.UUID
     job_id: uuid.UUID
@@ -512,6 +660,8 @@ class ApplicantOut(BaseModel):
     member: ApplicantMember
     skills: list[SkillIn]
     match: SkillMatchOut  # live score against the job
+    proof: ApplicantProof
+    rank_score: int  # 0..100: the skill match plus proof of work; the list's order
     note: str
     status: ApplicationStatus
     created_at: datetime

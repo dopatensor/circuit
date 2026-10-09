@@ -36,6 +36,7 @@ from app.matching.scoring import (
     Party,
     Weights,
     is_bridge,
+    proof_bonus,
     score_pair,
     student_job_score,
 )
@@ -52,6 +53,7 @@ from app.models import (
     StartupTrait,
     Trait,
 )
+from app.proof import student_proofs
 from app.skill_match import skill_match
 
 log = structlog.get_logger("matching")
@@ -339,6 +341,7 @@ async def student_matches(session, member_id: uuid.UUID, settings: Settings) -> 
     roles = {j["id"]: j for js in (await job_roles(session, sids)).values() for j in js}
     needs = await startup_need_caps(session, sids)
     skills = await member_skills(session, member_id)
+    proof = (await student_proofs(session, [member_id]))[member_id]
     cap_names = dict((await session.execute(select(Capability.id, Capability.name))).all())
 
     best_per_startup: dict[uuid.UUID, CachedMatch] = {}
@@ -349,7 +352,8 @@ async def student_matches(session, member_id: uuid.UUID, settings: Settings) -> 
         m = skill_match(skills, [role], needs.get(r.sid, []))
         if m.score == 0:
             continue
-        score = student_job_score(m.score, r.distance_km, radius)
+        bonus, proof_parts = proof_bonus(proof, role["capabilities"])
+        score = student_job_score(m.score, r.distance_km, radius, bonus)
         match = CachedMatch(
             candidate_id=r.Job.id,
             candidate_type="job",
@@ -360,6 +364,7 @@ async def student_matches(session, member_id: uuid.UUID, settings: Settings) -> 
                 "matched": m.matched,
                 "missing": m.missing,
                 "startup_id": str(r.sid),
+                **proof_parts,
             },
             reason=job_reason(m.score, m.matched, r.distance_km, r.Job.type, r.Job.paid, cap_names),
             is_bridge=False,

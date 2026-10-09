@@ -16,10 +16,13 @@ from app.seed.geo import AREA_BY_NAME, Point, offset
 from app.seed.schema import (
     OpenRole,
     SeedConnection,
+    SeedGitHub,
     SeedJob,
     SeedMember,
     SeedNeed,
     SeedOffer,
+    SeedProofItem,
+    SeedRepo,
     SeedStartup,
     StartupRecord,
 )
@@ -51,6 +54,7 @@ DEMO_PERSONAS: list[tuple[str, int, str]] = [
     ("arjun", 2, "Needs hiring, offers fundraising"),
     ("ravi", 3, "Student from a lower-tier college with strong skills"),
     ("deepak", 3, "LedgerLoop founder who shortlists Ravi"),
+    ("sneha", 3, "Design student who shows work without code"),
     ("rohan", 4, "Climate founder who wants an intro to Vikram"),
     ("lakshmi", 4, "Respected mentor who knows them both"),
     ("vikram", 4, "Climate investor"),
@@ -60,8 +64,12 @@ DEMO_PERSONAS: list[tuple[str, int, str]] = [
 # Keys of all hand-written members; the generator never uses these.
 STORY_MEMBER_KEYS = {
     "meera", "kavya", "asha", "priya", "arjun", "ravi", "rohan", "lakshmi", "vikram",
-    "sunil", "farah", "nandini", "deepak",
+    "sunil", "farah", "nandini", "deepak", "sneha",
 }  # fmt: skip
+
+# Added after Phase 12's seed was settled (R2). The generator adds them last, so the
+# random parts of the dataset (connections, intros, events) don't change.
+LATE_STORY_MEMBERS = {"sneha"}
 
 # Pairs that must never be directly connected, or the warm-intro story disappears.
 FORBIDDEN_CONNECTIONS = {frozenset({"rohan", "vikram"})}
@@ -457,6 +465,24 @@ def story_members(center: Point, city: str) -> list[SeedMember]:
             },
         ),  # fmt: skip
         m(
+            "sneha",
+            "University Quarter",
+            0.4,
+            0.2,
+            role="student",
+            display_name="Sneha Pillai",
+            sector=None,
+            college="Kalyan Nagar Government Polytechnic",
+            bio=(
+                "Diploma student in design. Redesigned a kirana billing app's checkout and "
+                "ran the usability tests myself."
+            ),
+            verification_level=2,
+            open_intro_slots=2,
+            circuits_opt_in=False,
+            skills={"ui_ux_design": 3, "brand_design": 2, "customer_discovery": 2},
+        ),  # fmt: skip
+        m(
             "deepak",
             "West Industrial Estate",
             1.2,
@@ -589,6 +615,120 @@ def story_members(center: Point, city: str) -> list[SeedMember]:
             open_intro_slots=5,
             circuits_opt_in=False,
         ),  # fmt: skip
+    ]
+
+
+# R2 proof of work: saved import results, so the demo never calls GitHub.
+def story_github() -> list[SeedGitHub]:
+    return [
+        SeedGitHub(
+            member="ravi",
+            github_user_id=900_000_001,  # fake ids, far from real GitHub accounts
+            login="ravi-kumar",
+            homepage_url="https://ravikumar.example",
+            active_weeks_90d=9,
+            last_active_days_ago=3,
+            external_prs=[
+                {
+                    "repo": "openinvoice-in/gst-schemas",
+                    "url": "https://github.example/openinvoice-in/gst-schemas/pull/41",
+                    "days_ago": 40,
+                },
+                {
+                    "repo": "kirana-tools/hsn-codes",
+                    "url": "https://github.example/kirana-tools/hsn-codes/pull/7",
+                    "days_ago": 75,
+                },
+            ],
+            repos=[
+                SeedRepo(
+                    key="gst-invoice-parser",
+                    name="gst-invoice-parser",
+                    description="Photos of handwritten GST invoices in, structured data out.",
+                    languages={"Python": 61_200, "HTML": 9_400, "Dockerfile": 1_100},
+                    frameworks=["FastAPI", "PostgreSQL", "Docker", "pytest"],
+                    commits_by_user=142,
+                    commits_total=150,
+                    readme_excerpt=(
+                        "Turns photos of handwritten GST invoices into GST-ready rows. Used "
+                        "by 40 shops in my neighbourhood. FastAPI and Postgres, runs in "
+                        "Docker; OCR plus a rules layer for HSN codes."
+                    ),
+                    pushed_days_ago=3,
+                    homepage_url="https://gstparser.example",
+                    featured=True,
+                ),
+                SeedRepo(
+                    key="shop-ledger-etl",
+                    name="shop-ledger-etl",
+                    description="Nightly pipeline that turns shop ledgers into weekly sales.",
+                    languages={"Python": 18_300},
+                    frameworks=["Airflow", "pandas"],
+                    commits_by_user=64,
+                    commits_total=64,
+                    readme_excerpt=(
+                        "An Airflow pipeline that pulls each shop's ledger, cleans it with "
+                        "pandas and loads weekly sales into Postgres for the owners' "
+                        "WhatsApp summary."
+                    ),
+                    pushed_days_ago=12,
+                    featured=True,
+                ),
+                SeedRepo(
+                    key="timetable-bot",
+                    name="college-timetable-bot",
+                    description="Telegram bot that sends tomorrow's classes at 9 pm.",
+                    languages={"Python": 6_900},
+                    frameworks=[],
+                    commits_by_user=23,
+                    commits_total=31,
+                    readme_excerpt="A Telegram bot for my college timetable. 300 students use it.",
+                    pushed_days_ago=60,
+                ),
+                SeedRepo(
+                    key="dotfiles",
+                    name="dotfiles",
+                    description="My shell setup.",
+                    languages={"Shell": 2_100},
+                    frameworks=[],
+                    commits_by_user=12,
+                    commits_total=12,
+                    readme_excerpt="",
+                    pushed_days_ago=90,
+                ),
+            ],
+        ),
+    ]
+
+
+def story_proof_items() -> list[SeedProofItem]:
+    """Non-code proof: a design student shows work without GitHub."""
+    return [
+        SeedProofItem(
+            key="sneha-behance",
+            member="sneha",
+            kind="behance",
+            url="https://www.behance.example/sneha-pillai/kirana-checkout",
+            title="Kirana billing app: a faster checkout",
+            description=(
+                "Redesigned the checkout of a billing app used in 30 kirana shops. Five "
+                "rounds of tests with shop owners; checkout went from 9 taps to 4."
+            ),
+            capability_ids=["ui_ux_design", "customer_discovery"],
+        ),
+        SeedProofItem(
+            key="sneha-case-study",
+            member="sneha",
+            kind="case_study",
+            title="Brand kit for a women's self-help group",
+            description=(
+                "A logo, colours and a packaging label for a pickle brand run by a "
+                "self-help group in Hebbal. I interviewed the members, made three "
+                "directions, and the one they picked is now on 2,000 jars a month. Sales "
+                "at the weekly market doubled in the two months after the new labels."
+            ),
+            capability_ids=["brand_design"],
+        ),
     ]
 
 

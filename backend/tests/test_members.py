@@ -21,8 +21,11 @@ async def test_public_profile_hides_exact_location(client, login):
     r = await client.get(f"/api/members/{ravi['id']}", headers=await login("meera"))
     assert r.status_code == 200
     public = r.json()
-    assert "location" not in public and "skills" not in public and "linkedin_url" not in public
+    assert "location" not in public and "linkedin_url" not in public
     assert public["city"] == "Bengaluru"
+    # R2: skills and proof of work are public; they're what people are matched on.
+    assert {s["capability_id"] for s in public["skills"]} >= {"backend_development"}
+    assert public["proof"]["github"]["login"] == "ravi-kumar"
 
 
 async def test_founder_profile_lists_their_startup(client, login):

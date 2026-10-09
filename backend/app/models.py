@@ -53,6 +53,11 @@ CLAIM_STATUSES = ("pending", "verified", "expired", "superseded")
 JOB_TYPES = ("internship", "full_time", "part_time", "contract")
 JOB_STATUSES = ("open", "closed")
 APPLICATION_STATUSES = ("submitted", "shortlisted", "rejected", "hired", "withdrawn")
+# importing: just connected, first fetch pending; ok: data is current; rate_limited: we
+# wait for GitHub's reset time; error: the last fetch failed (see last_error).
+GITHUB_STATUSES = ("importing", "ok", "rate_limited", "error")
+GITHUB_SOURCES = ("oauth", "seed")
+PROOF_KINDS = ("portfolio", "behance", "dribbble", "case_study", "website", "code", "other")
 
 
 def _in(column: str, values: tuple[str, ...]) -> str:
@@ -139,6 +144,10 @@ class Member(Base):
     verification_level: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
     open_intro_slots: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=3)
     circuits_opt_in: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # Privacy: students choose whether their college shows on their profile.
+    show_college: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=text("true")
+    )
     created_at: Mapped[datetime] = _created_at()
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
@@ -504,6 +513,94 @@ class CircuitLeg(Base):
     consented_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     fulfilled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     rating: Mapped[int | None] = mapped_column(SmallInteger)
+
+
+# --- Proof of work (R2) ----------------------------------------------------------------
+
+
+class GitHubAccount(Base):
+    """A student's GitHub account, linked through OAuth (never a typed username).
+
+    github_user_id comes from GitHub's own /user response for the token the student
+    authorised, so it proves the account is theirs. The access token (no scopes: public
+    data only) is stored encrypted and is only used by the background import.
+    Disconnecting deletes this row and, by cascade, every imported repo.
+    """
+
+    __tablename__ = "github_accounts"
+    __table_args__ = (
+        CheckConstraint(_in("status", GITHUB_STATUSES), name="status"),
+        CheckConstraint(_in("source", GITHUB_SOURCES), name="source"),
+        Index("ix_github_accounts_next_fetch_at", "next_fetch_at"),
+    )
+
+    member_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("members.id", ondelete="CASCADE"), primary_key=True
+    )
+    github_user_id: Mapped[int] = mapped_column(BigInteger, nullable=False, unique=True)
+    login: Mapped[str] = mapped_column(String(100), nullable=False)
+    profile_url: Mapped[str] = mapped_column(String(300), nullable=False)
+    homepage_url: Mapped[str | None] = mapped_column(String(300))  # the profile's "blog" link
+    access_token_enc: Mapped[str | None] = mapped_column(Text)  # Fernet; None for seed rows
+    source: Mapped[str] = mapped_column(String(16), nullable=False, default="oauth")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="importing")
+    last_error: Mapped[str | None] = mapped_column(String(64))  # a code, never a message
+    # Merged pull requests to repos the student doesn't own: [{"repo", "url", "merged_at"}]
+    external_prs: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    external_prs_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    active_weeks_90d: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0)
+    last_active_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    connected_at: Mapped[datetime] = _created_at()
+    fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_fetch_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class GitHubRepo(Base):
+    """An original (non-fork) public repo owned by the student, with their commits."""
+
+    __tablename__ = "github_repos"
+    __table_args__ = (
+        UniqueConstraint("member_id", "github_repo_id", name="uq_github_repos_member_repo"),
+    )
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    member_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("github_accounts.member_id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    github_repo_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    html_url: Mapped[str] = mapped_column(String(300), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    homepage_url: Mapped[str | None] = mapped_column(String(300))
+    primary_language: Mapped[str | None] = mapped_column(String(64))
+    languages: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)  # name -> bytes
+    frameworks: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    commits_by_user: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    commits_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    readme_excerpt: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    pushed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+
+class ProofItem(Base):
+    """Proof of work that isn't code: a portfolio, Behance or Dribbble link, a case
+    study, a live site. Added by the student; shown as "Added by you", never as
+    verified."""
+
+    __tablename__ = "proof_items"
+    __table_args__ = (CheckConstraint(_in("kind", PROOF_KINDS), name="kind"),)
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    member_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    url: Mapped[str | None] = mapped_column(String(500))
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    capability_ids: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    created_at: Mapped[datetime] = _created_at()
 
 
 # --- Events ---------------------------------------------------------------------------

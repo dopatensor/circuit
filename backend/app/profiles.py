@@ -16,6 +16,7 @@ from app.models import (
     StartupMember,
     StartupTrait,
 )
+from app.proof import public_proof
 from app.schemas import (
     JobBrief,
     LatLng,
@@ -68,6 +69,13 @@ async def member_public(session: AsyncSession, member: Member) -> MemberPublic:
             .order_by(Need.created_at)
         )
     ).all()
+    skills = (
+        await session.execute(
+            select(MemberSkill.capability_id, MemberSkill.level)
+            .where(MemberSkill.member_id == member.id)
+            .order_by(MemberSkill.capability_id)
+        )
+    ).all()
     startups = (
         await session.execute(
             select(
@@ -87,36 +95,29 @@ async def member_public(session: AsyncSession, member: Member) -> MemberPublic:
         bio=member.bio,
         sector=member.sector,
         city=member.city,
-        college=member.college,
+        college=member.college if member.show_college else None,
         verification_level=member.verification_level,
         trait_ids=sorted(traits),
+        skills=[SkillIn(capability_id=c, level=lvl) for c, lvl in skills],
         offers=[OfferOut.model_validate(o) for o in offers],
         needs=[NeedOut.model_validate(n) for n in needs],
         startups=[
-            StartupLink(
-                startup_id=s.id, name=s.name, title=s.title, is_claimer=bool(s.is_claimer)
-            )
+            StartupLink(startup_id=s.id, name=s.name, title=s.title, is_claimer=bool(s.is_claimer))
             for s in startups
         ],
+        proof=await public_proof(session, member.id),
     )
 
 
 async def member_me(session: AsyncSession, member: Member, is_demo: bool) -> MemberMe:
     public = await member_public(session, member)
-    skills = (
-        await session.execute(
-            select(MemberSkill.capability_id, MemberSkill.level)
-            .where(MemberSkill.member_id == member.id)
-            .order_by(MemberSkill.capability_id)
-        )
-    ).all()
     return MemberMe(
-        **public.model_dump(),
+        **(public.model_dump() | {"college": member.college}),  # your own, always
         location=await _location(session, Member, member.id),
         linkedin_url=member.linkedin_url,
         open_intro_slots=member.open_intro_slots,
         circuits_opt_in=member.circuits_opt_in,
-        skills=[SkillIn(capability_id=c, level=lvl) for c, lvl in skills],
+        show_college=member.show_college,
         is_demo=is_demo,
     )
 

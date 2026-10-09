@@ -27,11 +27,22 @@ from app.auth import (
 from app.events import record_event
 from app.geo import member_center, point
 from app.jobs import job_roles, match_out, member_skills, startup_need_caps
-from app.models import Application, Job, JobCapability, Member, MemberSkill, Startup
+from app.matching.scoring import applicant_rank_score, proof_bonus
+from app.models import (
+    Application,
+    GitHubAccount,
+    Job,
+    JobCapability,
+    Member,
+    MemberSkill,
+    Startup,
+)
 from app.profiles import lat_lng_columns
+from app.proof import student_proofs
 from app.schemas import (
     ApplicantMember,
     ApplicantOut,
+    ApplicantProof,
     ApplicationJob,
     ApplicationOut,
     ApplicationStatusIn,
@@ -390,10 +401,24 @@ async def applicants(
         )
     ).all():
         skills_by_member.setdefault(mid, {})[cap] = lvl
+    member_ids = [m.id for _, _, m in rows]
+    proofs = await student_proofs(session, member_ids)
+    github_urls = dict(
+        (
+            await session.execute(
+                select(GitHubAccount.member_id, GitHubAccount.profile_url).where(
+                    GitHubAccount.member_id.in_(member_ids)
+                )
+            )
+        ).all()
+    )
     out = []
     for application, job, member in rows:
         skills = skills_by_member.get(member.id, {})
         role = roles.get(job.id, {"capabilities": [], "min_levels": {}}) | {"title": job.title}
+        match = match_out(skills, [role], needs)
+        proof = proofs[member.id]
+        bonus, parts = proof_bonus(proof, role["capabilities"])
         out.append(
             ApplicantOut(
                 application_id=application.id,
@@ -406,13 +431,26 @@ async def applicants(
                     verification_level=member.verification_level,
                 ),
                 skills=[SkillIn(capability_id=c, level=lvl) for c, lvl in sorted(skills.items())],
-                match=match_out(skills, [role], needs),
+                match=match,
+                proof=ApplicantProof(
+                    verified_capabilities=sorted(proof.github_caps),
+                    github_profile_url=github_urls.get(member.id),
+                    portfolio_items=proof.portfolio_items,
+                    founder_rating_avg=round(
+                        sum(proof.founder_ratings) / len(proof.founder_ratings), 2
+                    )
+                    if proof.founder_ratings
+                    else None,
+                    circuits_completed=proof.circuits_completed,
+                    components=parts,
+                ),
+                rank_score=applicant_rank_score(match.score, bonus),
                 note=application.note,
                 status=application.status,
                 created_at=application.created_at,
             )
         )
-    out.sort(key=lambda a: (-a.match.score, a.created_at))
+    out.sort(key=lambda a: (-a.rank_score, -a.match.score, a.created_at))
     return out
 
 
