@@ -57,7 +57,7 @@ export function ProfileStrength({ hideWhenDone = false }: { hideWhenDone?: boole
         <Icon name="check" size={18} />
         <p className="text-sm">
           <span className="font-semibold">Profile complete.</span>{" "}
-          <span className="text-fg2">It has everything founders look for.</span>
+          <span className="text-fg2">People can see what you do and what you need.</span>
         </p>
       </Card>
     );

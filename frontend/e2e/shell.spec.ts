@@ -44,7 +44,7 @@ test("Discover holds the browse screens as tabs, and old links still work", asyn
   await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Discover" }).click();
   await expect(page).toHaveURL(/\/map$/); // students start on the map
   const tabs = page.getByRole("navigation", { name: "Discover" });
-  expect(await tabs.getByRole("link").allInnerTexts()).toEqual(["Map", "Jobs", "Matches", "Startups"]);
+  await expect(tabs.getByRole("link")).toHaveText(["Map", "Jobs", "Matches", "Startups"]);
   await tabs.getByRole("link", { name: "Startups" }).click();
   await expect(page.getByRole("heading", { name: "Startups" })).toBeVisible();
   await page.getByLabel("Startup name").fill("Ledger");

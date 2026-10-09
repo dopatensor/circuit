@@ -107,7 +107,7 @@ export default function PostJob() {
         )}
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-semibold">Role</span>
-          <input className={field} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Backend Engineering Intern" required minLength={3} maxLength={120} />
+          <input className={field} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Backend Engineering Intern" required minLength={3} maxLength={120} />
         </label>
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1.5 text-sm font-semibold">Type</legend>
@@ -128,7 +128,7 @@ export default function PostJob() {
           {paid && (
             <label className="flex flex-col gap-1.5">
               <span className="text-sm text-fg2">Pay (optional)</span>
-              <input className={field} value={pay} onChange={(e) => setPay(e.target.value)} placeholder="₹20,000/month" maxLength={60} />
+              <input className={field} value={pay} onChange={(e) => setPay(e.target.value)} placeholder="e.g. ₹20,000/month" maxLength={60} />
             </label>
           )}
         </div>

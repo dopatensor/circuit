@@ -29,7 +29,8 @@ function useActive() {
   const { member } = useAuth();
   const discover = member ? discoverTabs(member.role).map((t) => t.to) : [];
   return (item: NavItem) => {
-    if (item.to === "/discover") return discover.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+    if (item.to === "/discover")
+      return pathname !== "/jobs/new" && discover.some((p) => pathname === p || pathname.startsWith(`${p}/`));
     if (item.to === "/inbox") return pathname.startsWith("/inbox") || pathname.startsWith("/intros");
     return pathname === item.to || pathname.startsWith(`${item.to}/`);
   };
