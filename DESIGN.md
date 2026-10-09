@@ -1,6 +1,6 @@
 # Circuit — design system (redesign, R1–R7)
 
-**Status: proposal v3, waiting for the user's OK (2026-10-09).**
+**Status: v3 approved by the user (2026-10-09). R1 is built; see "Decisions made in R1" at the end.**
 History: v1 (warm card feed) looked like a LinkedIn knock-off; v2 (Bloomberg + Notion)
 was too much for a student. v3 is **simple, calm and guided**: every screen follows the
 same structure, and the app always tells you the next step.
@@ -66,10 +66,11 @@ Section heading   See all another short list
 - **Phone:** top bar (title, search, notifications, your avatar → Me). Bottom bar:
   **Home · Discover · [main action] · Circuits · Inbox**. Centre action: student
   "Jobs", founder "Post", mentor/investor "Offer help", partner admin "Gaps".
-- **Desktop (≥1100px):** left sidebar (search with Ctrl/⌘K, the same destinations,
-  the main action as a button, you at the bottom), content column up to 640px, and a
-  right rail with **Profile strength as a checklist** plus "People worth meeting" or
-  privacy. **Tablet:** sidebar becomes icons, rail moves under the content.
+- **Tablet and laptop (≥768px):** left sidebar (the same destinations plus Me, the
+  main action as a button, you at the bottom), content column up to 640px.
+  **Wide (≥1280px):** plus a right rail with **Profile strength as a checklist** and
+  "People worth meeting" (students: "Jobs near you"). Below 1280px, Home shows profile
+  strength under the content instead. Search (Ctrl/⌘K) arrives in R4.
 
 ## 5. Key screens
 
@@ -137,3 +138,29 @@ shadows; tickers and dense data tables on student screens; decorative animation.
   `e2e/pwa.spec.ts`.
 - Keyboard and screen reader for everything; swipe actions always have buttons.
 - Playwright at 375px and 1280px for every demo story and new feature.
+
+## Decisions made in R1 (2026-10-09)
+
+- **Navigation:** Home · Discover · [main action] · Circuits · Inbox on phones, with Me on
+  your avatar in the top bar (the user didn't pick the alternative). The sidebar lists
+  the same places plus Me. Old URLs (`/map`, `/jobs`, `/matches`, `/startups`,
+  `/intros`) keep working: the first four are Discover's tabs, `/intros` redirects to
+  `/inbox`.
+- **Discover tabs (until R4 adds People search):** Matches · Jobs · Startups · Map
+  (students start on Map; partner admins have no Matches tab).
+- **Inbox (until R5 adds messages):** the intro requests screen.
+- **Centre actions:** student "Jobs" → `/jobs`; founder "Post" → a sheet with "Post a
+  job" (new `/jobs/new` form) or "Update what you need"; mentor/investor "Offer" →
+  `/me/profile`; partner admin "Gaps" → `/dashboard`.
+- **Home's path for students** is Profile → Apply → Shortlist until R2 adds proof of
+  work, then Profile → Proof → Apply → Interview as in the mockups.
+- **Status colours on older screens:** good news ("accepted", "hiring") is an outlined
+  neutral badge; "in progress" is the amber tint. Map pins: amber for hiring, grey
+  otherwise (pins must be coloured by hiring status, F2).
+- **Dashboard chart and heat colours** still use the Phase 11 blue/green pair (grid and
+  label colours now follow the theme). They get a proper two-theme check with the
+  dataviz validator in R6.
+- **API addition:** `StartupLink.is_claimer`, so the app knows which startups you can
+  post jobs for (being on a team isn't enough).
+- **Bundle:** first-load JavaScript is ~140 KB gzipped (budget raised to 250 KB, per the
+  redesign brief); `motion` uses LazyMotion with the small DOM feature set.

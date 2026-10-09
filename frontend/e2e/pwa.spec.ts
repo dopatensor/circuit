@@ -97,7 +97,7 @@ test("jobs, matches and applications stay readable offline; tokens and other peo
   // Switching person clears the previous person's cached data. (Meera's own matches
   // may be cached again straight away; Ravi's jobs must be gone.)
   await switchTo(page, "Meera");
-  await expect(page).toHaveURL(/\/matches$/);
+  await expect(page).toHaveURL(/\/home$/);
   const left = await page.evaluate(async () => {
     if (!(await caches.has("circuit-api"))) return [];
     return (await (await caches.open("circuit-api")).keys()).map((k) => k.url);

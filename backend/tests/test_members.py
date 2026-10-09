@@ -28,7 +28,15 @@ async def test_public_profile_hides_exact_location(client, login):
 async def test_founder_profile_lists_their_startup(client, login):
     me = (await client.get("/api/members/me", headers=await login("meera"))).json()
     assert me["startups"][0]["name"] == "HelixRoot Biosciences"
+    assert me["startups"][0]["is_claimer"] is True
     assert {o["capability_id"] for o in me["offers"]} == {"lab_research"}
+
+
+async def test_profile_says_when_you_are_on_a_team_but_did_not_claim_it(client, login):
+    # Rohan is on TerraGrid's team, but the page is unclaimed (the claim-flow story).
+    me = (await client.get("/api/members/me", headers=await login("rohan"))).json()
+    terragrid = next(s for s in me["startups"] if s["name"] == "TerraGrid Energy")
+    assert terragrid["is_claimer"] is False
 
 
 async def test_update_profile_and_linkedin_raises_level_to_2(client, make_member):

@@ -1,7 +1,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import { maplibregl } from "./setup";
 import { useEffect, useRef, useState } from "react";
-import { darkStyle } from "./style";
+import { mapStyle } from "./style";
 
 export type Pin = { id: string; name: string; lat: number; lng: number; hiring: boolean };
 
@@ -37,7 +37,7 @@ export function MapView({
     try {
       map.current = new maplibregl.Map({
         container: container.current,
-        style: darkStyle(),
+        style: mapStyle(),
         center: [center.lng, center.lat],
         zoom,
         attributionControl: { compact: true },
@@ -92,9 +92,9 @@ export function MapView({
       el.setAttribute("aria-label", `${pin.name}, ${pin.hiring ? "hiring" : "not hiring"}`);
       const dot = el.firstElementChild as HTMLElement;
       dot.className = [
-        "block rounded-full border-2 border-black transition-transform",
-        pin.hiring ? "size-4 bg-green shadow-glow-green" : "size-3.5 bg-muted",
-        pin.id === selectedId ? "scale-150 outline-2 outline-blue" : "",
+        "block rounded-full border-2 border-panel transition-transform",
+        pin.hiring ? "size-4 bg-accent" : "size-3.5 bg-muted",
+        pin.id === selectedId ? "scale-150 outline-2 outline-fg" : "",
       ].join(" ");
     };
     const create = (pin: Pin) => {

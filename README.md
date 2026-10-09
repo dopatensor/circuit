@@ -14,7 +14,10 @@ with applications. Phase 10 added the network app: onboarding with tap-to-select
 (F1), an action on every match, the warm intro flow and Intros tab (F5), and the
 Circuits loop card with accept, decline and rating (F6). Phase 11 added the partner
 dashboard (F8 UI): three numbers, the ranked capability-gap chart, the gap heat map and
-local vs bridge intro acceptance. Phase 12 (demo readiness) is next.
+local vs bridge intro acceptance. **The frontend redesign (R1–R7, see
+[DESIGN.md](DESIGN.md)) is under way:** R1 added the new design system, the `/design`
+component gallery, light and dark themes, the new navigation, Home and "Post a job".
+Phase 12 (demo readiness) follows the redesign.
 `make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
 
@@ -92,7 +95,7 @@ uv run ruff format .        # auto-format
 
 cd ../frontend
 npm run build               # type-checks and builds (also writes the service worker)
-npm run size                # first-load JavaScript must stay under 200 KB gzipped
+npm run size                # first-load JavaScript must stay under 250 KB gzipped
 npx playwright test         # browser tests at 375px and 1280px (starts its own API on
                             # :8011 against circuit_test and a preview build on :4183)
 ```
@@ -156,16 +159,35 @@ Run `make reset-demo && make demo-check` before every demo.
 
 `frontend/` is a React + TypeScript app built with Vite and Tailwind CSS.
 
-- **Design** (see [DESIGN.md](DESIGN.md)): mobile-first, pure black with neon blue
-  for the main action and neon green for the "Bridge match" badge and good news.
-  Soft rounded cards, initials avatars, tinted status pills, one system font, four text
-  sizes. Transitions are short and turned off under "reduce motion". Tokens live in
-  `src/index.css`.
-- **Layout**: phones get a bottom tab bar, laptops a slim left sidebar, and content sits
-  in a 720px column (the map and dashboard use the full width). Tabs depend on role:
-  students get Map · Jobs · Matches · Me; founders, mentors and investors get Matches ·
-  Circuits · Intros · Me; partner admins get Dashboard · Map · Intros · Me (they're often
-the mutual in a warm intro). Tap targets are 44px+.
+- **Design** (see [DESIGN.md](DESIGN.md)): simple, calm and guided. Warm off-white
+  (light, the default) or near-black (dark, follows the device; Me → Appearance to pick
+  one). One amber colour for the main action on each screen, teal only for Bridge
+  matches and circuits, neutrals for the rest. IBM Plex Sans (self-hosted in
+  `public/fonts/`), with IBM Plex Mono only for standalone numbers. Bordered cards, no
+  shadows. Tokens live in `src/index.css`.
+- **Design system** (`src/components/ds/`): Avatar, Badge (verification, Bridge, Hiring),
+  Button, Card/List/ListRow/Section, Chip, BottomSheet and Modal (built on `<dialog>`;
+  spring open, drag down to close on phones), Tabs, Toast (with Undo), Skeleton,
+  EmptyState, Stepper, Checklist and inline SVG icons. **`/design`** shows them all, in
+  dev and in builds made with `VITE_DESIGN_PAGE=1` (the test build); never in a normal
+  production build. Animation uses `motion` (only its small DOM feature set) and
+  `@use-gesture/react` for dragging; everything respects "reduce motion".
+- **Layout**: everyone gets the same places: **Home · Discover · Circuits · Inbox**, and
+  **Me** (your avatar on phones). Phones: a top bar and a bottom bar with a centre button
+  for the role's main action (student: Jobs; founder: Post, which offers "Post a job" or
+  "Update what you need"; mentor and investor: Offer; partner admin: Gaps, the
+  dashboard). Laptops: a left sidebar with the same places and the action as a button;
+  content in a 640px column; from 1280px a right rail with profile strength and people
+  worth meeting (students: jobs near you). The map and dashboard use the full width.
+  **Discover** has tabs over the browse screens (Matches, Jobs, Startups, Map; students
+  start on the map) and **Inbox** holds intro requests for now. Old links (`/map`,
+  `/jobs`, `/intros`…) still work. Tap targets are 44px+.
+- **Home**: a greeting, then one "next step" card with the path you're on (students:
+  Profile → Apply → Shortlist; founders: Profile → Matches → Intros), worked out from
+  your profile, applications, intros and circuits; then your top matches (partner
+  admins: intros to pass on) and, below 1280px, profile strength.
+- **Post a job** (`/jobs/new`, founders who claimed a startup): role, type, pay, what
+  they'll do and the skills it needs; students are matched on those skills.
 - **Data**: every call goes through the typed client generated from the API's OpenAPI
   spec (`src/api/schema.d.ts`; regenerate with `make api-client`), with TanStack Query.
   A backend test fails if `frontend/openapi.json` is out of date.
@@ -183,7 +205,7 @@ the mutual in a warm intro). Tap targets are 44px+.
 - **Warm intros (F5)**: "Ask for intro" opens a sheet with the path (You → mutual →
   them), the API's one-line explanation, a short reason (10–500 characters) and "Send
   request". If you can't ask yet (verification level, a full week), it says why. The
-  **Intros** tab lists "To pass on", "For you" and "You asked", each card with the
+  **Inbox** lists "To pass on", "For you" and "You asked", each card with the
   buttons the API allows (pass it on, accept, decline, withdraw, rate 1–5), and your
   capacity this week.
 - **Circuits (F6)**: each loop card shows the three people in a circle with clockwise
@@ -205,7 +227,7 @@ the mutual in a warm intro). Tap targets are 44px+.
 - **MapLibre's worker**: MapLibre draws street tiles and the heat layer in a web worker.
   `src/map/setup.ts` tells it where the build put the worker file; without that,
   production builds silently drew no streets and no heat.
-- **Installable (PWA)**: a manifest (name, standalone, "C" icons at 192/512/maskable plus
+- **Installable (PWA)**: a manifest (name, standalone, the Circuit mark at 192/512/maskable plus
   an apple-touch-icon; regenerate with `npm run icons`) and a service worker
   (vite-plugin-pwa):
   - The app shell is precached, so it opens instantly and works offline.
@@ -216,10 +238,10 @@ the mutual in a warm intro). Tap targets are 44px+.
   - When a new version is deployed, a bar says "Update available, tap to refresh".
   - After the second visit, a one-time "Add Circuit to your home screen" prompt
     appears, with the Share → "Add to Home Screen" steps on iPhone.
-- **Map (F2)**: MapLibre with a pure-black style built from free OpenStreetMap vector
-  tiles (OpenFreeMap, no key; `VITE_MAP_TILES` to change). If tiles can't load, the map
-  still works on black with the pins. Pins are real buttons, neon green for hiring and
-  grey otherwise. The map fits all pins; one "Filters" sheet (hiring, skill, distance);
+- **Map (F2)**: MapLibre with a quiet style in the app's light or dark theme, built from
+  free OpenStreetMap vector tiles (OpenFreeMap, no key; `VITE_MAP_TILES` to change). If
+  tiles can't load, the map still works with a plain background and the pins. Pins are
+  real buttons, amber for hiring and grey otherwise. The map fits all pins; one "Filters" sheet (hiring, skill, distance);
   tap a pin for a sheet with match %, open roles, "I'm interested" and "View startup".
   MapLibre loads only with the Map tab and is cached the first time it's opened.
 - **Startup page and claim (F3)**: views, interested students and applications; for an

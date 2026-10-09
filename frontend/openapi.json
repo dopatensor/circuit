@@ -3162,6 +3162,11 @@
       },
       "StartupLink": {
         "properties": {
+          "is_claimer": {
+            "default": false,
+            "title": "Is Claimer",
+            "type": "boolean"
+          },
           "name": {
             "title": "Name",
             "type": "string"

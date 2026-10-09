@@ -48,7 +48,7 @@ export default function JobPage() {
   return (
     <Page>
       <div className="flex flex-col gap-2">
-        <Link to={`/startups/${j.startup.id}`} className="text-sm text-blue hover:underline">
+        <Link to={`/startups/${j.startup.id}`} className="text-sm text-fg underline underline-offset-2 hover:text-fg2">
           {j.startup.name}
         </Link>
         <Title>{j.title}</Title>
@@ -62,7 +62,7 @@ export default function JobPage() {
 
       {j.match && (
         <Card className="flex items-baseline gap-3">
-          <span className={`text-display font-semibold tabular-nums ${j.match.score >= 80 ? "text-green" : ""}`}>
+          <span className={`num text-display`}>
             {j.match.score}%
           </span>
           <span className="text-muted">match to your skills, not your college</span>
@@ -102,7 +102,7 @@ export default function JobPage() {
       )}
 
       {ownStartup && (
-        <Link to={`/startups/${j.startup.id}/applicants`} className="text-sm text-blue hover:underline">
+        <Link to={`/startups/${j.startup.id}/applicants`} className="text-sm text-fg underline underline-offset-2 hover:text-fg2">
           See applicants
         </Link>
       )}
@@ -111,7 +111,7 @@ export default function JobPage() {
       {student && j.status === "open" && (
         <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-10 md:bottom-6">
           {application || j.has_applied ? (
-            <div className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-5">
+            <div className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-line bg-surface px-5">
               <span>You applied</span>
               {application && <StatusPill status={application.status} />}
             </div>

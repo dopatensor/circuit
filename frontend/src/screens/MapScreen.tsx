@@ -87,20 +87,20 @@ export default function MapScreen() {
 
       {/* One line of context and one filter button, floating over the map. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 pt-[max(1rem,env(safe-area-inset-top))]">
-        <div className="pointer-events-auto rounded-full border border-line bg-black/85 px-4 py-2.5 text-sm whitespace-nowrap backdrop-blur">
+        <div className="pointer-events-auto rounded-lg border border-line bg-panel/95 px-4 py-2.5 text-sm whitespace-nowrap">
           {startups.isPending ? (
             "Finding startups…"
           ) : (
             <span>
               <span className="font-semibold">{startups.data?.total ?? 0}</span>
               {student ? ` within ${filters.radiusKm} km` : " startups"} ·{" "}
-              <span className="text-green">{items.filter((s) => s.hiring).length} hiring</span>
+              <span className="font-semibold">{items.filter((s) => s.hiring).length} hiring</span>
             </span>
           )}
         </div>
         <button
           onClick={() => setFiltersOpen(true)}
-          className="pointer-events-auto min-h-11 rounded-full border border-line bg-black/85 px-4 text-sm font-semibold backdrop-blur hover:border-muted"
+          className="pointer-events-auto min-h-11 rounded-lg border border-line bg-panel/95 px-4 text-sm font-semibold hover:border-muted"
         >
           Filters{activeFilters ? ` · ${activeFilters}` : ""}
         </button>
@@ -184,7 +184,7 @@ function FilterForm({
                 aria-pressed={f.radiusKm === km}
                 onClick={() => setF({ ...f, radiusKm: km })}
                 className={`min-h-11 rounded-xl border text-sm font-medium ${
-                  f.radiusKm === km ? "border-blue bg-blue/10 text-blue" : "border-line bg-raised"
+                  f.radiusKm === km ? "border-fg bg-panel text-fg ring-1 ring-fg ring-inset" : "border-line bg-raised"
                 }`}
               >
                 {km} km
@@ -227,7 +227,7 @@ function StartupSheet({ startup, student }: { startup: Startup; student: boolean
       </div>
 
       {student && startup.match && (
-        <div className="flex items-baseline gap-3 rounded-2xl border border-line bg-raised p-4">
+        <div className="flex items-baseline gap-3 rounded-xl border border-line bg-raised p-4">
           <span className="text-display font-semibold tabular-nums">{startup.match.score}%</span>
           <span className="text-sm text-muted">
             match to your skills
@@ -261,7 +261,7 @@ function StartupSheet({ startup, student }: { startup: Startup; student: boolean
       <div className="flex flex-col gap-3 sm:flex-row-reverse">
         {student ? (
           interested ? (
-            <span className="flex min-h-11 flex-1 items-center justify-center rounded-full border border-green/40 bg-green/10 font-semibold text-green">
+            <span className="flex min-h-11 flex-1 items-center justify-center rounded-lg border border-line2 bg-raised font-semibold text-fg">
               You're interested
             </span>
           ) : (
@@ -272,7 +272,7 @@ function StartupSheet({ startup, student }: { startup: Startup; student: boolean
         ) : null}
         <Link
           to={`/startups/${startup.id}`}
-          className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-line bg-raised px-5 font-semibold hover:border-muted"
+          className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-line bg-raised px-5 font-semibold hover:border-muted"
         >
           View startup
         </Link>

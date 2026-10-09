@@ -86,7 +86,7 @@ function LoopCard({ circuit: c }: { circuit: Circuit }) {
   const hours = hoursLeft(c.expires_at);
 
   return (
-    <li className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-5" data-testid="loop-card">
+    <li className="flex flex-col gap-5 rounded-xl border border-line bg-surface p-5" data-testid="loop-card">
       <div className="flex items-start justify-between gap-3">
         <h2 className="font-semibold">Your circuit</h2>
         <Pill tone={status.tone}>{status.label}</Pill>
@@ -130,7 +130,7 @@ function LoopCard({ circuit: c }: { circuit: Circuit }) {
         </div>
       )}
       {c.status === "proposed" && c.my_consent === "accepted" && (
-        <p className="text-sm text-green">You accepted. Waiting for the others.</p>
+        <p className="text-sm text-fg2">You accepted. Waiting for the others.</p>
       )}
       {c.actions.includes("rate") && incoming && (
         <Rating
@@ -182,7 +182,7 @@ function LoopDiagram({ people, me }: { people: Leg["giver"][]; me?: string }) {
                 stroke="currentColor"
                 strokeWidth="2"
               />
-              <polygon points={head.map((q) => `${q.x},${q.y}`).join(" ")} className="fill-blue" />
+              <polygon points={head.map((q) => `${q.x},${q.y}`).join(" ")} className="fill-signal" />
             </g>
           );
         })}
@@ -196,7 +196,7 @@ function LoopDiagram({ people, me }: { people: Leg["giver"][]; me?: string }) {
             style={{ left: `${x / 2}%`, top: `${y / 2}%` }}
           >
             <Avatar name={p.display_name} size="sm" />
-            <span className={`text-sm leading-tight ${p.id === me ? "font-semibold text-green" : ""}`}>
+            <span className={`text-sm leading-tight ${p.id === me ? "font-semibold text-signal" : ""}`}>
               {p.id === me ? "You" : p.display_name.split(" ")[0]}
             </span>
           </div>

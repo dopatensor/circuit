@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Chip } from "./ds";
 
 export type ChipOption = { id: string; name: string; group?: string };
 
@@ -42,7 +43,7 @@ export function ChipPicker({
         <h2 id={headingId} className="text-base font-semibold">
           {label}
         </h2>
-        <span className="text-sm text-muted tabular-nums">
+        <span className="text-sm text-muted">
           {selected.length} of {max}
         </span>
       </div>
@@ -55,21 +56,9 @@ export function ChipPicker({
               {g.items.map((o) => {
                 const on = chosen.has(o.id);
                 return (
-                  <button
-                    key={o.id}
-                    type="button"
-                    aria-pressed={on}
-                    disabled={!on && full}
-                    onClick={() => onToggle(o.id)}
-                    className={`min-h-11 cursor-pointer rounded-full border px-4 text-sm font-medium transition disabled:cursor-default disabled:opacity-40 ${
-                      on
-                        ? "border-blue bg-blue/15 text-blue"
-                        : "border-line bg-raised text-fg hover:border-muted"
-                    }`}
-                  >
-                    {on && <span aria-hidden="true">✓ </span>}
+                  <Chip key={o.id} selected={on} disabled={!on && full} onToggle={() => onToggle(o.id)}>
                     {o.name}
-                  </button>
+                  </Chip>
                 );
               })}
             </div>
@@ -80,7 +69,7 @@ export function ChipPicker({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="min-h-11 self-start text-sm font-semibold text-blue hover:underline"
+        className="min-h-11 cursor-pointer self-start text-sm font-semibold text-fg2 underline-offset-2 hover:text-fg hover:underline"
       >
         {open ? "Show fewer" : `Show all ${options.length}`}
       </button>

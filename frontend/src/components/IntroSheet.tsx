@@ -63,7 +63,7 @@ function IntroForm({ memberId }: { memberId: string }) {
                 </span>
               )}
               <Avatar name={n} size="sm" />
-              <span className={`text-sm ${i === 1 && p.via ? "font-semibold text-blue" : ""}`}>
+              <span className={`text-sm ${i === 1 && p.via ? "font-semibold text-signal" : ""}`}>
                 {i === 0 ? "You" : n}
               </span>
             </li>
@@ -73,25 +73,25 @@ function IntroForm({ memberId }: { memberId: string }) {
       </div>
 
       {send.isSuccess ? (
-        <div role="status" className="flex flex-col gap-3 rounded-2xl border border-green/30 bg-green/10 p-4">
-          <p className="text-green">
+        <div role="status" className="flex flex-col gap-3 rounded-xl border border-line bg-raised p-4">
+          <p className="font-semibold">
             {send.data.via
               ? `Sent. ${send.data.via.display_name} will see it first and pass it on.`
               : `Sent to ${send.data.target.display_name}.`}
           </p>
-          <Link to="/intros" className="text-sm font-semibold text-blue hover:underline">
+          <Link to="/intros" className="text-sm font-semibold text-fg underline underline-offset-2 hover:text-fg2">
             See it in Intros
           </Link>
         </div>
       ) : p.open_request_id ? (
         <div className="flex flex-col gap-3">
           <p className="text-muted">You already asked. You'll hear back in Intros.</p>
-          <Link to="/intros" className="text-sm font-semibold text-blue hover:underline">
+          <Link to="/intros" className="text-sm font-semibold text-fg underline underline-offset-2 hover:text-fg2">
             Open Intros
           </Link>
         </div>
       ) : !p.can_request ? (
-        <p role="alert" className="rounded-2xl border border-line bg-raised p-4">
+        <p role="alert" className="rounded-xl border border-line bg-raised p-4">
           {p.blocked_reason}
         </p>
       ) : (

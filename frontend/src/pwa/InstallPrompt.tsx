@@ -74,7 +74,7 @@ export function InstallPrompt() {
       </p>
       {installEvent && (
         <button
-          className="min-h-11 rounded-full bg-fg px-4 text-sm font-medium text-bg"
+          className="min-h-11 rounded-lg bg-fg px-4 text-sm font-medium text-bg"
           onClick={async () => {
             await installEvent.prompt();
             dismiss();

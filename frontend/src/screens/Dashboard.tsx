@@ -26,13 +26,13 @@ import {
 
 const HeatMap = lazy(() => import("../map/HeatMap").then((m) => ({ default: m.HeatMap })));
 
-// Chart colours, validated for the dark card surface (#0c0d10) with the dataviz
+// Chart colours (to be re-validated for both themes in the R6 pass), checked on the dark card surface with the dataviz
 // palette checker: both inside the dark lightness band, CVD ΔE 25, contrast ≥ 3:1.
 // The neon green (#39ff8f) is too light for a filled mark, so offers use a darker step.
 const NEEDS = "#2f8cff";
 const OFFERS = "#1a9e58";
-const GRID = "#24262d";
-const MUTED = "#9aa1ad";
+const GRID = "var(--line)";
+const MUTED = "var(--muted)";
 const SHOWN = 10; // capabilities in the ranked chart
 
 // Loading blocks the size of the real sections (phone / laptop), so nothing jumps
@@ -217,7 +217,7 @@ function GapChart({ items }: { items: Gap[] }) {
 function GapTable({ items }: { items: Gap[] }) {
   return (
     <details className="text-sm">
-      <summary className="min-h-11 cursor-pointer content-center font-semibold text-blue">
+      <summary className="min-h-11 cursor-pointer content-center font-semibold text-fg underline underline-offset-2">
         Show as a table
       </summary>
       <table className="mt-2 w-full text-left">
