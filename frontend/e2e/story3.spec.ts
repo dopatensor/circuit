@@ -7,7 +7,7 @@ test("story 3: Ravi applies on skills, Deepak shortlists him, Ravi sees it", asy
   // Ravi: the top job in the list is the LedgerLoop internship, a 100% skills match.
   await signInAs(page, "Ravi");
   await goToTab(page, "Jobs");
-  const top = page.getByRole("main").getByRole("link").filter({ hasText: "match" }).first();
+  const top = page.getByRole("main").getByRole("link").filter({ hasText: /\d+%\s*match/ }).first();
   await expect(top).toContainText("Backend Engineering Intern");
   await expect(top).toContainText("LedgerLoop");
   await expect(top).toContainText("100%");
@@ -58,7 +58,7 @@ test("story 3: Ravi applies on skills, Deepak shortlists him, Ravi sees it", asy
 test("a student can't apply twice", async ({ page }) => {
   await signInAs(page, "Ravi");
   await goToTab(page, "Jobs");
-  await page.getByRole("main").getByRole("link").filter({ hasText: "match" }).first().click();
+  await page.getByRole("main").getByRole("link").filter({ hasText: /\d+%\s*match/ }).first().click();
   await page.getByRole("button", { name: "Apply" }).click();
   await page.getByRole("button", { name: "Send application" }).click();
   await expect(page.getByText("You applied")).toBeVisible();

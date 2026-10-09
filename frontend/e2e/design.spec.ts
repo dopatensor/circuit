@@ -132,7 +132,9 @@ test.describe("founders post a job from the centre button", () => {
     await page.getByLabel("Role").fill("Data Engineering Intern");
     await page.getByLabel("Pay (optional)").fill("₹18,000/month");
     await page.getByLabel("What they'll do").fill("Clean invoice data with us and ship a pipeline in month one.");
-    await page.getByRole("button", { name: "Data engineering" }).click();
+    const skill = page.getByRole("button", { name: "Data engineering" });
+    await skill.click();
+    await expect(skill).toHaveAttribute("aria-pressed", "true");
     await post.click();
 
     await expect(page.getByRole("heading", { name: "Data Engineering Intern" })).toBeVisible();
@@ -142,7 +144,8 @@ test.describe("founders post a job from the centre button", () => {
   test("a founder without a claimed startup is told to claim one first", async ({ page }) => {
     await signInAs(page, "Rohan"); // TerraGrid is unclaimed in the seed
     await page.goto("/jobs/new");
-    await expect(page.getByText("Claim your startup first")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Find your startup" })).toBeVisible();
+    const main = page.getByRole("main");
+    await expect(main.getByText("Claim your startup first")).toBeVisible();
+    await expect(main.getByRole("link", { name: "Find your startup" })).toBeVisible();
   });
 });

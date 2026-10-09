@@ -77,8 +77,20 @@ function DialogBase({
   }, [open, y]);
   useEffect(() => {
     const d = ref.current;
-    if (mounted && d && !d.open) d.showModal();
-  }, [mounted]);
+    if (mounted && open && d && !d.matches(":modal")) {
+      if (d.open) d.close();
+      d.showModal();
+    }
+  }, [mounted, open]);
+  // As soon as it starts closing, the page behind works again: the dialog stops being
+  // modal and plays its closing animation on top, without blocking taps or typing.
+  useEffect(() => {
+    const d = ref.current;
+    if (!open && d?.open && d.matches(":modal")) {
+      d.close();
+      d.show();
+    }
+  }, [open]);
 
   if (!mounted) return null;
 
@@ -102,7 +114,7 @@ function DialogBase({
         e.preventDefault();
         onClose();
       }}
-      className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none overflow-hidden bg-transparent p-0 text-fg backdrop:bg-transparent"
+      className={`fixed inset-0 z-50 m-0 h-dvh max-h-none w-full max-w-none overflow-hidden bg-transparent p-0 text-fg backdrop:bg-transparent ${open ? "" : "pointer-events-none"}`}
     >
       <AnimatePresence
         onExitComplete={() => {
