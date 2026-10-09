@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import { api, type Schemas, unwrap } from "../api/client";
 import { useCapabilities } from "../api/hooks";
 import { StatusPill } from "../components/jobs";
+import { VerifiedChips, VerifiedLabel } from "../components/proof";
 import { Page } from "../components/Shell";
 import { Avatar, Empty, ErrorState, Muted, Pill, Skeleton, Title } from "../components/ui";
 
@@ -30,7 +31,7 @@ export default function Applicants() {
           {startup.data?.name ?? "Startup"}
         </Link>
         <Title>Applicants</Title>
-        <Muted>Ranked by how well their skills match the job.</Muted>
+        <Muted>Ranked by how well their skills match the job, then by proof of work. Never by college.</Muted>
       </div>
       {applicants.isPending ? (
         <Skeleton lines={3} className="h-40" />
@@ -55,6 +56,29 @@ const ACTIONS: [Status, string][] = [
   ["rejected", "Not a fit"],
 ];
 
+/** Proof of work behind the rank: GitHub-verified skills, other work, ratings. */
+function ApplicantProof({ proof }: { proof: Applicant["proof"] }) {
+  const extras = [
+    proof.portfolio_items > 0 && `${proof.portfolio_items} portfolio ${proof.portfolio_items === 1 ? "item" : "items"}`,
+    proof.founder_rating_avg !== null && `rated ${proof.founder_rating_avg}/5 by founders`,
+    proof.circuits_completed > 0 && `${proof.circuits_completed} Circuit ${proof.circuits_completed === 1 ? "project" : "projects"} done`,
+  ].filter(Boolean);
+  if (proof.verified_capabilities.length === 0 && extras.length === 0) {
+    return <p className="text-sm text-muted">No proof of work yet.</p>;
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      {proof.verified_capabilities.length > 0 && (
+        <>
+          <VerifiedLabel />
+          <VerifiedChips items={proof.verified_capabilities} compact />
+        </>
+      )}
+      {extras.length > 0 && <p className="text-sm text-fg2">{extras.join(" · ")}</p>}
+    </div>
+  );
+}
+
 function ApplicantCard({ applicant: a, startupId }: { applicant: Applicant; startupId: string }) {
   const caps = useCapabilities();
   const queryClient = useQueryClient();
@@ -77,7 +101,9 @@ function ApplicantCard({ applicant: a, startupId }: { applicant: Applicant; star
       <div className="flex items-start gap-3">
         <Avatar name={a.member.display_name} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate font-semibold">{a.member.display_name}</span>
+          <Link to={`/people/${a.member.id}`} className="truncate font-semibold underline-offset-2 hover:underline">
+            {a.member.display_name}
+          </Link>
           <span className="truncate text-sm text-muted">{a.job_title}</span>
         </div>
         <div className="flex shrink-0 flex-col items-end">
@@ -96,6 +122,7 @@ function ApplicantCard({ applicant: a, startupId }: { applicant: Applicant; star
           </li>
         ))}
       </ul>
+      <ApplicantProof proof={a.proof} />
       {a.note && <p className="border-l-2 border-line pl-3 text-muted">“{a.note}”</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <StatusPill status={a.status} />

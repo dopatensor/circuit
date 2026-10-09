@@ -37,6 +37,8 @@ test("story 3: Ravi applies on skills, Deepak shortlists him, Ravi sees it", asy
   await expect(ravi).toContainText("100%");
   await expect(ravi).toContainText("GST invoice parser");
   await expect(ravi).not.toContainText("Shantinagar"); // skills, not college
+  // R2: his GitHub proof shows next to his skills.
+  await expect(ravi.getByRole("list", { name: "Verified by GitHub" })).toContainText("Backend development");
   await ravi.getByRole("button", { name: "Shortlist" }).click();
   await expect(ravi).toContainText("Shortlisted");
   const applicantsUrl = page.url();

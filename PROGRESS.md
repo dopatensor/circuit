@@ -13,26 +13,105 @@ gets its own branch name: start it from this branch (or `main`, once merged).
 ## Where we stopped (2026-10-09)
 
 - **Frontend redesign in progress** (the user's brief: R1–R7, see DESIGN.md v3, approved
-  2026-10-09). Branch: `claude/gifted-johnson-zuweb6`.
-- **R1 is finished, committed and pushed**, waiting for the user's OK to start R2
-  (profiles, proof of work with GitHub links, profile strength, privacy controls).
+  2026-10-09). R1 was merged (pull request #10). R2 branch:
+  `claude/focused-thompson-ntybkh`.
+- **R2 is finished, committed and pushed**, waiting for the user's OK to start R3
+  (connections, follow, notifications). R2 also built the user's new **F12 GitHub
+  proof of work** spec (added to CLAUDE.md under "Spec additions (agreed 2026-10-09)").
 - Phase 12 (demo readiness) comes after the redesign.
 - Approved dependencies for the redesign: `motion`, `@tanstack/react-virtual` (not yet
   installed; needed for long lists), `@use-gesture/react`. Ask before anything else.
-- Open questions to the user: GitHub API calls from the backend for proof of work (R2)
-  were proposed and not yet answered; ask again at the start of R2.
+- The open question about GitHub API calls from the backend is answered: yes, through
+  OAuth, a background import and a weekly refresh (F12).
+- **To try a real GitHub connection:** create a GitHub OAuth App (callback
+  `http://localhost:5173/me/github/callback`), put its id and secret in `.env`
+  (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`), restart the API. Never tried with a real
+  app yet: tests use a fake GitHub.
 
 ## Redesign status
 
 | Phase | State |
 | --- | --- |
-| R1 Design system, components, /design, navigation shell | ✅ done (waiting for OK) |
-| R2 Profiles, proof of work, profile strength, privacy | ⏭️ next |
-| R3 Connections, follow, notifications | – |
+| R1 Design system, components, /design, navigation shell | ✅ done (merged, #10) |
+| R2 Profiles, proof of work (F12 GitHub + other work), profile strength, privacy | ✅ done (waiting for OK) |
+| R3 Connections, follow, notifications | ⏭️ next |
 | R4 Home opportunities feed, global search | – |
 | R5 Inbox (messages) | – |
 | R6 Animation pass, circuit loop moment | – |
 | R7 Playwright at 375/1280 for new UI, Lighthouse, DEMO.md | – |
+
+## What R2 built (proof of work, F12)
+
+**Backend**
+- **Tables** (migration `614af2272cae`): `github_accounts` (one per student; GitHub's
+  numeric account id is unique, login, profile/homepage URLs, the access token
+  **encrypted** with Fernet, status `importing|ok|rate_limited|error`, `last_error`
+  code, merged external PRs, active weeks, `fetched_at`, `next_fetch_at`),
+  `github_repos` (original repos with the student's commits: languages, frameworks,
+  commits theirs/total, README excerpt, homepage, `featured`, `hidden`; cascade-deleted
+  with the account), `proof_items` (non-code proof), `members.show_college`.
+- **`app/github/`**: `client.py` (httpx; rate limits → `RateLimited(reset_at)` from
+  `x-ratelimit-*` or `retry-after`, 401 → `TokenRevoked`, 5xx/network → `GitHubError`;
+  OAuth code exchange; grant revocation), `extract.py` (pure: original repos by
+  **owner id**, commit counts, frameworks from topics/description/README,
+  README excerpt, safe homepage URLs, external merged PRs, activity weeks, languages
+  and frameworks → capabilities), `service.py` (signed `state`, connect, import,
+  `refresh_due`, disconnect).
+- **Flow:** `POST /api/proof/github/start` → GitHub (no `scope`, so read-only public
+  data) → web app `/me/github/callback` → `POST /api/proof/github/finish {code, state}`:
+  the state must name the signed-in student; the token's `/user` id is the ownership
+  proof; one GitHub account per profile (409). The import runs as a background task
+  right after, then the hourly scheduler job `refresh_github` imports accounts whose
+  `next_fetch_at` is due (weekly; after a rate limit at GitHub's reset time + 1 min;
+  after an error within the hour; never for revoked access or seeded rows). An import
+  writes only after every call succeeded, so failures keep the last good data.
+- **Other endpoints:** `GET /api/proof/me`, `PATCH /api/proof/github/repos/{id}`
+  (feature up to 6; hide), `DELETE /api/proof/github` (deletes everything, revokes the
+  grant), `POST/PATCH/DELETE /api/proof/items` (kind detected from the host: Behance,
+  Dribbble, GitHub/GitLab links are plain "code" links; no link = case study with 40+
+  characters). Students only (403 otherwise). Deleting a profile also disconnects.
+- **Profiles:** `MemberPublic` now has `skills` and `proof` (GitHub: verified
+  capabilities, featured non-hidden repos, PRs, activity; other items). College is
+  hidden when `show_college` is false (you still see it in `MemberMe`).
+- **Scoring** (`app/matching/scoring.py`, pure): `StudentProof`, `github_signal`
+  (share of the job's capabilities GitHub verifies × strength from original repos,
+  recent activity and external PRs), `portfolio_signal` (same idea for other work),
+  `proof_bonus` = 0.03·max(github, portfolio) + 0.06·founder ratings + 0.05·completed
+  circuits (`PROOF_SHARE` 0.14). `student_job_score` = 0.86·(old score) + bonus, so the
+  order without proof is unchanged. Founder ratings = circuit legs the student gave
+  to founders, rated; completed circuits = circuits with status `completed`.
+  Applicants get `proof` and `rank_score` and are sorted by it.
+- **Seed:** Ravi has a saved GitHub import (`ravi-kumar`, 4 repos, 2 featured, 2
+  external PRs, URLs on `github.example`); new persona **Sneha Pillai** (story 3,
+  design student) with a Behance link and a case study. She is added after the random
+  parts of the generator (`LATE_STORY_MEMBERS`), so connections, intros and events are
+  unchanged (dashboard still 52% vs 80%).
+- `make demo-check` story 3 also checks Ravi's verified skills and Sneha's items.
+- The eval's job threshold moved from 0.6 to 0.52 (= 0.6 × 0.86), the same boundary
+  for students without proof; 100% agreement.
+
+**Frontend**
+- `src/screens/Proof.tsx` (`/me/proof`), `GitHubCallback.tsx` (`/me/github/callback`),
+  `Profile.tsx` (`/people/:memberId`), `src/components/proof.tsx` (VerifiedChips,
+  RepoSummary, ProofItemSummary, githubSummary). Me: "Proof of work" card and
+  "Privacy". Home's student path: Profile → Proof → Apply → Interview. Profile strength
+  adds "Show proof of work". Applicants show GitHub-verified chips and other proof.
+- **Tests:** `e2e/proof.spec.ts` (feature/hide with Undo and the public profile,
+  disconnect, the connect round trip with stubbed start/finish, a design student adds
+  and removes work, hiding the college, Home's proof step), `story3.spec.ts` checks
+  the verified chips on Ravi's application.
+
+**Dependencies:** none new. `httpx` moved from dev to runtime dependencies (it was
+already installed, and DESIGN.md v3 named it), and `cryptography` is now listed
+explicitly (it was already installed through `pyjwt[crypto]`; used for Fernet).
+
+Last verified (2026-10-09, R2):
+
+- Backend: **271 passed, 1 skipped**; ruff clean. `make demo-check`: **5/5 PASS**.
+  `make eval`: 53 pairs, 100% agreement.
+- Browser tests: **84 passed, 2 skipped** (full run, phone and laptop).
+- `npm run size`: **140.5 KB** first-load JavaScript gzipped (budget 250 KB).
+- Not run for R2: Lighthouse; a real GitHub OAuth App (no credentials here).
 
 ## What R1 built
 

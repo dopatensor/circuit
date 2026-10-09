@@ -1,4 +1,4 @@
-import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router";
 import { api, type Role, unwrap } from "../api/client";
@@ -132,7 +132,11 @@ export default function Me() {
         </Card>
       )}
 
+      {member.role === "student" && <ProofCard />}
+
       {member.role === "founder" && <YourStartups />}
+
+      {member.role !== "partner_admin" && <Privacy memberId={member.id} student={member.role === "student"} />}
 
       <Card>
         <ThemePicker />
@@ -158,6 +162,64 @@ export default function Me() {
         <DemoStories onSwitched={() => setSwitching(false)} />
       </Sheet>
     </Page>
+  );
+}
+
+/** Students: proof of work at a glance, and the way to manage it. */
+function ProofCard() {
+  const profile = useMyProfile();
+  const proof = profile.data?.proof;
+  const summary = !proof
+    ? null
+    : [
+        proof.github ? `GitHub: ${proof.github.login}` : "GitHub not connected",
+        `${proof.items.length} other ${proof.items.length === 1 ? "item" : "items"}`,
+      ].join(" · ");
+  return (
+    <Card className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-1">
+        <Eyebrow>Proof of work</Eyebrow>
+        {profile.isPending ? <SkeletonBlock className="h-5 w-48" /> : <p>{summary ?? "Show what you've built."}</p>}
+      </div>
+      <ButtonLink to="/me/proof" className="shrink-0">
+        Manage
+      </ButtonLink>
+    </Card>
+  );
+}
+
+/** What others see: your public profile, and (students) whether your college shows. */
+function Privacy({ memberId, student }: { memberId: string; student: boolean }) {
+  const profile = useMyProfile();
+  const queryClient = useQueryClient();
+  const toggle = useMutation({
+    mutationFn: (show: boolean) => unwrap(api.PATCH("/api/members/me", { body: { show_college: show } })),
+    onSuccess: (me) => queryClient.setQueryData(["members", "me"], me),
+  });
+  const show = toggle.isPending ? toggle.variables : (profile.data?.show_college ?? true);
+  return (
+    <Card className="flex flex-col gap-4">
+      <Eyebrow>Privacy</Eyebrow>
+      {student && (
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            className="mt-1 size-5 shrink-0 accent-[var(--accent)]"
+            checked={show}
+            disabled={profile.isPending || toggle.isPending}
+            onChange={(e) => toggle.mutate(e.target.checked)}
+          />
+          <span className="flex flex-col gap-0.5">
+            <span className="font-semibold">Show my college on my profile</span>
+            <span className="text-sm text-muted">Founders' applicant lists never show it either way: they rank on skills and proof of work.</span>
+          </span>
+        </label>
+      )}
+      {toggle.isError && <p role="alert" className="text-sm text-danger">Couldn't save that. Try again.</p>}
+      <Link to={`/people/${memberId}`} className="self-start text-sm font-semibold text-fg underline underline-offset-2 hover:text-fg2">
+        See your profile as others see it
+      </Link>
+    </Card>
   );
 }
 

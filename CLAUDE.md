@@ -210,6 +210,35 @@ F11. Jobs and applications: hiring startups post jobs (internships and full-time
   badges, founder applicants view, job pins or counts in the map popup.
 - Phase 12: DEMO.md story 3 includes applying and shortlisting.
 
+## Spec additions (agreed 2026-10-09)
+
+F12. GitHub proof of work (built in redesign phase R2; see DESIGN.md section 6).
+- Students connect GitHub via OAuth: read-only, public data only, the minimum scope
+  (no scopes requested). The account comes from GitHub's own answer for the token;
+  a typed username is never accepted as verified.
+- A background job fetches the profile after connecting and refreshes it weekly.
+  Results are stored in our database; GitHub is never called on page views. Rate
+  limits and API errors are handled gracefully (keep the last good import, retry
+  after GitHub's reset time or within the hour, ask to reconnect if access was
+  removed).
+- Extract: original (non-fork) repos with the student's commits, languages, merged
+  pull requests to repos the student doesn't own, recent activity, READMEs and
+  homepage links. Stars and follower counts are ignored (not even stored).
+- Languages and frameworks map onto our capability list, shown as "Verified by
+  GitHub" capability chips.
+- The student picks which repos to feature on their profile, can hide any (hidden
+  repos are not shown or used for verified skills), and can disconnect, which deletes
+  all imported data and revokes our access.
+- A capped "github_signal" component feeds the student match score (and the founders'
+  applicant ranking). It must never outweigh founder ratings or completed Circuit
+  projects: caps are founder ratings 0.06 > completed circuits 0.05 > GitHub 0.03.
+- Equivalent non-code proof: portfolio links, Behance/Dribbble links, case studies
+  and live sites, shown as "Added by you" and reaching the same cap as GitHub, so
+  non-coders aren't disadvantaged.
+- Tests: OAuth ownership check, typed usernames never marked verified, forks
+  excluded, disconnect deletes data, rate-limit handling. GitHub is mocked; tests
+  make no live API calls.
+
 ## Testing
 - Write tests during each phase, not at the end. Never move to the next phase with
   failing tests.

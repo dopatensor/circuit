@@ -19,6 +19,11 @@ export function strengthItems(me: Me): Item[] {
       return [
         { label: "Add your skills", done: me.skills.length > 0, fix: edit("Add your skills") },
         bio,
+        {
+          label: "Show proof of work",
+          done: me.proof.github !== null || me.proof.items.length > 0,
+          fix: { to: "/me/proof", label: "Add proof of work" },
+        },
         { label: "Add at least three skills", done: me.skills.length >= 3, fix: edit("Add more skills") },
         verified,
       ];
