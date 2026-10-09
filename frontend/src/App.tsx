@@ -23,6 +23,9 @@ const IntrosScreen = lazy(() => import("./screens/Intros"));
 const DashboardScreen = lazy(() => import("./screens/Dashboard"));
 const Onboarding = lazy(() => import("./screens/Onboarding"));
 const DesignPage = lazy(() => import("./screens/Design"));
+const Proof = lazy(() => import("./screens/Proof"));
+const GitHubCallback = lazy(() => import("./screens/GitHubCallback"));
+const Profile = lazy(() => import("./screens/Profile"));
 
 // The component gallery: in dev, and in builds made with VITE_DESIGN_PAGE=1 (tests,
 // demo deployments). Never in a normal production build.
@@ -72,6 +75,9 @@ export default function App() {
         {partner && <Route path="/dashboard" element={<DashboardScreen />} />}
         <Route path="/me" element={<Me />} />
         {!partner && <Route path="/me/profile" element={<Onboarding />} />}
+        {member.role === "student" && <Route path="/me/proof" element={<Proof />} />}
+        {member.role === "student" && <Route path="/me/github/callback" element={<GitHubCallback />} />}
+        <Route path="/people/:memberId" element={<Profile />} />
         {member.role === "founder" && <Route path="/jobs/new" element={<PostJob />} />}
         <Route path="/jobs/:jobId" element={<JobPage />} />
         <Route path="/startups/:startupId" element={<StartupPage />} />

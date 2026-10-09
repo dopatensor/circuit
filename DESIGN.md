@@ -1,6 +1,6 @@
 # Circuit — design system (redesign, R1–R7)
 
-**Status: v3 approved by the user (2026-10-09). R1 is built; see "Decisions made in R1" at the end.**
+**Status: v3 approved by the user (2026-10-09). R1 and R2 are built; see "Decisions made in R1" and "Decisions made in R2" at the end.**
 History: v1 (warm card feed) looked like a LinkedIn knock-off; v2 (Bloomberg + Notion)
 was too much for a student. v3 is **simple, calm and guided**: every screen follows the
 same structure, and the app always tells you the next step.
@@ -83,20 +83,22 @@ Section heading   See all another short list
 | Circuits | "Will I join this loop?" | The loop of three people + Accept |
 | Inbox | "Who wrote to me?" | Unread conversations |
 
-## 6. Proof of work (new)
+## 6. Proof of work (built in R2; CLAUDE.md F12)
 
-Paste a link; we recognise it and fill in the details.
+Two kinds, always labelled so nobody confuses them:
 
-| Link | We show | We check |
-| --- | --- | --- |
-| GitHub repo | description, main language, commits, how many are yours, stars | Owner matches your linked GitHub account |
-| Kaggle, Hugging Face, Figma, Play Store | title and one headline number | Owner handle matches an account you link |
-| Website or live app | title | Optional: a verification tag on the site |
-| Anything else | your write-up | A rating from the person you did it for |
+| Kind | How it gets in | We show | Label |
+| --- | --- | --- | --- |
+| GitHub | "Connect GitHub" (OAuth, no scopes, public data only). Never a typed username | Featured repos (the student picks up to 6, can hide any): languages, frameworks, how many commits are theirs, README line, homepage. Merged pull requests to other people's projects. Recent activity | **Verified by GitHub** chips (GitHub mark + skill + evidence, e.g. "Backend development · Python, FastAPI") |
+| Other work | "Add work": a portfolio, Behance or Dribbble link, a live site, or a case study (no link, a write-up of 40+ characters) | Title, kind, write-up, the skills it shows | **Added by you** |
 
-Each item is tagged with the skills it proves, and skill chips show the count ("3 proofs").
-The backend uses `httpx` (already installed) for GitHub's public API, with caching;
-seed data ships with saved results so demos work offline.
+- Stars and follower counts are never shown or used.
+- A GitHub link added as "other work" stays a plain "Code link"; only the connection
+  verifies.
+- Skill chips on a profile carry the GitHub mark when GitHub verifies that skill.
+- Disconnect is one button and a confirmation; it deletes every imported repo.
+- Seed data ships with saved results (Ravi's GitHub, Sneha's portfolio), so demos work
+  offline and never call GitHub.
 
 ## 7. Motion
 
@@ -152,8 +154,8 @@ shadows; tickers and dense data tables on student screens; decorative animation.
 - **Centre actions:** student "Jobs" → `/jobs`; founder "Post" → a sheet with "Post a
   job" (new `/jobs/new` form) or "Update what you need"; mentor/investor "Offer" →
   `/me/profile`; partner admin "Gaps" → `/dashboard`.
-- **Home's path for students** is Profile → Apply → Shortlist until R2 adds proof of
-  work, then Profile → Proof → Apply → Interview as in the mockups.
+- **Home's path for students** was Profile → Apply → Shortlist in R1; R2 made it
+  Profile → Proof → Apply → Interview.
 - **Status colours on older screens:** good news ("accepted", "hiring") is an outlined
   neutral badge; "in progress" is the amber tint. Map pins: amber for hiring, grey
   otherwise (pins must be coloured by hiring status, F2).
@@ -164,3 +166,24 @@ shadows; tickers and dense data tables on student screens; decorative animation.
   post jobs for (being on a team isn't enough).
 - **Bundle:** first-load JavaScript is ~140 KB gzipped (budget raised to 250 KB, per the
   redesign brief); `motion` uses LazyMotion with the small DOM feature set.
+
+## Decisions made in R2 (2026-10-09)
+
+- **Proof of work page** `/me/proof` (students): the GitHub card is the one thing
+  (Connect, or the connection with its verified skills and Disconnect), then "Your
+  repos" (Feature / Hide per row; hiding has an Undo toast), then "Other work" with
+  "Add work" (a bottom sheet: link, title, write-up, up to 5 skill chips).
+- **GitHub callback** `/me/github/callback`: shows a loading block while the API
+  checks the code; "You didn't give access" if the student said no on GitHub.
+- **Profiles** `/people/:id` for everyone: students lead with proof of work, then
+  skills; founders, mentors and investors show what they can help with, what they're
+  looking for, and their startups. Applicants' names link to their profiles.
+- **Me** (students): a "Proof of work" card (Manage), and "Privacy": "Show my college
+  on my profile" and "See your profile as others see it" (every role but partner
+  admins).
+- **Profile strength** for students adds "Show proof of work" as the third item.
+- **Applicants** show "Verified by GitHub" chips and other proof under the skills;
+  the list is ordered by skill match plus proof (`rank_score`), never by college.
+- **Not built in R2:** recognising Kaggle, Hugging Face, Figma and Play Store links
+  with a headline number, and "verification tag on the site" for websites (both in
+  the v3 table). Those links are accepted as "other work" for now.

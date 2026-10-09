@@ -79,7 +79,11 @@ function useNextStep(role: Schemas["MemberSummary"]["role"]): { data?: Step; isP
 
   if (student) {
     if (applications.isPending || (matches.isPending && matches.fetchStatus !== "idle")) return { isPending: true, retry };
-    const path = (current: number) => ({ steps: ["Profile", "Apply", "Shortlist"], current, label: "Your path to an internship" });
+    const path = (current: number) => ({
+      steps: ["Profile", "Proof", "Apply", "Interview"],
+      current,
+      label: "Your path to an internship",
+    });
     if (!profileDone) {
       return {
         isPending: false,
@@ -107,12 +111,26 @@ function useNextStep(role: Schemas["MemberSummary"]["role"]): { data?: Step; isP
       };
     }
     const topJob = matches.data?.items.find((m) => m.candidate_type === "job");
-    if (apps.length === 0 && topJob) {
+    const hasProof = profile.proof.github !== null || profile.proof.items.length > 0;
+    if (!hasProof && apps.length === 0) {
       return {
         isPending: false,
         retry,
         data: {
           path: path(1),
+          title: "Show something you've built",
+          text: "Connect GitHub, or add a portfolio link or a case study. Founders see it next to your skills.",
+          action: { to: "/me/proof", label: "Add proof of work" },
+          secondary: topJob ? { to: `/jobs/${topJob.candidate_id}`, label: "Skip: see your top job" } : { to: "/jobs", label: "Browse jobs" },
+        },
+      };
+    }
+    if (apps.length === 0 && topJob) {
+      return {
+        isPending: false,
+        retry,
+        data: {
+          path: path(2),
           title: `Apply to ${topJob.title} at ${topJob.subtitle.split(" · ")[0]}`,
           text: topJob.reason,
           action: { to: `/jobs/${topJob.candidate_id}`, label: "See the job" },
@@ -125,7 +143,7 @@ function useNextStep(role: Schemas["MemberSummary"]["role"]): { data?: Step; isP
       isPending: false,
       retry,
       data: {
-        path: path(apps.length ? 2 : 1),
+        path: path(apps.length ? 3 : 2),
         title: apps.length ? `You've applied to ${apps.length} ${apps.length === 1 ? "job" : "jobs"}` : "Find a job to apply to",
         text: apps.length
           ? "Founders usually reply within a week. Meanwhile, one more good application helps."
