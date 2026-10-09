@@ -26,7 +26,7 @@ export default function Applicants() {
   return (
     <Page>
       <div className="flex flex-col gap-1">
-        <Link to={`/startups/${startupId}`} className="text-sm text-blue hover:underline">
+        <Link to={`/startups/${startupId}`} className="text-sm text-fg underline underline-offset-2 hover:text-fg2">
           {startup.data?.name ?? "Startup"}
         </Link>
         <Title>Applicants</Title>
@@ -73,7 +73,7 @@ function ApplicantCard({ applicant: a, startupId }: { applicant: Applicant; star
   const final = a.status === "withdrawn";
 
   return (
-    <li className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5">
+    <li className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-5">
       <div className="flex items-start gap-3">
         <Avatar name={a.member.display_name} />
         <div className="flex min-w-0 flex-1 flex-col">
@@ -81,7 +81,7 @@ function ApplicantCard({ applicant: a, startupId }: { applicant: Applicant; star
           <span className="truncate text-sm text-muted">{a.job_title}</span>
         </div>
         <div className="flex shrink-0 flex-col items-end">
-          <span className={`text-xl font-semibold tabular-nums ${a.match.score >= 80 ? "text-green" : ""}`}>
+          <span className={`num text-xl`}>
             {a.match.score}%
           </span>
           <span className="text-sm text-muted">match</span>
@@ -106,9 +106,9 @@ function ApplicantCard({ applicant: a, startupId }: { applicant: Applicant; star
                 key={status}
                 disabled={update.isPending}
                 onClick={() => update.mutate(status)}
-                className={`min-h-11 rounded-full border px-4 text-sm font-semibold disabled:opacity-40 ${
+                className={`min-h-11 rounded-lg border px-4 text-sm font-semibold disabled:opacity-40 ${
                   status === "shortlisted"
-                    ? "border-blue/60 text-blue hover:bg-blue/10"
+                    ? "border-line2 text-fg hover:border-fg2"
                     : "border-line hover:border-muted"
                 }`}
               >

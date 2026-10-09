@@ -2253,6 +2253,11 @@ export interface components {
         };
         /** StartupLink */
         StartupLink: {
+            /**
+             * Is Claimer
+             * @default false
+             */
+            is_claimer: boolean;
             /** Name */
             name: string;
             /**

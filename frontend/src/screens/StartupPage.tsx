@@ -53,7 +53,7 @@ export default function StartupPage() {
       <div className="flex items-start gap-4">
         <span
           aria-hidden="true"
-          className="flex size-16 shrink-0 items-center justify-center rounded-2xl border border-line bg-raised text-xl font-semibold"
+          className="flex size-16 shrink-0 items-center justify-center rounded-xl border border-line bg-raised text-xl font-semibold"
         >
           {s.name[0]}
         </span>
@@ -82,7 +82,7 @@ export default function StartupPage() {
       )}
 
       {canClaim && (
-        <Card className="flex flex-col gap-4 border-blue/40">
+        <Card className="flex flex-col gap-4 border-line2">
           <p>
             Is this your startup?{" "}
             {stats.data && stats.data.interested_students > 0
@@ -97,7 +97,7 @@ export default function StartupPage() {
       {mine && (
         <Link
           to={`/startups/${s.id}/applicants`}
-          className="inline-flex min-h-11 items-center justify-center rounded-full bg-blue px-5 font-semibold text-black shadow-glow-blue"
+          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-5 font-semibold text-ink active:scale-[0.97] transition-transform"
         >
           See applicants
         </Link>
@@ -128,7 +128,7 @@ export default function StartupPage() {
               <li key={j.id}>
                 <Link
                   to={`/jobs/${j.id}`}
-                  className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 hover:border-muted"
+                  className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 hover:border-muted"
                 >
                   <span>{j.title}</span>
                   <span className="text-sm text-muted">{pay(j)}</span>

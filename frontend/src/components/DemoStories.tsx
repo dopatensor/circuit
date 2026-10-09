@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { api, ApiError, type Schemas, unwrap } from "../api/client";
 import { useAuth } from "../auth";
-import { ROLE_LABEL, tabsFor } from "../nav";
+import { HOME, ROLE_LABEL } from "../nav";
 import { Avatar, Empty, ErrorState, Skeleton } from "./ui";
 
 type Persona = Schemas["Persona"];
@@ -34,9 +34,9 @@ export function DemoStories({ onSwitched }: { onSwitched?: () => void }) {
   const personas = usePersonas();
   const switchTo = useMutation({
     mutationFn: login,
-    onSuccess: (m) => {
+    onSuccess: () => {
       onSwitched?.();
-      navigate(tabsFor(m.role)[0].to);
+      navigate(HOME);
     },
   });
 
@@ -54,10 +54,10 @@ export function DemoStories({ onSwitched }: { onSwitched?: () => void }) {
         <section
           key={number}
           aria-label={`Story ${number}: ${story.title}`}
-          className="rounded-2xl border border-line bg-surface"
+          className="rounded-xl border border-line bg-surface"
         >
           <header className="flex items-baseline gap-3 px-4 pt-4 pb-2">
-            <span className="text-sm font-semibold text-blue">Story {number}</span>
+            <span className="text-xs font-semibold tracking-[0.06em] text-muted uppercase">Story {number}</span>
             <h3 className="text-base font-semibold">{story.title}</h3>
           </header>
           <ul className="flex flex-col px-2 pb-2">
@@ -79,10 +79,10 @@ export function DemoStories({ onSwitched }: { onSwitched?: () => void }) {
                       </span>
                     </span>
                     <span
-                      className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${
+                      className={`shrink-0 rounded px-2 py-0.5 text-sm font-medium ${
                         current
-                          ? "bg-green/10 text-green"
-                          : "border border-line text-fg group-hover:border-blue group-hover:text-blue"
+                          ? "text-fg ring-1 ring-line2 ring-inset"
+                          : "border border-line text-fg group-hover:border-fg2"
                       }`}
                     >
                       {current ? "You" : busy ? "Opening…" : "Open"}

@@ -19,7 +19,7 @@ export function Rating({
             disabled={disabled}
             aria-label={`${n} of 5`}
             onClick={() => onRate(n)}
-            className="min-h-11 min-w-11 flex-1 cursor-pointer rounded-xl border border-line bg-raised font-semibold tabular-nums hover:border-blue hover:text-blue disabled:opacity-40"
+            className="min-h-11 min-w-11 flex-1 cursor-pointer rounded-xl border border-line bg-raised font-semibold tabular-nums hover:border-fg2 disabled:opacity-40"
           >
             {n}
           </button>

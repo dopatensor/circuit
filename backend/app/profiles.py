@@ -70,7 +70,12 @@ async def member_public(session: AsyncSession, member: Member) -> MemberPublic:
     ).all()
     startups = (
         await session.execute(
-            select(Startup.id, Startup.name, StartupMember.title)
+            select(
+                Startup.id,
+                Startup.name,
+                StartupMember.title,
+                (Startup.claimed_by_member_id == member.id).label("is_claimer"),
+            )
             .join(StartupMember, StartupMember.startup_id == Startup.id)
             .where(StartupMember.member_id == member.id)
         )
@@ -87,7 +92,12 @@ async def member_public(session: AsyncSession, member: Member) -> MemberPublic:
         trait_ids=sorted(traits),
         offers=[OfferOut.model_validate(o) for o in offers],
         needs=[NeedOut.model_validate(n) for n in needs],
-        startups=[StartupLink(startup_id=s.id, name=s.name, title=s.title) for s in startups],
+        startups=[
+            StartupLink(
+                startup_id=s.id, name=s.name, title=s.title, is_claimer=bool(s.is_claimer)
+            )
+            for s in startups
+        ],
     )
 
 

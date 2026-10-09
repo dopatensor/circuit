@@ -26,8 +26,8 @@ export default defineConfig(({ mode }) => {
           scope: "/",
           display: "standalone",
           orientation: "portrait",
-          theme_color: "#000000",
-          background_color: "#000000",
+          theme_color: "#fbfaf8",
+          background_color: "#fbfaf8",
           icons: [
             { src: "/pwa-192.png", sizes: "192x192", type: "image/png" },
             { src: "/pwa-512.png", sizes: "512x512", type: "image/png" },
@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           // The app shell: precached, so the app opens instantly and offline.
-          globPatterns: ["**/*.{js,css,html,svg,png}"],
+          globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
           // The map library (~280 KB gzipped, plus its worker) and the dashboard's charts
           // (~100 KB) aren't pre-downloaded on install: founders never open the map, and
           // only partner admins see the dashboard. They're cached on first use (below).

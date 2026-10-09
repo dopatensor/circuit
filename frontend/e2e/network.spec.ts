@@ -173,9 +173,9 @@ test("onboarding (F1): suggested chips are pre-selected and can be changed", asy
   await expect(page.getByRole("status")).toContainText("We picked 3 from what you wrote");
 
   const needs = page.getByRole("region", { name: "What you need" });
-  await expect(needs.getByRole("button", { pressed: true })).toHaveText(["✓ Regulatory affairs"]);
+  await expect(needs.getByRole("button", { pressed: true })).toHaveText(["Regulatory affairs"]);
   const offers = page.getByRole("region", { name: "What you offer" });
-  await expect(offers.getByRole("button", { pressed: true })).toHaveText(["✓ Market research"]);
+  await expect(offers.getByRole("button", { pressed: true })).toHaveText(["Market research"]);
   // Tap to change: drop the suggested offer.
   await offers.getByRole("button", { name: "Market research" }).click();
   await expect(offers.getByRole("button", { pressed: true })).toHaveCount(0);

@@ -17,7 +17,7 @@ const pin = (name) => async (page) => {
   await page.getByRole("button", { name: new RegExp(`^${name}, `) }).dispatchEvent("click");
 };
 const firstJob = async (page) => {
-  await page.getByRole("main").getByRole("link").filter({ hasText: "match" }).first().click();
+  await page.getByRole("main").getByRole("link").filter({ hasText: /\d+%\s*match/ }).first().click();
   await page.getByRole("button", { name: "Apply" }).waitFor();
 };
 const shots = [
@@ -28,7 +28,7 @@ const shots = [
   ["student-map", "Ravi", "/map", async (page) => page.locator("[data-map-settled]").waitFor()],
   ["student-map-pin", "Ravi", "/map", pin("LedgerLoop")],
   ["student-jobs", "Ravi", "/jobs", async (page) =>
-    page.getByRole("main").getByRole("link").filter({ hasText: "match" }).first().waitFor()],
+    page.getByRole("main").getByRole("link").filter({ hasText: /\d+%\s*match/ }).first().waitFor()],
   ["student-job", "Ravi", "/jobs", firstJob],
   ["founder-startup", "Rohan", "/startups", async (page) => {
     await page.getByLabel("Startup name").fill("TerraGrid");

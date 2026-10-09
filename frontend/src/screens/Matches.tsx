@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { api, type Schemas, withMeta } from "../api/client";
 import { useAuth } from "../auth";
+import { buttonClass } from "../components/ds";
 import { IntroSheet } from "../components/IntroSheet";
 import { MatchCard } from "../components/MatchCard";
 import { Page } from "../components/Shell";
@@ -18,8 +19,7 @@ import {
 
 type Match = Schemas["MatchOut"];
 
-const actionLink =
-  "inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-raised px-5 font-semibold hover:border-muted";
+const actionLink = buttonClass("secondary", "md");
 
 export default function Matches() {
   const { member } = useAuth();
@@ -66,12 +66,12 @@ export default function Matches() {
         <Title>Matches</Title>
         <Muted>Ranked by what you need and what you can offer.</Muted>
         <LastUpdated servedAt={matches.data?.servedAt} />
-        <Link to="/me/profile" className="text-sm font-semibold text-blue hover:underline">
+        <Link to="/me/profile" className="text-sm font-semibold text-fg underline underline-offset-2 hover:text-fg2">
           {editLabel}
         </Link>
       </div>
       {(state as { saved?: boolean } | null)?.saved && (
-        <p role="status" className="text-sm text-green">
+        <p role="status" className="text-sm font-semibold text-fg">
           Saved. Your matches are up to date.
         </p>
       )}
@@ -82,7 +82,7 @@ export default function Matches() {
       ) : matches.data.data.items.length === 0 ? (
         <Empty>
           No matches yet.{" "}
-          <Link to="/me/profile" className="font-semibold text-blue hover:underline">
+          <Link to="/me/profile" className="font-semibold text-fg underline underline-offset-2 hover:text-fg2">
             {canIntro ? "Add what you need and offer" : "Add your skills"}
           </Link>{" "}
           to get matched.

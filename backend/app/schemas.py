@@ -147,6 +147,8 @@ class StartupLink(BaseModel):
     startup_id: uuid.UUID
     name: str
     title: str
+    # True when this member claimed the startup's page (and so can post jobs for it).
+    is_claimer: bool = False
 
 
 class MemberPublic(BaseModel):

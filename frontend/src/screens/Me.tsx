@@ -7,6 +7,7 @@ import { useAuth } from "../auth";
 import { DemoStories } from "../components/DemoStories";
 import { Page } from "../components/Shell";
 import { Sheet } from "../components/Sheet";
+import { ThemePicker } from "../components/ThemePicker";
 import {
   Avatar,
   Card,
@@ -18,6 +19,7 @@ import {
   VerificationBadge,
 } from "../components/ui";
 import { ROLE_LABEL } from "../nav";
+import { ButtonLink, SkeletonBlock } from "../components/ds";
 
 type StatDef = { label: string; key: string; load: () => Promise<number> };
 
@@ -79,7 +81,7 @@ function statsFor(role: Role, queryClient: QueryClient): StatDef[] {
 
 function StatTile({ def, memberId }: { def: StatDef; memberId: string }) {
   const q = useQuery({ queryKey: ["me-stat", memberId, def.key], queryFn: def.load, retry: false });
-  if (q.isPending) return <div className="h-[6.25rem] animate-pulse rounded-2xl bg-surface" />;
+  if (q.isPending) return <SkeletonBlock className="h-[6.25rem] w-full rounded-xl" />;
   return <Stat value={q.isError ? "–" : q.data} label={def.label} />;
 }
 
@@ -96,7 +98,7 @@ export default function Me() {
         <div className="flex items-center gap-4">
           <Avatar name={member.display_name} size="lg" />
           <div className="flex min-w-0 flex-col gap-1">
-            <h1 className="text-xl font-semibold tracking-tight">{member.display_name}</h1>
+            <h1 className="text-xl font-semibold tracking-[-0.01em]">{member.display_name}</h1>
             <p className="text-sm text-muted">
               {[ROLE_LABEL[member.role], member.sector, member.city].filter(Boolean).join(" · ")}
             </p>
@@ -124,16 +126,17 @@ export default function Me() {
                 : "Your matches and circuits come from this."}
             </p>
           </div>
-          <Link
-            to="/me/profile"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-line bg-raised px-5 font-semibold hover:border-muted"
-          >
+          <ButtonLink to="/me/profile" className="shrink-0">
             Edit
-          </Link>
+          </ButtonLink>
         </Card>
       )}
 
       {member.role === "founder" && <YourStartups />}
+
+      <Card>
+        <ThemePicker />
+      </Card>
 
       {isDemo && (
         <Card className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -166,7 +169,7 @@ function YourStartups() {
     <Card className="flex flex-col gap-4">
       <Eyebrow>Your startups</Eyebrow>
       {profile.isPending ? (
-        <div className="h-14 animate-pulse rounded-xl bg-raised" />
+        <SkeletonBlock className="h-14 w-full rounded-lg" />
       ) : startups.length === 0 ? (
         <p className="text-muted">You haven't claimed a startup yet.</p>
       ) : (
@@ -175,7 +178,7 @@ function YourStartups() {
             <li key={s.startup_id}>
               <Link
                 to={`/startups/${s.startup_id}`}
-                className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-line bg-raised px-4 hover:border-muted"
+                className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-line bg-raised px-4 hover:border-line2"
               >
                 <span className="font-semibold">{s.name}</span>
                 <span className="text-sm text-muted">{s.title}</span>
@@ -184,7 +187,7 @@ function YourStartups() {
           ))}
         </ul>
       )}
-      <Link to="/startups" className="text-sm font-semibold text-blue hover:underline">
+      <Link to="/startups" className="text-sm font-semibold text-fg underline underline-offset-2 hover:text-fg2">
         Find and claim your startup
       </Link>
     </Card>

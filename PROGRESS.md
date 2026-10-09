@@ -10,19 +10,76 @@ merged into `main` (pull requests #1–#7 in `dopatensor/circuit`). Phases 10 an
 committed and pushed on this branch; no pull request has been opened for them yet. Each new session
 gets its own branch name: start it from this branch (or `main`, once merged).
 
-## Where we stopped (2026-10-08)
+## Where we stopped (2026-10-09)
 
-- **Phase 11 is finished, committed and pushed.** The working tree is clean.
-- **Waiting for the user's OK** to start Phase 12 (demo readiness). The plan is below.
-- The user chose **not** to add map pin clustering (2026-10-08). It stays in "Known
-  issues" as an option.
-- **How we work:** one phase at a time. Write tests during the phase; run the backend
-  tests, `make demo-check`, the browser tests, `npm run size` and Lighthouse; update
-  README and this file; commit and push; explain in plain language with screenshots;
-  then stop for the user's OK.
-- **Screenshots** for the user: build, run `npx vite preview --port 4183` with the API
-  on :8000, then `npm run screenshots -- http://localhost:4183 <dir>` and send the PNGs.
-  The script runs a real circuit round, so run `make reset-demo` afterwards.
+- **Frontend redesign in progress** (the user's brief: R1–R7, see DESIGN.md v3, approved
+  2026-10-09). Branch: `claude/gifted-johnson-zuweb6`.
+- **R1 is finished, committed and pushed**, waiting for the user's OK to start R2
+  (profiles, proof of work with GitHub links, profile strength, privacy controls).
+- Phase 12 (demo readiness) comes after the redesign.
+- Approved dependencies for the redesign: `motion`, `@tanstack/react-virtual` (not yet
+  installed; needed for long lists), `@use-gesture/react`. Ask before anything else.
+- Open questions to the user: GitHub API calls from the backend for proof of work (R2)
+  were proposed and not yet answered; ask again at the start of R2.
+
+## Redesign status
+
+| Phase | State |
+| --- | --- |
+| R1 Design system, components, /design, navigation shell | ✅ done (waiting for OK) |
+| R2 Profiles, proof of work, profile strength, privacy | ⏭️ next |
+| R3 Connections, follow, notifications | – |
+| R4 Home opportunities feed, global search | – |
+| R5 Inbox (messages) | – |
+| R6 Animation pass, circuit loop moment | – |
+| R7 Playwright at 375/1280 for new UI, Lighthouse, DEMO.md | – |
+
+## What R1 built
+
+- **Tokens and fonts** (`src/index.css`): light (default) and dark themes, amber accent,
+  teal signal, IBM Plex Sans 400/600 + Plex Mono 500 in `public/fonts/` (OFL). Older
+  colour names (`blue`, `green`, `surface`) are aliases so screens restyled later still
+  work. `src/theme.ts` + an inline script in `index.html`: Light / Dark / Same as device,
+  saved per browser (Me → Appearance).
+- **Design system** `src/components/ds/`: Icon (inline SVG) and Logo, Avatar (initials;
+  one-word names use their capitals), Button/ButtonLink/IconButton, Card, Section, List,
+  ListRow, Score, Badge (Verification with a pop, Bridge, Hiring), Chip, BottomSheet and
+  Modal (`<dialog>`, motion springs, drag-to-dismiss on phones, stops blocking the page
+  as soon as it starts closing), Tabs (arrow keys) and TabLinks, Toast with Undo,
+  SkeletonBlock/SkeletonRows (shimmer), EmptyState, ErrorBlock, Stepper, Checklist.
+  `components/ui.tsx` and `Sheet.tsx` keep the old names on top of these.
+- **`/design`** (`screens/Design.tsx`): every block, in dev and `VITE_DESIGN_PAGE=1`
+  builds (Playwright sets it).
+- **Navigation** (`nav.ts`, `components/Shell.tsx`): Home · Discover · [action] ·
+  Circuits · Inbox; Me on the avatar (phones) / in the sidebar. Right rail from 1280px
+  (`RightRail.tsx`: profile strength + people worth meeting / jobs near you).
+  Discover (`screens/Discover.tsx`) wraps Matches, Jobs, Startups, Map as tab routes;
+  `/inbox` is the intros screen; `/intros` redirects.
+- **Home** (`screens/Home.tsx`): next-step card per role from profile, applications,
+  intros and circuits; top matches (minus the featured one) or intros to pass on.
+- **Post a job** (`screens/PostJob.tsx`, `components/PostSheet.tsx`), founders only;
+  needs a claimed startup (`StartupLink.is_claimer`, new in the API).
+- **Startups** tab: `FindStartup.tsx` browses and searches all startups (founders still
+  see "Claim").
+- **Map**: theme-aware style (`mapStyle()`), sits in a bordered box under Discover's
+  tabs; pins amber for hiring.
+- **Icons** regenerated: the Circuit mark on off-white (`npm run icons`).
+- **Tests:** `e2e/design.spec.ts` (gallery, sheet/modal focus and Escape, drag to
+  dismiss on phones, toast Undo, tabs keyboard, theme follows device and sticks, Home
+  next step for stories 1 and 3, founder posts a job, unclaimed founder told to claim).
+  `helpers.goToTab` maps old tab names to the new navigation. Backend test for
+  `is_claimer`.
+
+Last verified (2026-10-09, R1):
+
+- Backend: **226 passed, 1 skipped**; ruff clean. `make demo-check`: **5/5 PASS**.
+- Browser tests: **72 passed, 2 skipped** across the full run plus the reruns after the
+  last fixes (design and shell specs: 35 passed).
+- `npm run size`: **140 KB** first-load JavaScript gzipped (budget 250 KB).
+- Lighthouse mobile: `/welcome` 95/100/100/100, `/home` as Ravi 97/100/100/100, as Meera
+  93/100/100/100.
+
+## Phase 12 plan and older notes
 
 ## Status at a glance
 

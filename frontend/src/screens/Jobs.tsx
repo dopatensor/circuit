@@ -26,7 +26,7 @@ export default function Jobs() {
   return (
     <Page>
       <Title>Jobs</Title>
-      <div role="tablist" className="grid grid-cols-2 rounded-full border border-line bg-surface p-1">
+      <div role="tablist" className="grid grid-cols-2 rounded-lg border border-line bg-surface p-1">
         {(
           [
             ["open", "Open jobs"],
@@ -38,7 +38,7 @@ export default function Jobs() {
             role="tab"
             aria-selected={tab === key}
             onClick={() => setParams(key === "open" ? {} : { tab: key }, { replace: true })}
-            className={`min-h-11 rounded-full text-sm font-semibold transition-colors ${
+            className={`min-h-11 rounded-lg text-sm font-semibold transition-colors ${
               tab === key ? "bg-raised text-fg" : "text-muted hover:text-fg"
             }`}
           >
@@ -87,7 +87,7 @@ function OpenJobs() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search roles, e.g. backend"
           aria-label="Search jobs"
-          className="min-h-11 min-w-0 flex-1 rounded-full border border-line bg-surface px-4 placeholder:text-muted"
+          className="min-h-11 min-w-0 flex-1 rounded-lg border border-line bg-surface px-4 placeholder:text-muted"
         />
         <SecondaryButton onClick={() => setOpen(true)}>
           Filters{active ? ` · ${active}` : ""}
@@ -106,7 +106,7 @@ function OpenJobs() {
             <li key={j.id}>
               <Link
                 to={`/jobs/${j.id}`}
-                className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-muted"
+                className="flex items-center gap-4 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-muted"
               >
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate font-semibold">{j.title}</span>
@@ -118,7 +118,7 @@ function OpenJobs() {
                 {j.match && (
                   <span className="flex shrink-0 flex-col items-end">
                     <span
-                      className={`text-xl font-semibold tabular-nums ${j.match.score >= 80 ? "text-green" : ""}`}
+                      className={`num text-xl`}
                     >
                       {j.match.score}%
                     </span>
@@ -165,7 +165,7 @@ function Choice<T extends string | number>({
             aria-pressed={value === v}
             onClick={() => onChange(v)}
             className={`min-h-11 rounded-xl border px-2 text-sm font-medium ${
-              value === v ? "border-blue bg-blue/10 text-blue" : "border-line bg-raised"
+              value === v ? "border-fg bg-panel text-fg ring-1 ring-fg ring-inset" : "border-line bg-raised"
             }`}
           >
             {label}
@@ -249,7 +249,7 @@ function MyApplications() {
           <li key={a.id}>
             <Link
               to={`/jobs/${a.job.id}`}
-              className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4 hover:border-muted"
+              className="flex items-center gap-4 rounded-xl border border-line bg-surface p-4 hover:border-muted"
             >
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate font-semibold">{a.job.title}</span>

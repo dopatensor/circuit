@@ -1,58 +1,70 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Link } from "react-router";
+import { useDeferredValue, useState } from "react";
 import { api, unwrap } from "../api/client";
-import { Page } from "../components/Shell";
-import { Empty, ErrorState, Muted, Pill, Skeleton, Title } from "../components/ui";
+import { useAuth } from "../auth";
+import { Avatar, Badge, EmptyState, ErrorBlock, HiringBadge, Icon, List, ListRow, SkeletonRows } from "../components/ds";
+import { Page, PageHeader } from "../components/Shell";
 
-/** Founders find their startup (often already here, from public data) to claim it. */
+/** Startups in the city, searchable by name. Founders also use it to find their own
+ *  startup (often already here from public data) and claim it. */
 export default function FindStartup() {
-  const [q, setQ] = useState("");
+  const { member } = useAuth();
+  const founder = member?.role === "founder";
+  const [text, setText] = useState("");
+  const q = useDeferredValue(text.trim());
   const results = useQuery({
     queryKey: ["startups", "search", q],
-    queryFn: () => unwrap(api.GET("/api/startups", { params: { query: { q: q.trim(), limit: 20 } } })),
-    enabled: q.trim().length >= 2,
+    queryFn: () =>
+      unwrap(api.GET("/api/startups", { params: { query: { ...(q.length >= 2 ? { q } : {}), limit: 20 } } })),
   });
   return (
     <Page>
-      <div className="flex flex-col gap-1">
-        <Title>Find your startup</Title>
-        <Muted>Many startups are already here from public data. Find yours to claim it.</Muted>
-      </div>
-      <input
-        type="search"
-        autoFocus
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Startup name"
-        aria-label="Startup name"
-        className="min-h-11 rounded-full border border-line bg-surface px-4 placeholder:text-muted"
+      <PageHeader
+        title={founder ? "Find your startup" : "Startups"}
+        intro={
+          founder
+            ? "Many startups are already here from public data. Find yours to claim it."
+            : "Startups in your city. Search by name or what they do."
+        }
       />
-      {q.trim().length < 2 ? (
-        <Empty>Type at least two letters of your startup's name.</Empty>
-      ) : results.isPending ? (
-        <Skeleton lines={3} className="h-16" />
+      <label className="flex min-h-11 items-center gap-2 rounded-lg border border-line2 bg-panel px-3 focus-within:border-fg2">
+        <Icon name="search" size={18} className="text-muted" />
+        <input
+          type="search"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Startup name"
+          aria-label="Startup name"
+          className="min-h-11 flex-1 bg-transparent outline-none placeholder:text-muted"
+        />
+      </label>
+      {results.isPending ? (
+        <SkeletonRows rows={4} label="Loading startups" />
       ) : results.isError ? (
-        <ErrorState error={results.error} retry={results.refetch} />
+        <ErrorBlock error={results.error} retry={() => void results.refetch()} />
       ) : results.data.items.length === 0 ? (
-        <Empty>No startup by that name yet.</Empty>
+        <EmptyState icon="building" title="No startup by that name yet">
+          Check the spelling, or try a word from what they do.
+        </EmptyState>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <List label="Startups">
           {results.data.items.map((s) => (
-            <li key={s.id}>
-              <Link
-                to={`/startups/${s.id}`}
-                className="flex min-h-16 items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-4 hover:border-muted"
-              >
-                <span className="flex min-w-0 flex-col">
-                  <span className="truncate font-semibold">{s.name}</span>
-                  <span className="truncate text-sm text-muted">{s.sector} · {s.website_domain}</span>
-                </span>
-                {s.claimed ? <Pill>Claimed</Pill> : <Pill tone="blue">Claim</Pill>}
-              </Link>
-            </li>
+            <ListRow
+              key={s.id}
+              to={`/startups/${s.id}`}
+              leading={<Avatar name={s.name} kind="startup" />}
+              title={s.name}
+              meta={`${s.sector} · ${s.website_domain}`}
+              trailing={
+                founder ? (
+                  s.claimed ? <Badge>Claimed</Badge> : <Badge tone="accent">Claim</Badge>
+                ) : (
+                  <HiringBadge hiring={s.hiring} />
+                )
+              }
+            />
           ))}
-        </ul>
+        </List>
       )}
     </Page>
   );

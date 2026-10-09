@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 
-const BUDGET_KB = 200;
+const BUDGET_KB = 250; // the redesign brief: ~250 KB
 const html = readFileSync("dist/index.html", "utf8");
 const files = [...html.matchAll(/(?:src|href)="(\/assets\/[^"]+\.js)"/g)].map((m) => m[1]);
 let total = 0;

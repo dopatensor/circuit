@@ -16,8 +16,8 @@ export default function Welcome() {
           <Wordmark />
           <div className="flex flex-col gap-4">
             <h1 className="text-display font-semibold tracking-tight">
-              Match on what you <span className="text-blue">need</span> and what you can{" "}
-              <span className="text-green">offer</span>.
+              Match on what you need and what you can{" "}
+              offer.
             </h1>
             <p className="text-muted">
               Not on job titles or college names. Students find startups hiring nearby;
@@ -26,8 +26,8 @@ export default function Welcome() {
           </div>
           <ol className="flex flex-col gap-3">
             {STEPS.map(([title, line], i) => (
-              <li key={title} className="flex gap-4 rounded-2xl border border-line bg-surface p-4">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-blue/50 text-sm font-semibold text-blue">
+              <li key={title} className="flex gap-4 rounded-xl border border-line bg-surface p-4">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-raised text-sm font-semibold text-fg">
                   {i + 1}
                 </span>
                 <span className="flex flex-col">

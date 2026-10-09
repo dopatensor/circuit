@@ -70,7 +70,7 @@ export default function Onboarding() {
   return (
     <Page>
       <div className="flex flex-col gap-1">
-        <Link to="/me" className="text-sm text-blue hover:underline">
+        <Link to="/me" className="text-sm text-fg underline underline-offset-2 hover:text-fg2">
           Me
         </Link>
         <Title>What you need and offer</Title>
@@ -193,7 +193,7 @@ function Editor({ profile }: { profile: Profile }) {
         </SecondaryButton>
         {suggest.isError && <ErrorState error={suggest.error} />}
         {notice && (
-          <p role="status" className="text-sm text-green">
+          <p role="status" className="text-sm font-semibold text-fg">
             {notice}
           </p>
         )}

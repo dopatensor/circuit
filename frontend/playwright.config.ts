@@ -53,7 +53,8 @@ export default defineConfig({
       url: `http://localhost:${WEB_PORT}/welcome`,
       reuseExistingServer: false,
       timeout: 180_000,
-      env: { API_PROXY_TARGET: `http://localhost:${API_PORT}` },
+      // VITE_DESIGN_PAGE: the /design component gallery is in the test build.
+      env: { API_PROXY_TARGET: `http://localhost:${API_PORT}`, VITE_DESIGN_PAGE: "1" },
     },
   ],
 });

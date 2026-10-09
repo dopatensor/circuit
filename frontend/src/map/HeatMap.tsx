@@ -1,7 +1,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import { maplibregl } from "./setup";
 import { useEffect, useRef, useState } from "react";
-import { darkStyle } from "./style";
+import { isDarkTheme, mapStyle } from "./style";
 
 export type HeatCell = { lat: number; lng: number; weight: number };
 
@@ -27,7 +27,7 @@ export function HeatMap({
     // The heat source and layer are part of the style from the start: MapLibre's
     // "load" event waits for every source, and never comes if the street tiles can't
     // be reached, which would leave the map without its heat.
-    const style = darkStyle();
+    const style = mapStyle();
     style.sources[SOURCE] = { type: "geojson", data: { type: "FeatureCollection", features: [] } };
     style.layers.push({
       id: "gap-heat",
@@ -39,16 +39,11 @@ export function HeatMap({
         // Big enough that neighbouring 2 km cells merge into areas.
         "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 10, 40, 14, 160],
         "heatmap-opacity": 0.85,
-        // One hue: dark blue to light blue (on black, more is lighter).
-        "heatmap-color": [
-          "interpolate",
-          ["linear"],
-          ["heatmap-density"],
-          0, "rgba(24,79,149,0)",
-          0.08, "rgba(24,79,149,0.6)",
-          0.35, "#2f8cff",
-          0.9, "#a9d0ff",
-        ],
+        // One hue. More gap = more contrast with the map: lighter on the dark theme,
+        // darker on the light one.
+        "heatmap-color": isDarkTheme()
+          ? ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(24,79,149,0)", 0.08, "rgba(24,79,149,0.6)", 0.35, "#2f8cff", 0.9, "#a9d0ff"]
+          : ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(127,176,240,0)", 0.08, "rgba(127,176,240,0.6)", 0.35, "#5b93e0", 0.9, "#1f4f99"],
       },
     });
     let m: maplibregl.Map;

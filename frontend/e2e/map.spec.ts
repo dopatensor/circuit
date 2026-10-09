@@ -5,6 +5,7 @@ test.beforeEach(() => resetDemo());
 
 test("students see nearby startups as pins and can say they're interested (F2)", async ({ page }) => {
   await signInAs(page, "Ravi");
+  await goToTab(page, "Map");
   await expect(page).toHaveURL(/\/map$/);
   await expect(page.getByText(/within 10 km/)).toBeVisible();
   await mapSettled(page);
@@ -27,6 +28,7 @@ test("students see nearby startups as pins and can say they're interested (F2)",
 
 test("the filter sheet narrows the map to hiring startups", async ({ page }) => {
   await signInAs(page, "Ravi");
+  await goToTab(page, "Map");
   await expect(page.getByRole("button", { name: /, hiring$/ }).first()).toBeVisible();
   await page.getByRole("button", { name: "Filters" }).click();
   const sheet = page.getByRole("dialog", { name: "Filters" });

@@ -47,8 +47,8 @@ export default function Intros() {
   return (
     <Page>
       <div className="flex flex-col gap-1">
-        <Title>Intros</Title>
-        <Muted>Warm intros go through someone you both know.</Muted>
+        <Title>Inbox</Title>
+        <Muted>Intro requests for you, from you, and for you to pass on. Warm intros go through someone you both know.</Muted>
       </div>
       {inbox.isPending ? (
         <Skeleton lines={3} className="h-40" />
@@ -130,7 +130,7 @@ function IntroCard({ intro: i }: { intro: Intro }) {
   const main = buttons.find((a) => a === "forward" || a === "accept");
 
   return (
-    <li className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5">
+    <li className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-5">
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-semibold">{headline}</h3>
         <Pill tone={status.tone}>{status.label}</Pill>
@@ -144,7 +144,7 @@ function IntroCard({ intro: i }: { intro: Intro }) {
               </span>
             )}
             <Avatar name={p.display_name} size="sm" />
-            <span className={i.via && p.id === i.via.id ? "font-semibold text-blue" : ""}>
+            <span className={i.via && p.id === i.via.id ? "font-semibold text-signal" : ""}>
               {p.display_name}
             </span>
           </li>
