@@ -28,23 +28,23 @@ import {
   useToast,
 } from "../components/ds";
 import { Wordmark } from "../components/Shell";
-import { ThemePicker } from "../components/ThemePicker";
 
-// /design: every building block of the design system, in both themes (dev and demo
+// /design: every building block of the design system (dev and demo
 // builds only). DESIGN.md explains the rules; this page shows them.
 
-const TOKENS: [string, string, string][] = [
-  ["bg", "#FBFAF8", "#111110"],
-  ["panel", "#FFFFFF", "#191917"],
-  ["raised", "#F3F1ED", "#22221F"],
-  ["line", "#E7E4DE", "#2A2A27"],
-  ["line2", "#D6D2CA", "#3D3D39"],
-  ["fg", "#2B2A27", "#ECE9E2"],
-  ["fg2", "#55524C", "#C2BDB3"],
-  ["muted", "#6E6A63", "#948F85"],
-  ["accent", "#A35A00", "#F2A33A"],
-  ["signal", "#0A6B82", "#5CC6D9"],
-  ["danger", "#B42318", "#F97066"],
+const TOKENS: [string, string][] = [
+  ["bg", "#000000"],
+  ["panel", "#0B0B0B"],
+  ["raised", "#161616"],
+  ["line", "#222222"],
+  ["line2", "#333333"],
+  ["fg", "#F4F4F0"],
+  ["fg2", "#C4C4BE"],
+  ["muted", "#8C8C86"],
+  ["accent", "#CCFF00"],
+  ["signal", "#3B82F6"],
+  ["hot", "#FF4F00"],
+  ["danger", "#FF5C8A"],
 ];
 
 function Block({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
@@ -79,25 +79,20 @@ export default function Design() {
         <div>
           <h1 className="text-2xl font-semibold tracking-[-0.015em]">Design system</h1>
           <p className="mt-1 max-w-[60ch] text-fg2">
-            The building blocks every screen uses. Simple, calm and guided: one amber action per screen, teal only for
+            The building blocks every screen uses. Simple, calm and guided: one lime action per screen, blue only for
             Bridge matches and circuits, neutrals for everything else.
           </p>
         </div>
-        <div className="max-w-md">
-          <ThemePicker />
-        </div>
       </header>
 
-      <Block title="Colour" note="Every text pair passes WCAG AA in both themes. Amber means 'do this'; teal means 'cross-sector or circuit'.">
+      <Block title="Colour" note="Pitch black with three accents from the logo. Every text pair passes WCAG AA. Lime means 'do this'; blue means 'cross-sector or circuit'; orange means demand (hiring, needs, gaps).">
         <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {TOKENS.map(([name, light, dark]) => (
+          {TOKENS.map(([name, hex]) => (
             <li key={name} className="flex items-center gap-3">
               <span className="size-10 shrink-0 rounded-lg ring-1 ring-line2" style={{ background: `var(--${name})` }} />
               <span className="flex flex-col">
                 <span className="text-sm font-semibold">{name}</span>
-                <span className="text-xs text-muted">
-                  {light} · {dark}
-                </span>
+                <span className="text-xs text-muted">{hex}</span>
               </span>
             </li>
           ))}

@@ -1,5 +1,5 @@
 // A quiet map style built from free OpenStreetMap vector tiles (OpenFreeMap, no key
-// needed), in the app's light or dark theme. Only what helps you find your way: water,
+// needed), on the app's pitch-black background. Only what helps you find your way: water,
 // parks, roads and place names. If the tiles can't load (offline, blocked network) the
 // map still works: a plain background with the pins on top.
 import type { StyleSpecification } from "maplibre-gl";
@@ -13,21 +13,10 @@ export const ATTRIBUTION =
   '<a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">© OpenMapTiles</a> ' +
   'Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
 
-const PALETTES = {
-  light: { bg: "#efece6", park: "#e2e8d8", water: "#d3e1e8", minor: "#ffffff", major: "#dcd6cb", text: "#6e6a63", halo: "#efece6" },
-  dark: { bg: "#151513", park: "#18201a", water: "#111a20", minor: "#262623", major: "#34342f", text: "#948f85", halo: "#151513" },
-};
-
-/** True when the page is showing the dark theme (system setting or the person's choice). */
-export function isDarkTheme() {
-  const t = document.documentElement.dataset.theme;
-  if (t === "dark") return true;
-  if (t === "light") return false;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
-}
+const PALETTE = { bg: "#0b0b0b", park: "#0f140f", water: "#0a1018", minor: "#1c1c1c", major: "#2c2c2c", text: "#8c8c86", halo: "#0b0b0b" };
 
 export function mapStyle(): StyleSpecification {
-  const c = PALETTES[isDarkTheme() ? "dark" : "light"];
+  const c = PALETTE;
   return {
     version: 8,
     glyphs: GLYPHS,

@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
-/* Circuit design tokens (DESIGN.md). Light is the default; dark follows the system
-   unless the person picks a theme on Me (data-theme on <html>).
-   - accent (amber): the one primary action per screen, the current step, unread counts.
-   - signal (teal): Bridge matches and circuits only.
-   Everything else is neutral. Every text pair passes WCAG AA. */
+/* Circuit design tokens (DESIGN.md). One theme: pitch black, with the three brand
+   accents from the logo. Each accent has one job:
+   - accent (lime #CCFF00): the one primary action per screen, the current step, focus.
+   - signal (blue #3B82F6): Bridge matches and circuits only.
+   - hot (orange #FF4F00): demand: hiring pins, needs and gaps on the dashboard.
+   Everything else is neutral. Every text pair passes WCAG AA on every surface. */
 
 @font-face {
   font-family: "IBM Plex Sans";
@@ -43,60 +44,23 @@
 }
 
 :root {
-  --bg: #fbfaf8;
-  --panel: #ffffff;
-  --raised: #f3f1ed;
-  --line: #e7e4de;
-  --line2: #d6d2ca;
-  --fg: #2b2a27;
-  --fg2: #55524c;
-  --muted: #6e6a63;
-  --accent: #a35a00;
-  --ink: #ffffff;
-  --accent-bg: #fbefdf;
-  --signal: #0a6b82;
-  --signal-bg: #e2f1f4;
-  --danger: #b42318;
-  --scrim: rgb(20 18 15 / 0.45);
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #111110;
-    --panel: #191917;
-    --raised: #22221f;
-    --line: #2a2a27;
-    --line2: #3d3d39;
-    --fg: #ece9e2;
-    --fg2: #c2bdb3;
-    --muted: #948f85;
-    --accent: #f2a33a;
-    --ink: #1a1000;
-    --accent-bg: #2c2010;
-    --signal: #5cc6d9;
-    --signal-bg: #0f2a30;
-    --danger: #f97066;
-    --scrim: rgb(0 0 0 / 0.6);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #111110;
-  --panel: #191917;
-  --raised: #22221f;
-  --line: #2a2a27;
-  --line2: #3d3d39;
-  --fg: #ece9e2;
-  --fg2: #c2bdb3;
-  --muted: #948f85;
-  --accent: #f2a33a;
-  --ink: #1a1000;
-  --accent-bg: #2c2010;
-  --signal: #5cc6d9;
-  --signal-bg: #0f2a30;
-  --danger: #f97066;
-  --scrim: rgb(0 0 0 / 0.6);
+  --bg: #000000;
+  --panel: #0b0b0b;
+  --raised: #161616;
+  --line: #222222;
+  --line2: #333333;
+  --fg: #f4f4f0; /* the logo's light grey */
+  --fg2: #c4c4be;
+  --muted: #8c8c86;
+  --accent: #ccff00;
+  --ink: #000000; /* text on accent */
+  --accent-bg: #1e2600;
+  --signal: #3b82f6;
+  --signal-bg: #0b1a33;
+  --hot: #ff4f00;
+  --hot-bg: #2a1100;
+  --danger: #ff5c8a; /* pink-red, so it never reads as the orange accent */
+  --scrim: rgb(0 0 0 / 0.7);
   color-scheme: dark;
 }
 
@@ -115,6 +79,8 @@
   --color-accent-bg: var(--accent-bg);
   --color-signal: var(--signal);
   --color-signal-bg: var(--signal-bg);
+  --color-hot: var(--hot);
+  --color-hot-bg: var(--hot-bg);
   --color-danger: var(--danger);
   --color-transparent: transparent;
   --color-current: currentColor;
@@ -151,7 +117,7 @@
   /* No glows in this design; kept as no-ops so older class names do nothing. */
   --shadow-glow-blue: 0 0 #0000;
   --shadow-glow-green: 0 0 #0000;
-  --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.08);
+  --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.6);
 
   --animate-shimmer: shimmer 1.4s ease-in-out infinite;
   @keyframes badge-pop {

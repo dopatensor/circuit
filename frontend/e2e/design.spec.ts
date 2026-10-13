@@ -1,7 +1,7 @@
 import { expect, resetDemo, test } from "./fixtures";
 import { goToTab, signInAs, switchTo } from "./helpers";
 
-// R1: the design system (/design), the theme choice, Home's next step and the founder's
+// R1: the design system (/design), the pitch-black theme, Home's next step and the founder's
 // centre button.
 
 test("the design page shows every building block, with no sideways scrolling", async ({ page }) => {
@@ -82,23 +82,23 @@ test("tabs move with the arrow keys; chips say whether they're selected", async 
   await expect(chip).toHaveAttribute("aria-pressed", "true");
 });
 
-test("light and dark: follows the device, and a choice on Me sticks after a reload", async ({ browser }, testInfo) => {
-  const context = await browser.newContext({ ...testInfo.project.use, colorScheme: "dark" });
-  const page = await context.newPage();
-  const bg = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  await signInAs(page, "Ravi");
-  expect(await bg()).toBe("rgb(17, 17, 16)"); // the device is dark
-
-  await goToTab(page, "Me");
-  await page.getByText("Light", { exact: true }).click();
-  expect(await bg()).toBe("rgb(251, 250, 248)");
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Ravi Kumar" })).toBeVisible();
-  expect(await bg()).toBe("rgb(251, 250, 248)");
-
-  await page.getByText("Same as device", { exact: true }).click();
-  expect(await bg()).toBe("rgb(17, 17, 16)");
-  await context.close();
+test("pitch black whatever the device's setting, with the Circuit logo and its accents", async ({ browser }, testInfo) => {
+  for (const colorScheme of ["light", "dark"] as const) {
+    const context = await browser.newContext({ ...testInfo.project.use, colorScheme });
+    const page = await context.newPage();
+    await signInAs(page, "Ravi");
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(0, 0, 0)");
+    // The logo's lime and blue terminals and orange chip, drawn inline.
+    const logo = page.locator("svg:has(mask)").first();
+    await expect(logo.locator('circle[stroke="#CCFF00"]')).toHaveCount(1);
+    await expect(logo.locator('circle[stroke="#3B82F6"]')).toHaveCount(1);
+    await expect(logo.locator('rect[fill="#FF4F00"]')).toHaveCount(1);
+    // No theme switch any more.
+    await goToTab(page, "Me");
+    await expect(page.getByRole("heading", { name: "Ravi Kumar" })).toBeVisible();
+    await expect(page.getByText("Appearance")).toHaveCount(0);
+    await context.close();
+  }
 });
 
 test("Home: each story's person sees their next step first", async ({ page }) => {

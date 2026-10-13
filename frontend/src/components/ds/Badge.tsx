@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Icon, type IconName } from "./Icon";
 
-/** A small label. Neutral by default; `bridge` (teal) only for cross-sector matches and
+/** A small label. Neutral by default; `bridge` (blue) only for cross-sector matches and
  *  circuits; `outline` for trust signals such as verification. */
 export function Badge({
   children,
@@ -77,7 +77,7 @@ export function HiringBadge({ hiring }: { hiring: boolean }) {
     <Badge>
       <span
         aria-hidden="true"
-        className={`size-1.5 rounded-full ${hiring ? "bg-fg" : "ring-1 ring-muted ring-inset"}`}
+        className={`size-1.5 rounded-full ${hiring ? "bg-hot" : "ring-1 ring-muted ring-inset"}`}
       />
       {hiring ? "Hiring" : "Not hiring"}
     </Badge>

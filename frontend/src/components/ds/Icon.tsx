@@ -2,6 +2,8 @@
 // icon library. Icons are decorative (aria-hidden): the text next to them says what
 // they mean.
 
+import { useId } from "react";
+
 const PATHS = {
   home: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z",
   search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4",
@@ -72,14 +74,30 @@ export function Icon({
   );
 }
 
-/** The Circuit mark: three people on a loop. */
+/** The Circuit mark: a "C" traced like a circuit board, with a lime and a blue
+ *  terminal and an orange chip. Drawn on the logo file's 1600-unit grid; the same
+ *  drawing as scripts/make-icons.mjs. The gaps around the terminals are cut out with a
+ *  mask, so whatever is behind the logo shows through. */
 export function Logo({ size = 22 }: { size?: number }) {
+  const mask = `logo-cut-${useId()}`;
   return (
-    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="var(--signal)" strokeWidth={1.6}>
-      <circle cx="12" cy="12" r="8" />
-      <circle cx="12" cy="4" r="2.4" fill="var(--bg)" />
-      <circle cx="5.1" cy="16" r="2.4" fill="var(--bg)" />
-      <circle cx="18.9" cy="16" r="2.4" fill="var(--bg)" />
+    <svg aria-hidden="true" width={size} height={size} viewBox="12 100 1400 1400">
+      <mask id={mask}>
+        <rect x="0" y="0" width="1600" height="1600" fill="white" />
+        <circle cx="1200" cy="425" r="150" fill="black" />
+        <circle cx="1200" cy="1175" r="150" fill="black" />
+      </mask>
+      <path d={LOGO_C} fill="var(--fg)" mask={`url(#${mask})`} />
+      <rect x="500" y="900" width="200" height="200" fill="#FF4F00" />
+      <circle cx="1200" cy="425" r="88" fill="none" stroke="#CCFF00" strokeWidth="49" />
+      <circle cx="1200" cy="425" r="25" fill="#CCFF00" />
+      <circle cx="1200" cy="1175" r="88" fill="none" stroke="#3B82F6" strokeWidth="49" />
+      <circle cx="1200" cy="1175" r="25" fill="#3B82F6" />
     </svg>
   );
 }
+
+/** The C and the trace that runs from its top arm down to the chip. */
+const LOGO_C =
+  "M112 388L388 112H1012L1200 300V470H842L644 668V862H556V632L806 382H1032L938 288H462L288 462V1138" +
+  "L462 1312H938L1125 1125L1250 1250L1012 1488H388L112 1212Z";

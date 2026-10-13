@@ -1,22 +1,32 @@
-// Generates the app icons: the Circuit mark (three people on a teal loop) on the
-// off-white background. Renders an SVG with Playwright's Chromium and screenshots it,
-// so no image tools are needed. Run once (npm run icons) and commit the files in public/.
+// Generates the app icons: the Circuit logo (the traced "C" with a lime and a blue
+// terminal and an orange chip) on pitch black. Renders an SVG with Playwright's
+// Chromium and screenshots it, so no image tools are needed. Run once (npm run icons)
+// and commit the files in public/.
 import { chromium } from "@playwright/test";
 import { writeFileSync } from "node:fs";
 
-const BG = "#fbfaf8";
-const SIGNAL = "#0a6b82";
-// The mark on a 24-unit grid, the same drawing as <Logo> in src/components/ds/Icon.tsx.
-const mark = (stroke) =>
-  `<circle cx="12" cy="12" r="8" fill="none" stroke="${SIGNAL}" stroke-width="${stroke}"/>` +
-  [[12, 4], [5.1, 16], [18.9, 16]]
-    .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.4" fill="${BG}" stroke="${SIGNAL}" stroke-width="${stroke}"/>`)
-    .join("");
+const BG = "#000000";
+// The logo on its 1600-unit grid, the same drawing as <Logo> in src/components/ds/Icon.tsx.
+// The content spans x 112..1312 and y 112..1488, so its centre is (712, 800).
+const C =
+  "M112 388L388 112H1012L1200 300V470H842L644 668V862H556V632L806 382H1032L938 288H462L288 462V1138" +
+  "L462 1312H938L1125 1125L1250 1250L1012 1488H388L112 1212Z";
+const mark =
+  `<mask id="cut"><rect x="-2000" y="-2000" width="6000" height="6000" fill="white"/>` +
+  `<circle cx="1200" cy="425" r="150" fill="black"/><circle cx="1200" cy="1175" r="150" fill="black"/></mask>` +
+  `<path d="${C}" fill="#F4F4F0" mask="url(#cut)"/>` +
+  `<rect x="500" y="900" width="200" height="200" fill="#FF4F00"/>` +
+  `<circle cx="1200" cy="425" r="88" fill="none" stroke="#CCFF00" stroke-width="49"/>` +
+  `<circle cx="1200" cy="425" r="25" fill="#CCFF00"/>` +
+  `<circle cx="1200" cy="1175" r="88" fill="none" stroke="#3B82F6" stroke-width="49"/>` +
+  `<circle cx="1200" cy="1175" r="25" fill="#3B82F6"/>`;
 const svg = (scale) => {
-  // scale: how much of the icon the mark fills (maskable icons keep to the middle 80%).
-  const pad = (24 / scale - 24) / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-pad} ${-pad} ${24 + 2 * pad} ${24 + 2 * pad}">` +
-    `<rect x="${-pad}" y="${-pad}" width="${24 + 2 * pad}" height="${24 + 2 * pad}" fill="${BG}"/>${mark(1.8)}</svg>`;
+  // scale: how much of the icon the logo's height fills (maskable icons keep to the middle 80%).
+  const side = 1376 / scale;
+  const x = 712 - side / 2;
+  const y = 800 - side / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x} ${y} ${side} ${side}">` +
+    `<rect x="${x}" y="${y}" width="${side}" height="${side}" fill="${BG}"/>${mark}</svg>`;
 };
 
 const icons = [

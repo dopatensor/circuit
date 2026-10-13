@@ -4,20 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="Find people who need what you offer, and offer what you need." />
-    <meta name="theme-color" content="#fbfaf8" />
-    <meta name="color-scheme" content="light dark" />
-    <script>
-      // Apply the saved theme before the first paint (see src/theme.ts).
-      try {
-        var t = localStorage.getItem("circuit.theme");
-        var dark = t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
-        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
-        document.querySelector('meta[name="theme-color"]').content = dark ? "#111110" : "#fbfaf8";
-      } catch (e) {}
-    </script>
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
     <link rel="preload" href="/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="Circuit" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

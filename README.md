@@ -16,7 +16,7 @@ Circuits loop card with accept, decline and rating (F6). Phase 11 added the part
 dashboard (F8 UI): three numbers, the ranked capability-gap chart, the gap heat map and
 local vs bridge intro acceptance. **The frontend redesign (R1–R7, see
 [DESIGN.md](DESIGN.md)) is under way:** R1 added the new design system, the `/design`
-component gallery, light and dark themes, the new navigation, Home and "Post a job".
+component gallery, the theme (now pitch black only), the new navigation, Home and "Post a job".
 Phase 12 (demo readiness) follows the redesign.
 `make demo-check` prints PASS/FAIL per demo story. Browse the API at
 http://localhost:8000/docs.
@@ -159,10 +159,10 @@ Run `make reset-demo && make demo-check` before every demo.
 
 `frontend/` is a React + TypeScript app built with Vite and Tailwind CSS.
 
-- **Design** (see [DESIGN.md](DESIGN.md)): simple, calm and guided. Warm off-white
-  (light, the default) or near-black (dark, follows the device; Me → Appearance to pick
-  one). One amber colour for the main action on each screen, teal only for Bridge
-  matches and circuits, neutrals for the rest. IBM Plex Sans (self-hosted in
+- **Design** (see [DESIGN.md](DESIGN.md)): simple, calm and guided. Pitch black, with
+  the logo's three accents: lime for the main action on each screen, blue only for Bridge
+  matches and circuits, orange for demand (hiring, needs, gaps), neutrals for the rest.
+  The logo is drawn inline (`<Logo>` in `src/components/ds/Icon.tsx`). IBM Plex Sans (self-hosted in
   `public/fonts/`), with IBM Plex Mono only for standalone numbers. Bordered cards, no
   shadows. Tokens live in `src/index.css`.
 - **Design system** (`src/components/ds/`): Avatar, Badge (verification, Bridge, Hiring),
@@ -238,10 +238,10 @@ Run `make reset-demo && make demo-check` before every demo.
   - When a new version is deployed, a bar says "Update available, tap to refresh".
   - After the second visit, a one-time "Add Circuit to your home screen" prompt
     appears, with the Share → "Add to Home Screen" steps on iPhone.
-- **Map (F2)**: MapLibre with a quiet style in the app's light or dark theme, built from
+- **Map (F2)**: MapLibre with a quiet pitch-black style, built from
   free OpenStreetMap vector tiles (OpenFreeMap, no key; `VITE_MAP_TILES` to change). If
   tiles can't load, the map still works with a plain background and the pins. Pins are
-  real buttons, amber for hiring and grey otherwise. The map fits all pins; one "Filters" sheet (hiring, skill, distance);
+  real buttons, orange for hiring and grey otherwise. The map fits all pins; one "Filters" sheet (hiring, skill, distance);
   tap a pin for a sheet with match %, open roles, "I'm interested" and "View startup".
   MapLibre loads only with the Map tab and is cached the first time it's opened.
 - **Startup page and claim (F3)**: views, interested students and applications; for an

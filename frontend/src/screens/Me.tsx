@@ -7,7 +7,6 @@ import { useAuth } from "../auth";
 import { DemoStories } from "../components/DemoStories";
 import { Page } from "../components/Shell";
 import { Sheet } from "../components/Sheet";
-import { ThemePicker } from "../components/ThemePicker";
 import {
   Avatar,
   Card,
@@ -138,10 +137,6 @@ export default function Me() {
 
       {member.role !== "partner_admin" && <Privacy memberId={member.id} student={member.role === "student"} />}
 
-      <Card>
-        <ThemePicker />
-      </Card>
-
       {isDemo && (
         <Card className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-1">
@@ -192,11 +187,15 @@ function ProofCard() {
 function Privacy({ memberId, student }: { memberId: string; student: boolean }) {
   const profile = useMyProfile();
   const queryClient = useQueryClient();
+  // The new value shows at once (local state). The mutation's own state reaches React a
+  // tick later, so reading it here made the box flick back for a moment after a tap.
+  const [pending, setPending] = useState<boolean | null>(null);
   const toggle = useMutation({
     mutationFn: (show: boolean) => unwrap(api.PATCH("/api/members/me", { body: { show_college: show } })),
     onSuccess: (me) => queryClient.setQueryData(["members", "me"], me),
+    onSettled: () => setPending(null), // on an error the saved value shows again
   });
-  const show = toggle.isPending ? toggle.variables : (profile.data?.show_college ?? true);
+  const show = pending ?? profile.data?.show_college ?? true;
   return (
     <Card className="flex flex-col gap-4">
       <Eyebrow>Privacy</Eyebrow>
@@ -207,7 +206,10 @@ function Privacy({ memberId, student }: { memberId: string; student: boolean }) 
             className="mt-1 size-5 shrink-0 accent-[var(--accent)]"
             checked={show}
             disabled={profile.isPending || toggle.isPending}
-            onChange={(e) => toggle.mutate(e.target.checked)}
+            onChange={(e) => {
+              setPending(e.target.checked);
+              toggle.mutate(e.target.checked);
+            }}
           />
           <span className="flex flex-col gap-0.5">
             <span className="font-semibold">Show my college on my profile</span>
