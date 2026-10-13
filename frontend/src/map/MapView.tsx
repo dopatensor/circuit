@@ -6,7 +6,7 @@ import { mapStyle } from "./style";
 export type Pin = { id: string; name: string; lat: number; lng: number; hiring: boolean };
 
 /** The map with one button per startup. Pins are real buttons (named for screen
- *  readers and tests), coloured only by hiring (neon green) or not (grey). */
+ *  readers and tests), coloured only by hiring (orange) or not (grey). */
 export function MapView({
   center,
   zoom,
@@ -93,7 +93,7 @@ export function MapView({
       const dot = el.firstElementChild as HTMLElement;
       dot.className = [
         "block rounded-full border-2 border-panel transition-transform",
-        pin.hiring ? "size-4 bg-accent" : "size-3.5 bg-muted",
+        pin.hiring ? "size-4 bg-hot" : "size-3.5 bg-muted",
         pin.id === selectedId ? "scale-150 outline-2 outline-fg" : "",
       ].join(" ");
     };

@@ -50,7 +50,7 @@ export function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md"
 }
 
 /** A status label. "green" (good news) is an outlined neutral badge and "blue" (in
- *  progress) the amber tint; colour is never the only signal, the words say it. */
+ *  progress) the lime tint; colour is never the only signal, the words say it. */
 export function Pill({ children, tone = "neutral" }: { children: ReactNode; tone?: "green" | "blue" | "neutral" }) {
   return <Badge tone={tone === "green" ? "outline" : tone === "blue" ? "accent" : "neutral"}>{children}</Badge>;
 }

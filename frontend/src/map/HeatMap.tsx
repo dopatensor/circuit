@@ -1,7 +1,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import { maplibregl } from "./setup";
 import { useEffect, useRef, useState } from "react";
-import { isDarkTheme, mapStyle } from "./style";
+import { mapStyle } from "./style";
 
 export type HeatCell = { lat: number; lng: number; weight: number };
 
@@ -39,11 +39,8 @@ export function HeatMap({
         // Big enough that neighbouring 2 km cells merge into areas.
         "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 10, 40, 14, 160],
         "heatmap-opacity": 0.85,
-        // One hue. More gap = more contrast with the map: lighter on the dark theme,
-        // darker on the light one.
-        "heatmap-color": isDarkTheme()
-          ? ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(24,79,149,0)", 0.08, "rgba(24,79,149,0.6)", 0.35, "#2f8cff", 0.9, "#a9d0ff"]
-          : ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(127,176,240,0)", 0.08, "rgba(127,176,240,0.6)", 0.35, "#5b93e0", 0.9, "#1f4f99"],
+        // One hue, the orange of demand. More gap = brighter against the black map.
+        "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(140,44,0,0)", 0.08, "rgba(140,44,0,0.6)", 0.35, "#ff4f00", 0.9, "#ffb38f"],
       },
     });
     let m: maplibregl.Map;

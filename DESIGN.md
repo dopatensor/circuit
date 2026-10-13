@@ -12,7 +12,7 @@ Anything else: ask first. Icons are inline SVG; fonts are committed files.
 ## 1. Principles
 
 1. **One next step.** Every person always sees one clear thing to do next, with one
-   amber button. Students get a path (Profile → Proof → Apply → Interview); founders get
+   lime button. Students get a path (Profile → Proof → Apply → Interview); founders get
    theirs (Startup → Needs → Matches → Intros).
 2. **Same structure everywhere.** Learn one screen, know them all (section 3).
 3. **Show work, not titles.** Profiles lead with proof of work: GitHub repos, live
@@ -22,19 +22,28 @@ Anything else: ask first. Icons are inline SVG; fonts are committed files.
 
 ## 2. Look
 
-**Colour** (light is the default; dark mode follows the system):
+**Colour** (2026-10-13): one theme, **pitch black**, with the three accents from the
+logo. There is no light theme and no theme switch.
 
-| Token | Light | Dark | Job |
-| --- | --- | --- | --- |
-| `bg` | `#FBFAF8` | `#111110` | Page |
-| `panel` | `#FFFFFF` | `#191917` | Cards, sheets |
-| `raised` | `#F3F1ED` | `#22221F` | Tags, chips, inputs |
-| `line` / `line2` | `#E7E4DE` / `#D6D2CA` | `#2A2A27` / `#3D3D39` | Borders |
-| `fg` / `fg2` / `muted` | `#2B2A27` / `#55524C` / `#6E6A63` | `#ECE9E2` / `#C2BDB3` / `#948F85` | Text |
-| `accent` | `#A35A00` | `#F2A33A` | The one primary button per screen, the current step, unread counts |
-| `signal` | `#0A6B82` | `#5CC6D9` | Only Bridge matches and circuits |
+| Token | Value | Job |
+| --- | --- | --- |
+| `bg` | `#000000` | Page |
+| `panel` | `#0B0B0B` | Cards, sheets |
+| `raised` | `#161616` | Tags, chips, inputs |
+| `line` / `line2` | `#222222` / `#333333` | Borders |
+| `fg` / `fg2` / `muted` | `#F4F4F0` / `#C4C4BE` / `#8C8C86` | Text (`fg` is the logo's light grey) |
+| `accent` | `#CCFF00` lime | The one primary button per screen (black text), the current step, focus rings |
+| `signal` | `#3B82F6` blue | Only Bridge matches and circuits |
+| `hot` | `#FF4F00` orange | Demand: hiring pins and badges, needs and gaps on the dashboard |
+| `danger` | `#FF5C8A` | Errors (pink-red, so it never reads as the orange) |
 
-All text pairs pass WCAG AA (muted ≥ 4.5:1 on every surface; white on amber 5.2:1).
+All text pairs pass WCAG AA on every surface (lowest: blue on `raised` 4.9:1; black on
+lime 18:1).
+
+**Logo:** the traced "C" (light grey) with a lime and a blue terminal and an orange
+chip, drawn inline as SVG by `<Logo>` (`components/ds/Icon.tsx`); the app icons come
+from the same drawing (`npm run icons`). The gaps around the terminals are cut out,
+so it works on any dark surface.
 
 **Type:** IBM Plex Sans 400/600 for everything; IBM Plex Mono 500 only for match
 scores and big numbers. Sizes: 12 · 14 · 16 (body) · 18 (section) · 28 (page title).
@@ -51,7 +60,7 @@ warm-intro path, the circuit loop. Never decoration.
 
 ```
 Title                     one plain sentence saying what this page is for
-[ The one thing ]         the next step, the job, the person: one card, one amber button
+[ The one thing ]         the next step, the job, the person: one card, one lime button
 Section heading   See all a short list (3–5 rows) of what's next most useful
 Section heading   See all another short list
 ```
@@ -157,11 +166,10 @@ shadows; tickers and dense data tables on student screens; decorative animation.
 - **Home's path for students** was Profile → Apply → Shortlist in R1; R2 made it
   Profile → Proof → Apply → Interview.
 - **Status colours on older screens:** good news ("accepted", "hiring") is an outlined
-  neutral badge; "in progress" is the amber tint. Map pins: amber for hiring, grey
+  neutral badge; "in progress" is the lime tint. Map pins: orange for hiring, grey
   otherwise (pins must be coloured by hiring status, F2).
-- **Dashboard chart and heat colours** still use the Phase 11 blue/green pair (grid and
-  label colours now follow the theme). They get a proper two-theme check with the
-  dataviz validator in R6.
+- **Dashboard chart and heat colours** (2026-10-13): needs orange, offers blue; the gap
+  heat map is orange; in the intro split, local is neutral and bridge is blue.
 - **API addition:** `StartupLink.is_claimer`, so the app knows which startups you can
   post jobs for (being on a team isn't enough).
 - **Bundle:** first-load JavaScript is ~140 KB gzipped (budget raised to 250 KB, per the

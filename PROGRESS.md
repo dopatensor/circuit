@@ -28,6 +28,14 @@ gets its own branch name: start it from this branch (or `main`, once merged).
   (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`), restart the API. Never tried with a real
   app yet: tests use a fake GitHub.
 
+- **Brand update (2026-10-13):** pitch black only (the light theme and the theme switch
+  are gone), the new traced-"C" logo (`<Logo>`, app icons regenerated) and three accents:
+  lime `#CCFF00` (action), blue `#3B82F6` (Bridge, circuits), orange `#FF4F00` (demand:
+  hiring, needs, gaps). DESIGN.md section 2 has the tokens. The R1 notes below describe
+  the earlier light/dark themes.
+- **Code audit:** [CODE_AUDIT.md](CODE_AUDIT.md) (2026-10-13), waiting for the user to
+  pick which steps to do.
+
 ## Redesign status
 
 | Phase | State |

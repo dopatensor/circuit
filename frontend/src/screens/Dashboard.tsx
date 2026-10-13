@@ -26,11 +26,10 @@ import {
 
 const HeatMap = lazy(() => import("../map/HeatMap").then((m) => ({ default: m.HeatMap })));
 
-// Chart colours (to be re-validated for both themes in the R6 pass), checked on the dark card surface with the dataviz
-// palette checker: both inside the dark lightness band, CVD ΔE 25, contrast ≥ 3:1.
-// The neon green (#39ff8f) is too light for a filled mark, so offers use a darker step.
-const NEEDS = "#2f8cff";
-const OFFERS = "#1a9e58";
+// Chart colours: the brand accents. Needs are demand (orange), offers blue; both pass
+// 3:1 against the card surface and stay apart for colour-blind readers (orange vs blue).
+const NEEDS = "#ff4f00";
+const OFFERS = "#3b82f6";
 const GRID = "var(--line)";
 const MUTED = "var(--muted)";
 const SHOWN = 10; // capabilities in the ranked chart
@@ -354,8 +353,8 @@ function IntroSplit() {
   if (intros.isPending) return <Skeleton lines={1} className={SIZE.intros} />;
   if (intros.isError) return <ErrorState error={intros.error} retry={intros.refetch} />;
   const rows: [string, string, Schemas["AcceptanceGroup"], string][] = [
-    ["Local matches", "same sector or nearby", intros.data.local, NEEDS],
-    ["Bridge matches", "across sectors", intros.data.bridge, OFFERS],
+    ["Local matches", "same sector or nearby", intros.data.local, "var(--muted)"],
+    ["Bridge matches", "across sectors", intros.data.bridge, "var(--signal)"],
   ];
   return (
     <Card className="flex flex-col gap-4">
