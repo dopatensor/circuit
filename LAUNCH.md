@@ -10,10 +10,10 @@ Stack: FastAPI on Cloud Run (asia-south1) · Cloud Run Jobs + Scheduler · Supab
 ---
 
 ## Stage 0 — Snapshot (read-only, no code changes)
-- [ ] Mark every item in Stages 1–10 as Done / Partial / Missing with evidence (file or test)
-- [ ] List code that conflicts with CLAUDE.md / PRODUCTION.md (keep, refactor or delete)
-- [ ] List all [YOU] items I need to do, in order
-- [ ] Estimate effort per stage (S/M/L)
+- [x] Mark every item in Stages 1–10 as Done / Partial / Missing with evidence (file or test)
+- [x] List code that conflicts with CLAUDE.md / PRODUCTION.md (keep, refactor or delete)
+- [x] List all [YOU] items I need to do, in order
+- [x] Estimate effort per stage (S/M/L)
 
 ## Stage 1 — Environments and config
 - [ ] Four environments per PRODUCTION.md §2: dev (local), demo, staging, production

@@ -1,19 +1,22 @@
 # Circuit — progress
 
 **Specs:** [CLAUDE.md](CLAUDE.md), [PRODUCTION.md](PRODUCTION.md), [LAUNCH.md](LAUNCH.md) and
-[BACKLOG.md](BACKLOG.md) as of `d28e9f4` (2026-10-16). They replace every earlier spec
-(the old phase plan, "Spec additions", the R1–R7 redesign plan). [DESIGN.md](DESIGN.md)
-still holds the visual rules. [CODE_AUDIT.md](CODE_AUDIT.md) (2026-10-13) holds the
-measurements this snapshot leans on.
+[BACKLOG.md](BACKLOG.md) as of `d1be589` (2026-10-16: four environments, PRODUCTION.md
+§2a domain-free URLs). They replace every earlier spec (the old phase plan, "Spec
+additions", the R1–R7 redesign plan). [DESIGN.md](DESIGN.md) still holds the visual
+rules. [CODE_AUDIT.md](CODE_AUDIT.md) (2026-10-13) holds the measurements this snapshot
+leans on.
 
 ## Where we are (2026-10-16)
 
-- **LAUNCH.md Stage 0 (snapshot) is done.** No code was changed. Next: Stage 1, after
-  your OK and the decisions at the end of this section.
+- **LAUNCH.md Stage 0 (snapshot) is done**, re-run against `d1be589`. No code was
+  changed. Next: Stages 1 + 2 on branch `stage-1-2`, after your OK and the account
+  values listed in section 4.
 - Branch for this session: `claude/vigilant-goodall-8twjnd`.
-- Baseline at `d28e9f4`: backend `pytest` passes (exit 0), `ruff` clean, `tsc -b`
-  clean. Last recorded elsewhere (2026-10-09, not re-run today): 84 Playwright tests
-  passed, `make demo-check` 5/5, `make eval` 100% on 53 pairs, 140.5 KB first-load JS.
+- Baseline (code unchanged since `d28e9f4`): backend `pytest` passes (exit 0), `ruff`
+  clean, `tsc -b` clean. Last recorded elsewhere (2026-10-09, not re-run today): 84
+  Playwright tests passed, `make demo-check` 5/5, `make eval` 100% on 53 pairs, 140.5 KB
+  first-load JS.
 
 ---
 
@@ -21,16 +24,21 @@ measurements this snapshot leans on.
 
 Done = meets the item as written. Partial = some of it exists. Missing = nothing yet.
 
-### Stage 1 — Environments and config · effort **M**
+### Stage 1 — Environments and config · effort **L** (deploying demo + staging is most of it)
 | Item | Status | Evidence |
 |---|---|---|
-| Three environments: dev, staging, production | Missing | `config.py:23` allows only `development \| test \| production`; no deploy config anywhere |
-| [YOU] Supabase projects | Missing | – |
+| Four environments: dev, demo, staging, production | Missing | `config.py:22` allows only `development \| test \| production`; no deploy config anywhere |
+| [YOU] Supabase projects: demo, staging, production | Missing | – |
 | [YOU] GCP, Vercel, GitHub org secrets | Missing | no `.github/` |
 | Typed settings; refuse to start if a required variable is missing | Partial | `config.py` is typed (pydantic-settings), but every setting has a default (`DATABASE_URL` falls back to localhost), so nothing is ever "missing" |
-| `.env.example` complete; no secrets in repo or history | Partial | 10 settings and 3 `VITE_*` variables undocumented (CODE_AUDIT §1.3). History scan: no keys found; `.env.example` is the only env file ever committed |
-| DEMO_AUTH and demo data only in dev; test proves production refuses | Partial | refused in production unless `DEMO_PUBLIC=true` (`config.py:104`, `test_config.py:7,12`). The `DEMO_PUBLIC` escape hatch contradicts the new rule |
-| [YOU] Redis for staging and production | Missing | – |
+| No hard-coded domains; all URLs from §2a variables (grep test in CI) | Partial | no Circuit domain appears anywhere (only `localhost` dev defaults in `config.py:24,84`, `vite.config.ts:10`; third-party GitHub and OpenFreeMap URLs). But the §2a variables don't exist: there is `CORS_ORIGINS` (not `CORS_ALLOWED_ORIGINS`/`CORS_PREVIEW_REGEX`), `GITHUB_REDIRECT_URL` is its own full URL, and `APP_URL`, `API_URL`, `EMAIL_FROM`, `SUPPORT_EMAIL`, `SUPABASE_URL` are missing. No grep test |
+| Staging and demo working on default URLs, incl. sign-in and CORS | Missing | nothing deployed; no backend Dockerfile |
+| Environment banner; noindex outside production | Missing | no banner; `public/robots.txt` allows everything; no `noindex` meta |
+| Demo: `make reset-demo ENV=demo`, nightly reset job, deploys from tags | Partial | `make reset-demo` exists (`Makefile`, `cli.py` `reset-demo`, refuses in production unless `DEMO_PUBLIC`); no `ENV=` parameter, no nightly job, no tag deploys |
+| `make smoke URL=...` | Missing | no smoke script |
+| `.env.example` complete; no secrets in repo or history | Partial | 10 settings and 3 `VITE_*` variables undocumented (CODE_AUDIT §1.3); no per-environment notes. History scan: no keys found; `.env.example` is the only env file ever committed |
+| DEMO_AUTH and demo data only in dev and demo; tests prove staging and production refuse | Partial | production refuses unless `DEMO_PUBLIC=true` (`config.py:104`, `test_config.py:7,12`); staging doesn't exist as a value, so nothing refuses it |
+| [YOU] Redis for demo, staging and production | Missing | – |
 | Redis cache + rate limits behind `cache/`, Postgres fallback (tested) | Missing | `app/cache/__init__.py` has the interface and only a Postgres implementation; `compose.yaml` has no Redis |
 | Graph queries behind `graph/` with recursive SQL + networkx | **Done** | `app/graph/__init__.py` (`PostgresGraph.paths` recursive SQL, `can_help`), `circuits/engine.py` (networkx + CP-SAT); `test_circuits_engine.py`, `test_intros.py` |
 
@@ -58,7 +66,7 @@ Done = meets the item as written. Partial = some of it exists. Missing = nothing
 | Account settings: profile, notifications, privacy, export, delete | Partial | edit profile (`/me/profile`), privacy toggle for college (`Me.tsx:187`); `DELETE /api/members/me` exists without a button; no export, no notification settings |
 | Circuits polished: loop card, live status, completion, mark done, rating | Partial | loop card, accept/decline, rate → completed (`api/circuits.py:212-243`, `Circuits.tsx`). No live status (Realtime), no completion moment; "mark done" and "rate" are one action |
 | Notifications in-app and email | Missing | no notifications table |
-| [YOU] Email provider + DNS | Missing | – |
+| [YOU] Email provider (staging test sender; DNS once the domain exists) | Missing | no email code at all; claim codes are returned in the API response outside production instead (`claims.py:54`) |
 | Report and block | Missing | – |
 | Help/FAQ, support contact, 404, 500 pages | Missing | unknown routes redirect to Home (`App.tsx`) |
 
@@ -82,7 +90,7 @@ Done = meets the item as written. Partial = some of it exists. Missing = nothing
 ### Stage 6 — Deploy pipeline · effort **M–L**
 | Item | Status | Evidence |
 |---|---|---|
-| [YOU] Domain, HTTPS + HSTS | Missing | – |
+| [YOU] Buy domain, then follow §2a switch (config only); HTTPS + HSTS | Missing | – (once the §2a variables exist, no code change will be needed) |
 | GitHub Actions on PR | Missing | no `.github/`; checks exist locally (`make lint`, `make test`, `npm run size`) |
 | On merge: build, migrate, deploy staging, smoke tests | Missing | no backend Dockerfile (only `db/Dockerfile`) |
 | Production deploy with manual approval; tagged releases | Missing | – |
@@ -114,14 +122,15 @@ Done = meets the item as written. Partial = some of it exists. Missing = nothing
 
 ### Stage 9 — Repo cleanup · effort **M**
 Partial: measured in CODE_AUDIT.md (dead code, duplication, bundle); nothing deleted yet.
-No RUNBOOK.md.
+No RUNBOOK.md; `make check` doesn't exist (`make demo-check` does). Docs list: all present
+except RUNBOOK.md; CODE_AUDIT.md would be deleted or archived here.
 
 ### Stage 10 — Go live · effort **S** for code, most of it is yours
 All Missing (no RUNBOOK.md, no staging, no pilot).
 
 ---
 
-## Stage 0 — 2. Code that conflicts with the new CLAUDE.md
+## Stage 0 — 2. Code that conflicts with CLAUDE.md and PRODUCTION.md
 
 Keep = leave as is. Refactor = change it in place. Delete = remove it.
 
@@ -139,6 +148,10 @@ Keep = leave as is. Refactor = change it in place. Delete = remove it.
 | 9 | `db.py` engine: no pool size, no `statement_timeout`, prepared statements on | Supabase pooler (transaction mode) breaks prepared statements | **Refactor** (settings for pool, timeout, `prepare_threshold=None` on the pooled URL) |
 | 10 | fastembed downloads its ~130 MB model on first use | first request after a deploy pays for it | **Refactor**: download at image build |
 | 11 | Postgres 16 in `db/Dockerfile` | CLAUDE.md says 16; Supabase sets the major version per project | **Keep**; confirm the Supabase version in Stage 1 and match local to it |
+| 11a | URL settings: `CORS_ORIGINS` (`config.py:24`), `GITHUB_REDIRECT_URL` as its own full URL (`config.py:84`), frontend `VITE_API_URL` only | §2a names `APP_URL`, `API_URL`, `CORS_ALLOWED_ORIGINS`, `CORS_PREVIEW_REGEX`, `EMAIL_FROM`, `SUPPORT_EMAIL`, `SUPABASE_URL`, `VITE_APP_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | **Refactor**: rename `CORS_ORIGINS`, derive the GitHub callback from `APP_URL`, add the rest; grep test for hard-coded domains |
+| 11b | `public/robots.txt` allows everything; no banner | demo and staging must be noindex and show a banner | **Refactor**: robots + `noindex` from `ENV` at build time; banner component |
+| 11c | Claim codes shown in the API response outside production (`claims.py:54`) | §2 email modes: dev logs to console, demo shows in UI, staging uses the provider's test sender | **Refactor** behind an email interface with those three modes (provider in Stage 3) |
+| 11d | `make reset-demo` only for the local database; no nightly reset | demo resets nightly and on demand; deploys from release tags | **Refactor**: `make reset-demo ENV=demo` + a Cloud Run Job on a schedule |
 
 ### Auth and access
 | # | Code | Conflict | Recommendation |
@@ -148,7 +161,7 @@ Keep = leave as is. Refactor = change it in place. Delete = remove it.
 | 14 | Level 1 on profile creation reads a `verification_level` claim (`api/members.py:67`) | Supabase tokens don't carry it; real users would start at level 0 | **Refactor**: derive level 1 from Supabase's verified-email claim |
 | 15 | `require_admin()` = partner_admin at level 3 (`auth.py:203`); roles enum has no `super_admin` | super_admin is separate; partner admins are scoped | **Refactor**: add `super_admin`, `require_role`, move admin endpoints to it |
 | 16 | No organisations, no `organisation_id`; dashboard is platform-wide, small counts shown (`dashboard.py`) | F8 scoping + counts under 5 hidden | **Refactor** (migration + scoping filter + suppression) |
-| 17 | `DEMO_PUBLIC` (`config.py:41,104`, `claims.py:54` dev code, `cli.py:82` reset-demo, `demo_check.py:257`) | production must refuse DEMO_AUTH outright | **Delete** `DEMO_PUBLIC`; add `demo` (and `staging`) to `ENV`; demo features check "dev or demo" |
+| 17 | `ENV` values `development \| test \| production` (`config.py:22`); `DEMO_PUBLIC` lets production run DEMO_AUTH (`config.py:104`); `cli.py:82`, `claims.py:54`, `demo_check.py:257` test "not production or DEMO_PUBLIC" | `ENV` is `dev \| demo \| staging \| production`; DEMO_AUTH refused in staging and production, no exception; `DEMO_PUBLIC=true` belongs to demo only | **Refactor**: new ENV values; demo-only features check `ENV in (dev, demo)`; keep `DEMO_PUBLIC` as the demo's explicit flag (refuse it outside demo). Tests set `ENV=test` today (`tests/conftest.py:6`): switch them to `dev` |
 | 18 | Demo HS256 persona tokens (`auth.py:92-106`), `/api/auth/demo/*` | allowed in dev/demo only | **Keep**, gated by the new ENV values |
 | 19 | Frontend: `auth.tsx` and `Welcome.tsx` only know demo personas | Supabase sign-in needed | **Refactor**: real sign-in + landing; persona switcher only in dev/demo builds |
 | 20 | No RLS | RLS on every table | **Add** (migration) |
@@ -189,10 +202,11 @@ Keep = leave as is. Refactor = change it in place. Delete = remove it.
 | 39 | CODE_AUDIT.md says "there is no PRODUCTION.md" | out of date | **Keep** as reference until Stage 9 |
 
 ### Where the new docs still disagree with each other
-- **Where demo logins are allowed.** CLAUDE.md F9 says dev and demo environments. PRODUCTION.md §2 has no demo environment and allows them on staging. LAUNCH Stage 1 says dev only.
+- **Demo logins:** now consistent (dev and demo only) across all three files. Resolved.
+- **Dev sign-in.** PRODUCTION.md §2 gives dev "DEMO_AUTH personas + Supabase" but "Local Postgres", so dev has no Supabase project for real sign-in. Options: dev points its auth at the staging Supabase project, or uses the Supabase CLI locally (another tool). Needs your call.
+- **`make smoke` sends a test email**, but demo has email disabled. Smoke on demo should skip that step.
 - **Expiry timers.** PRODUCTION.md uses pg_cron for expiry. CLAUDE.md and the other jobs use Cloud Scheduler.
 - **GitHub proof of work.** CLAUDE.md lists it as "planned next" and BACKLOG P1 lists it, but it is built. PWA, design system and navigation are also built yet still listed in BACKLOG P1.
-- **Stage 0's scope.** LAUNCH Stage 0 says "Stages 1–8", but there are 10.
 - **Stage 2 rate limits.** They cover messages and connections, which aren't built yet.
 
 ---
@@ -233,41 +247,65 @@ The closest things to a rebuild are small:
 
 ## Stage 0 — 4. Your [YOU] tasks, in order
 
-1. **Approve the Stage 1 dependencies.** These are a Redis client (`redis` for Python),
-   the Supabase JS client (frontend, auth only for now), and later `sentry-sdk`,
-   `@sentry/react`, `@axe-core/playwright` and an email SDK.
-2. **Decide the open questions** at the end of this section.
-3. **Turn on 2FA** for GitHub, then create or confirm the **GitHub org**: Dependabot,
-   secret scanning, branch protection on `main`.
-4. **Create a GCP project** (staging + production, asia-south1). Apply for Google for
-   Startups credits. Set budget alerts the same day.
-5. **Create the Supabase projects**: staging (free) and production (Pro). Turn on
-   Google sign-in (needs a Google OAuth client) and email OTP. Set redirect URLs per
-   environment. Tell me the Postgres version they run.
-6. **Create Redis** (Upstash or Memorystore) for staging and production.
-7. **Create a Vercel project**, linked to the repo.
-8. **Buy the domain.** It unlocks `api.<domain>`, HTTPS and email DNS.
-9. **Pick an email provider** (Resend or Postmark) and set SPF, DKIM and DMARC.
-10. **Create a GitHub OAuth App** per environment (for proof of work), with callback
-    URLs on the new domain.
-11. **Create an Anthropic API key** per environment with a monthly cap.
-12. **Create a Sentry account** and an uptime monitor (Better Stack or UptimeRobot)
-    that alerts your phone.
-13. **Get a lawyer** to review the privacy policy, terms and cookie notice.
-14. **Run the fresh-eyes test** with 5 real users on staging.
-15. **Onboard the pilot college.**
+### Needed before Stages 1 + 2 can be finished
+1. **Approve dependencies.** Backend: `redis` (Python client). Backend dev only:
+   `fakeredis` (tests run without a Redis server). Frontend: `@supabase/supabase-js`
+   (sign-in only for now). Rate limiting, security headers and JWKS need nothing new.
+2. **Answer the decisions** below.
+3. **Turn on 2FA** for GitHub, then the **GitHub org**: Dependabot, secret scanning,
+   branch protection on `main`.
+4. **Create a GCP project** in asia-south1. Turn on billing, Cloud Run, Artifact Registry
+   and Secret Manager. Set a budget alert. Apply for Google for Startups credits.
+5. **Create Supabase projects**: demo (free) and staging (free). Production (Pro) can
+   wait until Stage 6. In each: turn on email OTP and Google sign-in (needs a Google
+   OAuth client from the GCP console). Leave Site URL for me to give you once the
+   default URLs exist.
+6. **Create Redis** (Upstash free tier) for demo and staging.
+7. **Create the Vercel projects** for demo and staging, linked to the repo.
+8. **Pick an email provider** (Resend or Postmark) and create a test/sandbox API key
+   for staging. `make smoke` sends one test email.
+9. **Give me deploy access** for this session (see "Account values" below), or run the
+   deploy commands I prepare on your own machine.
 
-### Decisions I need before or during Stage 1
-- **Demo environment.** Is "demo" a fourth environment (seed data only, deployed by
-  hand from a tag)? That is what I recommend, since CLAUDE.md F9 implies it and it keeps
-  staging free of persona logins. If not, should staging allow demo logins, as
-  PRODUCTION.md says?
-- **Expiry timers.** pg_cron (as in PRODUCTION.md) or a Cloud Run Job (one system)?
-- **What an organisation is.** Is it a college, an incubator or a program, and how do
-  members join one (invite link, email domain, admin adds them)?
-- **Schema changes to approve.** Rename `auth_subject` → `auth_user_id`, drop
-  `startups.open_roles`, replace `show_college` with `profile_visibility`.
-- **API removals to approve.** The redundant endpoints in item 33.
+### Later stages
+10. Supabase production project (Pro) and production Redis (paid tier): Stage 6.
+11. Buy the domain, then the §2a switch checklist: Stage 6.
+12. Email domain DNS (SPF, DKIM, DMARC) once the domain exists: Stages 3 and 6.
+13. GitHub OAuth App per environment (proof of work), callbacks on `APP_URL`.
+14. Anthropic API key per environment with a monthly cap (optional; manual pickers work without it).
+15. Sentry account and an uptime monitor that alerts your phone: Stage 7.
+16. Lawyer reviews the privacy policy, terms and cookie notice: Stage 5.
+17. Fresh-eyes test with 5 real users on staging: Stage 10.
+18. Onboard the pilot college: Stage 10.
+
+### Account values I will ask you for (never guessed)
+For **each of demo and staging**:
+- Supabase: project URL, anon (publishable) key, service role key (backend only),
+  database connection strings (pooler and direct).
+- Redis: connection URL.
+- Vercel: project name (the `*.vercel.app` URL follows from it).
+- Email (staging only): provider API key and test sender address.
+
+Once only:
+- GCP project ID; whether demo and staging share one project (cheaper, simpler) or get one each.
+- Deploy access from this cloud session. My container has no Google or Vercel login. The
+  options are: (a) you add a deploy service-account key and a Vercel token as secrets in
+  this environment's settings, which I would replace with keyless GitHub deploys in Stage 6;
+  or (b) I write the deploy commands and you run them on your laptop. (a) lets me finish
+  "deploy and run `make smoke`" myself; (b) keeps keys off this machine.
+
+### Decisions I need before Stages 1 + 2
+- **Dev sign-in:** dev uses the staging Supabase project for real sign-in (my
+  recommendation, nothing to install), or the Supabase CLI locally.
+- **Expiry timers:** pg_cron (as in PRODUCTION.md) or a Cloud Run Job, so there is one
+  scheduling system (my recommendation).
+- **What an organisation is** (Stage 2 needs it for partner scoping and its tests): a
+  college, an incubator or a program, and how members join one (invite link, email
+  domain, an admin adds them).
+- **Schema changes to approve:** rename `auth_subject` → `auth_user_id`; add
+  `super_admin`, `organisations` and `organisation_id`. (Dropping `startups.open_roles` and
+  replacing `show_college` can wait for later stages.)
+- **API removals to approve:** the redundant endpoints in item 33 (not needed for Stages 1–2).
 
 ---
 
