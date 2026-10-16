@@ -36,21 +36,63 @@ Postgres (Supabase). Heavy work never runs inside a user request.
 
 ## 2. Environments
 
-| | dev | staging | production |
-|---|---|---|---|
-| Where | Laptop (docker compose) | Cloud Run + Vercel preview | Cloud Run + Vercel prod |
-| Supabase | Local Postgres or free project | Free project | Pro project |
-| Redis | Local container | Free/small tier | Paid tier |
-| Data | Seed + demo stories | Seed + anonymised copies | Real users only |
-| DEMO_AUTH | Allowed | Allowed (marked) | Impossible (app refuses to start) |
-| Deploy | Manual | Auto on merge to main | Manual approval after staging passes |
+Four environments. `ENV` is one of `dev`, `demo`, `staging`, `production`.
+
+| | dev | demo | staging | production |
+|---|---|---|---|---|
+| Purpose | Building and debugging | Investor, partner and outreach demos | Testing releases before production | Real users |
+| Where | Laptop (docker compose) | Cloud Run + Vercel (own services) | Cloud Run + Vercel (own services + PR previews) | Cloud Run + Vercel |
+| Supabase | Local Postgres | Free project | Free project | Pro project (backups + PITR) |
+| Redis | Local container | Free tier | Free/small tier | Paid tier |
+| Data | Seed + demo stories | Seed + demo stories ONLY, reset nightly and on demand | Seed + test accounts (never real users' data) | Real users only |
+| Login | DEMO_AUTH personas + Supabase | DEMO_AUTH personas (DEMO_PUBLIC=true) + Supabase | Supabase only (DEMO_AUTH off) | Supabase only; DEMO_AUTH impossible |
+| Email | Logged to console | Disabled (shown in UI only) | Provider test sender, to team inboxes | Provider, real sender |
+| Search engines | n/a | noindex | noindex | Indexed (public pages only) |
+| Deploy | Manual | Manual, from a release tag | Auto on merge to main | Manual approval after staging passes |
+| Banner | "Dev" | "Demo — sample data" | "Staging" | none |
 
 Rules:
-- Every environment has its own keys, database, buckets and OAuth redirect URLs.
+- Every environment has its own keys, database, buckets, Redis and OAuth redirect URLs.
+  No environment ever reads another's data. Real user data exists only in production.
 - A typed settings module validates all variables at startup; missing = refuse to start.
-- `.env.example` documents every variable. `.env` is gitignored.
+- The app refuses to start if DEMO_AUTH=true and ENV is staging or production.
+- Demo runs the same code as production (a release tag), only with demo config and data,
+  so demos always show real, shipped features.
+- `.env.example` documents every variable, with a note per environment. `.env` is gitignored.
 
 ---
+
+## 2a. Domains and URLs (one place to change)
+
+Nothing in code hard-codes a domain. Every URL comes from these variables, set per
+environment. Until our domain is bought, demo and staging use the platform default
+URLs; afterwards they become `demo.<domain>` and `staging.<domain>`.
+
+| Variable | Used for | Before domain (staging) | After domain (production) |
+|---|---|---|---|
+| `APP_URL` | Frontend origin, email links, OG/sitemap URLs | `https://<project>.vercel.app` | `https://<domain>` |
+| `API_URL` | Frontend API base, CSP connect-src | `https://<service>-<hash>.a.run.app` | `https://api.<domain>` |
+| `CORS_ALLOWED_ORIGINS` | Exact origins allowed by the API (comma-separated) | `APP_URL` + `http://localhost:5173` (dev only) | `APP_URL` only |
+| `CORS_PREVIEW_REGEX` | Vercel preview URLs (staging only, empty in prod) | `^https://<project>-git-.*\.vercel\.app$` | empty |
+| `EMAIL_FROM` | Sender address | Provider's test/sandbox sender | `Circuit <hello@<domain>>` |
+| `SUPPORT_EMAIL` | Footer, legal pages | A team inbox | `support@<domain>` |
+| `SUPABASE_URL` | Auth, storage, realtime | Staging project URL | Production project URL |
+
+Frontend reads `VITE_API_URL`, `VITE_APP_URL`, `VITE_SUPABASE_URL`,
+`VITE_SUPABASE_ANON_KEY` at build time (set in Vercel per environment).
+
+Switching to the real domain (checklist, ~1 hour plus DNS wait):
+1. [YOU] Vercel: add `<domain>`, set DNS records, wait for HTTPS.
+2. [YOU] API: map `api.<domain>` to Cloud Run (domain mapping, or a load balancer if
+   domain mapping isn't available in asia-south1), set DNS, wait for certificate.
+3. Update the variables above in Vercel and Secret Manager / Cloud Run env.
+4. Supabase Auth: set Site URL to `APP_URL`, add redirect URLs (`APP_URL/auth/callback`,
+   staging URL, `http://localhost:5173/auth/callback`).
+5. Google OAuth client: add `APP_URL` to authorised JavaScript origins (redirect URI stays
+   the Supabase callback).
+6. Email: verify the domain in the provider (SPF, DKIM, DMARC), then switch `EMAIL_FROM`.
+7. Redeploy frontend and API; run `make smoke URL=<APP_URL>` (sign-in, CORS preflight,
+   one API read, one write, email send).
 
 ## 3. Security baseline
 
