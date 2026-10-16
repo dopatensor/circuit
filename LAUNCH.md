@@ -1,7 +1,7 @@
 # Circuit — Launch plan
 
 How to use this file:
-- Do ONE stage per session. Read only that stage plus CLAUDE.md.
+- Do one stage per session (or two small, related stages, e.g. 1 + 2). Read only those stages plus CLAUDE.md and PRODUCTION.md.
 - Each stage ends with: tests pass, commit, tick the boxes below, update PROGRESS.md, explain in plain language, stop.
 - Items marked [YOU] need the human (accounts, money, approvals). Claude Code lists them, never fakes them.
 
@@ -10,18 +10,24 @@ Stack: FastAPI on Cloud Run (asia-south1) · Cloud Run Jobs + Scheduler · Supab
 ---
 
 ## Stage 0 — Snapshot (read-only, no code changes)
-- [ ] Mark every item in Stages 1–8 as Done / Partial / Missing with evidence (file or test)
+- [ ] Mark every item in Stages 1–10 as Done / Partial / Missing with evidence (file or test)
+- [ ] List code that conflicts with CLAUDE.md / PRODUCTION.md (keep, refactor or delete)
 - [ ] List all [YOU] items I need to do, in order
 - [ ] Estimate effort per stage (S/M/L)
 
 ## Stage 1 — Environments and config
-- [ ] Three environments: dev (local), staging, production
-- [ ] [YOU] Supabase projects: staging (free ok), production (Pro plan)
+- [ ] Four environments per PRODUCTION.md §2: dev (local), demo, staging, production
+- [ ] [YOU] Supabase projects: demo (free), staging (free), production (Pro plan)
 - [ ] [YOU] GCP project(s), Vercel project, GitHub org secrets
 - [ ] One typed settings module; app refuses to start if a required variable is missing
+- [ ] No hard-coded domains anywhere: all URLs come from the PRODUCTION.md §2a variables (grep test in CI)
+- [ ] Staging and demo fully working on default URLs (*.vercel.app + *.run.app) including sign-in and CORS
+- [ ] Environment banner (Dev / Demo / Staging) and noindex outside production
+- [ ] Demo: `make reset-demo ENV=demo` plus a nightly reset job; demo deploys from release tags
+- [ ] `make smoke URL=...` script: sign-in page loads, CORS preflight passes, one read, one write, test email
 - [ ] .env.example complete and documented; no secrets in repo or git history
-- [ ] DEMO_AUTH and demo seed data only in dev (test proves production refuses them)
-- [ ] [YOU] Redis (Upstash or Memorystore) for staging and production
+- [ ] DEMO_AUTH and demo seed data only in dev and demo (tests prove staging and production refuse them)
+- [ ] [YOU] Redis (Upstash or Memorystore) for demo, staging and production
 - [ ] Redis: cache + rate limits behind cache/ interface, Postgres fallback when down (tested)
 - [ ] Graph queries (warm paths, circuits) behind graph/ interface using recursive SQL + networkx
 
@@ -45,7 +51,7 @@ Stack: FastAPI on Cloud Run (asia-south1) · Cloud Run Jobs + Scheduler · Supab
 - [ ] Account settings: edit profile, notifications, privacy, export data, delete account
 - [ ] Circuits polished: loop card, live status via Realtime, completion moment, mark done, rating
 - [ ] Notifications in-app (Realtime) and email for intros, applications, circuits
-- [ ] [YOU] Email provider account + domain DNS (SPF, DKIM, DMARC)
+- [ ] [YOU] Email provider account (staging uses its test sender; domain DNS — SPF, DKIM, DMARC — once the domain exists)
 - [ ] Report and block users
 - [ ] Help/FAQ page, support contact, 404 and 500 pages
 
@@ -63,7 +69,7 @@ Stack: FastAPI on Cloud Run (asia-south1) · Cloud Run Jobs + Scheduler · Supab
 - [ ] Data retention rules + scheduled cleanup job
 
 ## Stage 6 — Deploy pipeline
-- [ ] [YOU] Buy domain; app at <domain>, API at api.<domain>, HTTPS + HSTS
+- [ ] [YOU] Buy domain, then follow PRODUCTION.md §2a "Switching to the real domain" (config only, no code changes); HTTPS + HSTS
 - [ ] GitHub Actions on PR: lint, strict type-check, unit, API, Playwright; merge blocked on failure
 - [ ] On merge: build, migrate, deploy to staging, smoke tests
 - [ ] Production deploy = manual approval after staging passes; tagged releases
@@ -94,8 +100,8 @@ Stack: FastAPI on Cloud Run (asia-south1) · Cloud Run Jobs + Scheduler · Supab
 - [ ] Remove debug code, stray TODOs, commented-out code, leftover experiments
 - [ ] One consistent pattern each for errors, data fetching, validation, logging
 - [ ] Clear folder structure; README with setup in under 10 minutes on Mac and WSL
-- [ ] Docs folder: CLAUDE.md, DESIGN.md, LAUNCH.md, RUNBOOK.md, PROGRESS.md; delete outdated docs
-- [ ] All tests green, demo-check green, before/after size numbers recorded
+- [ ] Docs: CLAUDE.md, PRODUCTION.md, LAUNCH.md, BACKLOG.md, DESIGN.md, RUNBOOK.md, PROGRESS.md; delete outdated docs
+- [ ] All tests green, `make check` green, before/after size numbers recorded
 
 ## Stage 10 — Go live
 - [ ] RUNBOOK.md complete: deploy, rollback, restore, rotate secrets, outage, data request, takedown
