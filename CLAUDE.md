@@ -68,8 +68,10 @@ Frontend (/frontend)
 - Recharts; Supabase JS client only for auth, storage uploads and realtime
 
 Infra: see PRODUCTION.md (Cloud Run, Cloud Run Jobs + Scheduler, Supabase, Redis,
-Vercel, GitHub Actions). Local dev: docker compose with Postgres (PostGIS + pgvector)
-and Redis. Every image must work on ARM64 and x86_64.
+Vercel, GitHub Actions). Four environments: dev, demo, staging, production (ENV
+variable; details in PRODUCTION.md §2). Local dev: docker compose with Postgres
+(PostGIS + pgvector) and Redis. Every image must work on ARM64 and x86_64.
+No hard-coded domains: all URLs come from config (PRODUCTION.md §2a).
 
 Graph queries (warm paths, circuits, 2nd-degree network) use recursive SQL and
 networkx behind a graph/ interface. Neo4j is NOT in scope; it can be added behind the
@@ -94,8 +96,8 @@ same interface if a measured trigger in BACKLOG.md is hit.
 - Roles: student, founder, mentor, investor, partner_admin, super_admin.
 - require_role / require_level / partner scoping on every endpoint; IDOR tests.
 - RLS on every table; all writes go through FastAPI; service role key only in backend.
-- DEMO_AUTH issues persona tokens in dev/demo only. The app refuses to start with
-  DEMO_AUTH=true when ENV=production.
+- DEMO_AUTH issues persona tokens in dev and demo only. The app refuses to start with
+  DEMO_AUTH=true when ENV is staging or production.
 
 ## Data model (Postgres)
 - members: id, auth_user_id, role, display_name, bio, location (geography), city,
@@ -141,7 +143,7 @@ GIST indexes on locations, HNSW on embeddings, indexes on every foreign key.
 
 ## How to work with me
 - I'm learning. Explain what you built and why in plain language, including new concepts.
-- Work on one LAUNCH.md stage (or one approved backlog item) per session, on its own branch.
+- Work on one LAUNCH.md stage (or two small related ones I name) per session, on its own branch.
 - Write tests as you build. Never finish with failing tests.
 - At the end: tick LAUNCH.md boxes, update PROGRESS.md, commit, summarise, stop for my OK.
 - Ask before adding any dependency, changing the schema in a breaking way, or deleting data.
