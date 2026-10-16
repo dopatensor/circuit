@@ -12,7 +12,7 @@ Priority: P0 = before pilot · P1 = during pilot · P2 = after pilot · Later = 
 - [ ] Consolidate specs: CLAUDE.md, PRODUCTION.md, DESIGN.md, LAUNCH.md agree; PROGRESS.md status table
 - [ ] Supabase migration: Auth (Google + email OTP), RLS on all tables, Storage, Realtime
 - [ ] Redis: match + dashboard cache with TTL and invalidation, rate limits, Postgres fallback
-- [ ] Neo4j: sync job from Postgres, warm paths and circuit cycles in Cypher, SQL/networkx fallbacks, parity tests
+- [ ] graph/ interface: warm paths and circuit cycles via recursive SQL + networkx, tested on known graphs
 - [ ] Access control: super_admin role, organisations + partner scoping, founder-only stats, counts < 5 hidden
 - [ ] Landing page, sign-up → onboarding → first match in < 2 minutes
 - [ ] Exchange circuits polished: loop card, live status, completion moment, mark done, ratings, notifications
@@ -84,6 +84,7 @@ Priority: P0 = before pilot · P1 = during pilot · P2 = after pilot · Later = 
 - [ ] Circuit scoring with predicted acceptance probabilities
 - [ ] Portable signed badges (W3C Verifiable Credentials)
 - [ ] Ecosystem reports (anonymised, sponsored)
+- [ ] Neo4j behind the graph/ interface. Trigger: warm-path or circuit queries exceed ~500ms p95, or the circuit round takes > 10 minutes, or we need multi-hop network features SQL can't express cleanly
 - [ ] Rust (PyO3) or Go for a specific hot path, only if profiling shows Python is the bottleneck
 - [ ] Graph neural networks (only at tens of thousands of active users)
 
@@ -96,3 +97,5 @@ Priority: P0 = before pilot · P1 = during pilot · P2 = after pilot · Later = 
 - Paying for placement in match rankings
 - Microservices / Kubernetes at pilot scale
 - Full backend rewrite (Django, Rust or Go) before the pilot
+- Neo4j for the pilot (Postgres + networkx is enough; see trigger in Later)
+- Restarting the codebase from scratch (continue and refactor instead; see CODE_AUDIT)
