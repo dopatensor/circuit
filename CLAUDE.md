@@ -1,259 +1,149 @@
-# Circuit — MVP build spec (start from scratch)
+# Circuit — engineering guide
 
-## Purpose of this MVP
-Circuit is a startup ecosystem platform. This MVP exists to support OUTREACH: we will
-demo it live to colleges, incubators, founders and investors. Every feature must make
-our differentiator visible within a 5-minute demo. Polish the demo path over breadth.
+Read this every session. It says WHAT Circuit is and HOW we build it.
+- PRODUCTION.md: how it runs in production (infra, security, ops). Wins on infra questions.
+- LAUNCH.md: the staged checklist to reach production. Do one stage per session.
+- BACKLOG.md: everything else, prioritised. Never build from it without it being pulled into a stage.
+- PROGRESS.md: current status. Update it at the end of every session.
+- DESIGN.md: visual and writing rules (create it before redesign work).
 
-Our differentiator, in one line: we match people on what they NEED and what they can
-OFFER (not on sector or job titles), across sectors, with exchange circuits and a map
-of who is hiring nearby.
+## Product
+Circuit is a startup ecosystem platform for India, starting with one pilot city and
+one partner college.
 
-Two sides of the product:
-1. Students (often from lower-tier colleges) find nearby startups that are hiring, on
-   a map, and get matched on skills rather than college name.
-2. Founders, mentors and investors get matched on needs and offers, including
-   cross-sector "bridge" matches, warm intros and 3-person exchange circuits.
-Plus: partners (colleges, incubators) see a dashboard of what their ecosystem lacks.
+Differentiator: we match people on what they NEED and what they can OFFER, not on
+sector or job titles. That enables cross-sector "bridge" matches, warm intros and
+3-person exchange circuits, plus a map of who is hiring nearby.
 
-Web crawling is OUT of scope. Use seed data shaped like future crawler output.
+Users:
+- Students (often tier 2/3 colleges): find nearby hiring startups and jobs, matched on
+  skills and proof of work, not college name.
+- Founders, mentors, investors: matches with reasons, warm intros, exchange circuits.
+- Partner admins (colleges, incubators): dashboard of their own ecosystem's gaps.
+- Super admins (Circuit team): verification, moderation, crawled-data review.
 
-## How to work with me
-- I'm learning backend and frontend development. After each phase, explain what you
-  built and why in plain language, including concepts I might not know.
-- Work in the phases below, in order. At the end of each phase: run tests, commit
-  with a clear message, summarise, and STOP for my OK.
-- Keep it simple: one repo, one backend app, one frontend app. No microservices.
-- Ask before adding any dependency not listed below.
-- Never commit secrets. Use .env (gitignored) and provide .env.example.
-- I develop on Windows (WSL2, x86_64) and macOS (Apple Silicon, ARM64). Everything
-  must run on both; verify every Docker image supports both architectures.
+## Features (current scope)
+F1  Smart onboarding: paste a bio → LLM suggests needs, offers, capabilities, traits
+    from OUR FIXED LISTS ONLY → user confirms with chips. Manual pickers if the LLM fails.
+F2  Startup map: filters (hiring, capability, distance), pins by hiring status, popup
+    with match %, open roles, "I'm interested".
+F3  Unclaimed startup profiles + claim flow (verify via company email domain). Shows
+    student views/interest to motivate claiming. Claimed data is never overwritten.
+F4  Matches with one-line reasons; "Bridge match" badge for cross-sector matches.
+F5  Warm intros via the best mutual connection (1–2 hops); weekly capacity limits.
+F6  Exchange circuits: weekly round + super-admin "Run round now". 3-person loops,
+    weakest-link score, CP-SAT selection, 72h consent, live status, mark done, rating.
+F7  Verification levels 1–3 as badges (1 email, 2 work email/LinkedIn, 3 admin-verified).
+F8  Partner dashboard: gap chart + heatmap, network stats, local vs bridge acceptance.
+    Scoped to the partner's organisation; counts under 5 hidden.
+F9  Demo mode (dev/demo environments only): persona switcher + `make reset-demo`.
+F10 Logging + events: one JSON log line per request; append-only events table.
+F11 Jobs and applications: list, filters, job page with skill match, one-click apply,
+    statuses, founder applicant view ranked by skill match.
+F12 Account basics: landing page, sign-up/onboarding, settings, export, delete,
+    notifications (in-app + email), report/block, help/FAQ, legal pages.
+F13 Admin: super-admin panel (verify, moderate, review crawled startups, takedowns,
+    metrics, audit log).
+
+Planned next (see BACKLOG.md): networking redesign (feed, profiles with proof of work,
+connections, search, inbox), GitHub proof of work, production crawler, PWA polish.
 
 ## Stack
 Backend (/backend)
-- Python 3.12 with uv; FastAPI; Pydantic v2
-- SQLAlchemy 2 (async) + Alembic; psycopg 3
-- Postgres 16 with PostGIS and pgvector. Build our own Dockerfile FROM postgres:16
-  installing both from the PGDG apt repo (works on ARM64 and x86_64).
+- Python 3.12, uv, FastAPI, Pydantic v2
+- SQLAlchemy 2 (async) + Alembic, psycopg 3
+- Postgres 16 + PostGIS + pgvector (Supabase in staging/production; local container in dev)
 - GeoAlchemy2, pgvector-python
-- fastembed with BAAI/bge-small-en-v1.5 (384 dims) behind an EmbeddingProvider
-  interface, plus a deterministic fake provider for tests
-- anthropic SDK, model claude-haiku-4-5-20251001, for onboarding extraction only
-  (API key in .env; the app must still work without it, falling back to manual pickers)
-- networkx for finding exchange cycles; OR-Tools CP-SAT for choosing circuits
-- APScheduler for scheduled jobs; structlog for JSON logs; pytest + httpx
+- fastembed (BAAI/bge-small-en-v1.5, 384 dims) behind an EmbeddingProvider interface,
+  with a deterministic fake provider for tests
+- anthropic SDK, claude-haiku-4-5-20251001 (onboarding extraction, crawler)
+- networkx (cycle finding), OR-Tools CP-SAT (circuit selection)
+- Redis (cache + rate limits) behind a cache/ interface
+- structlog JSON logs; pytest + httpx
 
 Frontend (/frontend)
-- React + TypeScript + Vite; Tailwind CSS
-- MapLibre GL JS with free OpenStreetMap-based tiles (no paid map key required)
-- TanStack Query for data fetching; a TypeScript client generated from the backend's
-  OpenAPI spec (openapi-typescript) so no API calls are hand-written
-- Recharts for dashboard charts
+- React + TypeScript + Vite + Tailwind; PWA
+- MapLibre GL JS with OpenStreetMap-based tiles
+- TanStack Query + a client generated from the OpenAPI spec (no hand-written fetch calls)
+- Recharts; Supabase JS client only for auth, storage uploads and realtime
 
-Infra (production details in PRODUCTION.md, which overrides anything here)
-- docker compose locally: Postgres (PostGIS + pgvector), Redis, Neo4j
-- Production: FastAPI on Google Cloud Run (asia-south1); Cloud Run Jobs +
-  Cloud Scheduler for background work; Supabase (Postgres, Auth, Storage,
-  Realtime); Redis (Upstash or Memorystore); Neo4j AuraDB; frontend on Vercel
+Infra: see PRODUCTION.md (Cloud Run, Cloud Run Jobs + Scheduler, Supabase, Redis,
+Vercel, GitHub Actions). Local dev: docker compose with Postgres (PostGIS + pgvector)
+and Redis. Every image must work on ARM64 and x86_64.
 
-Redis and Neo4j are IN scope for the pilot, each behind an interface (cache/,
-graph/). Neither is ever the source of truth: Postgres is. If either is down, the
-app falls back (Postgres reads; recursive SQL / networkx) and logs a warning.
+Graph queries (warm paths, circuits, 2nd-degree network) use recursive SQL and
+networkx behind a graph/ interface. Neo4j is NOT in scope; it can be added behind the
+same interface if a measured trigger in BACKLOG.md is hit.
 
-## Features (all must be demoable)
-F1. Smart onboarding: user pastes a bio or describes their startup; the LLM suggests
-    needs, offers, capabilities and traits FROM OUR FIXED LISTS ONLY; user confirms
-    or edits with tap-to-select chips. Manual pickers if no API key.
-F2. Startup map for students: map of startups, filters for hiring, capability and
-    distance; pins coloured by hiring status; popup with sector, open roles and a
-    "match to my skills" score; "I'm interested" button (logged as an event).
-F3. Unclaimed profiles + claim: seeded startups start unclaimed. A founder can claim
-    one (MVP: confirm via an email on the startup's domain, simulated in dev). The
-    startup shows how many students viewed or showed interest, to motivate claiming.
-F4. Matches with reasons: each member sees ranked matches, each with a one-line
-    reason built from the score components. Cross-sector matches carry a visible
-    "Bridge match" badge.
-F5. Warm intros: for any match, show the best mutual connection (1-2 hops, recursive
-    SQL). Intro requests go via the mutual when one exists. Capacity limits per
-    person per week; requests beyond capacity are refused politely.
-F6. Exchange circuits: weekly round (plus an admin "Run round now" button for demos).
-    Build CAN_HELP edges, find 3-person cycles with networkx, score by weakest link,
-    choose non-overlapping circuits with CP-SAT. Members see a loop card ("You help
-    X with A, X helps Y with B, Y helps you with C") and accept or decline within 72h.
-F7. Verification badges: levels 1-3 shown as badges on profiles. Level rules:
-    1 email verified (browse), 2 work email or LinkedIn link (matches),
-    3 role verified by admin (intros). Admin can set levels in the MVP.
-F8. Partner dashboard: gap map (per capability: active needs vs active offers, as a
-    ranked chart and as a map heat layer by area), network stats, and intro
-    acceptance rate split by local vs bridge matches.
-F9. Demo mode: a persona switcher in the header (dev/demo only) to instantly log in
-    as a prepared student, founder, mentor or partner admin. A one-command
-    "reset demo" that restores the seed data to a known state before every demo.
-F11. Jobs and applications: a jobs list (filter by role, skill, distance, paid or
-    unpaid, internship or full-time) and a job page showing the startup, role,
-    required capabilities and the student's skill match. Students apply with one
-    click (profile + short note); they see their applications and status
-    (applied | viewed | shortlisted | rejected). Founders of claimed startups see
-    applicants ranked by skill match and update status. Applications to UNCLAIMED
-    startups are saved as "interest" and shown to the founder when they claim.
-F10. Logging and events: one JSON log line per request (request_id, method, path,
-    status, duration_ms, user_id); an append-only events table for every product
-    action. Never log names, emails, phone numbers or tokens.
+## Architecture rules
+- Postgres is the only source of truth. Redis is disposable: if it's down, read from
+  Postgres and log a warning.
+- Routers are thin; business logic lives in services/. React components stay thin;
+  data logic lives in hooks.
+- Heavy work (matching, circuit rounds, crawling, LLM calls in bulk) never runs inside
+  a user request; it runs as jobs and users read precomputed results.
+- Every external call has a timeout, retries with backoff and a graceful fallback.
+- Jobs and important endpoints are idempotent.
+- One way to do each thing: one error format, one pagination style, one logging setup.
+
+## Auth and access
+- Supabase Auth: Google sign-in first, email OTP backup. We never store passwords.
+- FastAPI verifies Supabase JWTs via JWKS (signature, expiry, audience, pinned algorithm).
+- members table (linked by auth user id) is the source of truth for role,
+  verification_level, organisation_id.
+- Roles: student, founder, mentor, investor, partner_admin, super_admin.
+- require_role / require_level / partner scoping on every endpoint; IDOR tests.
+- RLS on every table; all writes go through FastAPI; service role key only in backend.
+- DEMO_AUTH issues persona tokens in dev/demo only. The app refuses to start with
+  DEMO_AUTH=true when ENV=production.
 
 ## Data model (Postgres)
-- members: id, role (student | founder | mentor | investor | partner_admin),
-  display_name, bio, location (geography point), city, college (students),
-  verification_level, open_intro_slots, circuits_opt_in, created_at, updated_at
+- members: id, auth_user_id, role, display_name, bio, location (geography), city,
+  college, organisation_id, verification_level, open_intro_slots, circuits_opt_in,
+  is_minor, profile_visibility, created_at, updated_at
+- organisations: id, name, kind (college | incubator | program), city
 - startups: id, name, website_domain (unique), description, sector, stage, address,
-  location (geography point), hiring, open_roles (jsonb), tech_stack (jsonb),
-  claimed_by_member_id, source (seed | crawler | user), view_count, created_at
-- startup_members: startup_id, member_id, title
-- jobs: id, startup_id, title, description, type (internship | full_time | part_time),
-  paid (bool), stipend_range, location (geography point), remote (bool), active,
-  created_at  (replaces startups.open_roles as the source of truth for roles)
-- job_capabilities: job_id, capability_id, required (bool)
-- applications: id, job_id, student_id, note, status (applied | viewed |
-  shortlisted | rejected), created_at, updated_at; one application per student per job
-- capabilities (40-80, seeded), traits (20-30, seeded)
-- needs: owner_type (member | startup), owner_id, capability_id, text,
-  embedding vector(384), active
-- offers: member_id, capability_id, text, embedding vector(384), active
-- member_traits, startup_traits, member_skills (students: capability links)
-- connections: member_a, member_b, strength, source
-- intro_requests: from_member, to_member, via_member, status, reason, timestamps
-- match_results: member_id, candidate_id, candidate_type (member | startup), score,
-  components (jsonb), reason, is_bridge, computed_at
-- circuits, circuit_legs (giver, receiver, capability, consent, fulfilled, rating)
-- events: actor_id, type, target_type, target_id, payload (jsonb), created_at
-GIST indexes on locations, HNSW indexes on embeddings.
+  location, hiring, tech_stack (jsonb), claimed_by_member_id,
+  source (seed | crawler | user), confidence, view_count, created_at
+- startup_members; jobs; job_capabilities; applications (one per student per job)
+- capabilities (40–80), traits (20–30); needs; offers (with embedding vector(384))
+- member_traits, startup_traits, member_skills
+- connections; intro_requests; match_results (score, components jsonb, reason, is_bridge)
+- circuits; circuit_legs (giver, receiver, capability, consent, fulfilled, rating)
+- notifications; reports; blocks; audit_log; consents (policy_version, accepted_at)
+- events (append-only: actor_id, type, target_type, target_id, payload, created_at)
+GIST indexes on locations, HNSW on embeddings, indexes on every foreign key.
 
 ## Matching (v1, rule-based)
-- Candidates from two sources, merged: local (same city, shared traits, 1-2 hop
-  connections) and bridge (whole pool, need-to-offer on capability + embedding
-  similarity, ignoring sector).
-- score = w1*complementarity + w2*affinity + w3*trust_path + w4*timing
-          - w5*load_penalty
-  Complementarity is computed in both directions. Weights in config. Pure functions,
-  fully unit-tested.
-- Ranking: diversity, capacity caps, ~25% of results reserved for bridge matches.
-- Students: distance is a HARD filter; match student skills to startup open roles
-  and needs.
-- A background job precomputes results into match_results every few hours; also
-  callable on demand.
-- tests/eval/pairs.json: ~50 hand-labelled good/bad pairs from the seed data and a
-  script reporting how often the scorer agrees.
+- Candidates: local (same city, shared traits, 1–2 hop connections) + bridge (whole
+  pool, need-to-offer on capability + embedding similarity, ignoring sector).
+- score = w1*complementarity + w2*affinity + w3*trust_path + w4*timing - w5*load_penalty
+  Complementarity both directions. Weights in config. Pure, unit-tested functions.
+- Ranking: diversity, capacity caps, ~25% bridge share. Students: distance is a hard filter.
+- Precomputed by a job into match_results, cached in Redis.
+- Eval set (tests/eval/pairs.json) + script; every scoring change must not lower agreement.
 
-## Auth
-- Supabase Auth (Google sign-in first, email OTP backup; no passwords stored by us).
-  FastAPI verifies Supabase JWTs via JWKS. Our members table (linked by auth user
-  id) is the source of truth for role, verification_level and partner scope.
-- Row-level security on every table; all writes go through FastAPI; the service
-  role key exists only in the backend.
-- DEMO_AUTH mode issues tokens for seeded personas (powers the persona switcher).
-  The app must refuse to start with DEMO_AUTH=true when ENV=production unless
-  DEMO_PUBLIC=true is explicitly set for a demo deployment with only fake data.
-- require_level(n) dependency for protected endpoints.
+## Privacy and safety
+- Company data only from crawling; robots.txt respected; takedown form.
+- Never log or send to analytics: names, emails, phones, tokens.
+- Under-18 students: hidden profile by default, no messages from strangers.
+- Aggregates hide counts under 5; heatmaps use coarse cells.
+- Super-admin actions audit-logged.
 
-## Seed data (this is the demo, treat it carefully)
-- Configurable city centre (lat/lng in .env). ~150 startups, ~300 members (students
-  the largest group), realistic fake companies, sectors, roles and needs.
-- Must contain these scripted demo stories so the differentiator always shows:
-  1. A biotech startup needing marketing, matched to a deep-tech marketer as a
-     Bridge match with a clear reason (shared traits: long sales cycle, technical
-     buyers).
-  2. A 3-person exchange circuit (Asha needs marketing, Priya needs fundraising,
-     Arjun needs hiring) that the circuit round reliably finds.
-  3. A student from a lower-tier college with strong skills, matched to a nearby
-     hiring startup on skills.
-  4. A warm intro path through a respected mentor.
-  5. A visible capability gap in the dashboard (e.g. many needs for regulatory help,
-     few offers).
-- Startup records use the future crawler schema: name, website_domain, description,
-  sector, address, lat, lng, hiring, open_roles, tech_stack, source.
-- Seed loader is idempotent (upsert by website_domain).
+## Testing
+- Unit (scoring, reasons, circuits on known graphs, auth, logging), API (every endpoint:
+  one success + at least one failure, IDOR, rate limits, events), Playwright end-to-end
+  at 375px and 1280px, axe accessibility checks.
+- Tests use a fresh seeded test database, the fake embedding provider and a mocked LLM.
+- Demo story tests (tests/demo/): bridge match, Asha–Priya–Arjun circuit, tier-3
+  student matched and applying, warm intro via mentor, regulatory-help gap.
+- `make check` runs everything and prints PASS/FAIL per story. Never deploy on red.
 
-## Phases (stop after each)
-0. Scaffold: /backend and /frontend, docker compose for Postgres, config, logging
-   middleware, /health and /health/deps. Verify both apps start.
-1. Data model + seed: models, migrations, indexes, capability/trait lists, seed
-   generator with all five demo stories, reset-demo command.
-2. Auth + profiles: JWKS + DEMO_AUTH, personas, members/startups CRUD, needs/offers,
-   smart onboarding endpoint (F1), verification levels (F7).
-3. Geo + claim: nearby and bbox endpoints, student skill-to-startup scoring, view and
-   interest tracking, claim flow, jobs and applications endpoints (F2 backend, F3,
-   F11 backend).
-4. Matching: embeddings, scoring, candidates, ranking, reasons, bridge badges, job,
-   eval script (F4).
-5. Intros + events: warm paths, intro requests with capacity, outcome rating, events
-   for every action (F5, F10).
-6. Circuits: edges, cycles, solver, rounds, consent endpoints, admin trigger, tests
-   with a hand-built graph where the right circuits are known (F6).
-7. Dashboard API: gap map by capability and area, network stats, local vs bridge
-   acceptance (F8 backend).
-8. Frontend shell: Vite app, Tailwind, generated API client, layout, persona
-   switcher (F9), login state, verification badges.
-9. Map view: MapLibre map, filters, pins, popups, interest button, startup page with
-   claim flow, jobs list, job page, apply button, "My applications", founder
-   applicants view (F2, F3, F11 UI).
-10. Network app: onboarding flow with chips (F1 UI), matches list with reasons and
-    Bridge badges, warm intro flow, circuits loop card with accept/decline.
-11. Dashboard UI: gap chart, map heat layer, stats, acceptance split (F8 UI).
-12. Demo readiness: DEMO.md with a 5-minute demo script following the five seed
-    stories, reset-demo verified, README with setup for Mac and WSL, deployment
-    config for Railway or Render, all tests passing.
-
-## Testing (required; the demo depends on it)
-Write tests as you build each phase, not at the end. Tests run against a real
-Postgres (with PostGIS + pgvector) started by docker compose, using a separate test
-database that is created fresh and seeded for each test run. Use the fake embedding
-provider and never call the LLM in tests (mock it).
-
-Unit tests (fast, no database)
-- Scoring: complementarity in both directions, bridge flag, load penalty, weights
-  read from config, score always between 0 and 1.
-- Reasons: every reason string is non-empty and mentions a real shared capability
-  or trait.
-- Circuits: on a hand-built graph with known answers, the cycle finder returns
-  exactly the expected 3-person loops (no duplicates), and the solver never puts a
-  person in more circuits than their capacity.
-- Auth: expired token rejected, wrong signature rejected, level checks enforced,
-  app refuses to start with DEMO_AUTH=true and ENV=production (unless DEMO_PUBLIC).
-- Logging: log lines contain request_id and never contain names, emails or tokens.
-
-API tests (httpx against the running app)
-- Every endpoint: one success case and at least one failure case (wrong level,
-  missing auth, bad input) with the correct status code.
-- Geo: nearby results sorted by distance; nothing outside the radius returned.
-- Intros: capacity limit refuses the request after the limit is reached.
-- Events: every product action writes exactly one event row.
-
-Demo story tests (tests/demo/) — THE MOST IMPORTANT TESTS
-One test per seed story. Each runs the real flow end to end on freshly reset seed
-data and asserts what the audience will see:
-1. Bridge: the deep-tech marketer appears in the biotech startup's top 5 matches,
-   is_bridge is true, and the reason mentions a shared trait.
-2. Circuit: after "Run round now", a circuit containing Asha, Priya and Arjun is
-   proposed, with the correct giver -> receiver -> capability for each leg.
-3. Student: the lower-tier-college student's top startup is the planned nearby
-   hiring startup, within the radius, matched on skills; the student applies to
-   its internship, and the founder sees them as the top-ranked applicant.
-4. Warm intro: the warm path between the two planned members goes through the
-   planned mentor.
-5. Gap: regulatory help is in the top 3 gaps on the dashboard for the seed city.
-Also: reset-demo run twice in a row produces identical results (idempotent).
-
-Frontend tests (from Phase 8)
-- Playwright end-to-end tests that click through the five stories in a real browser
-  at laptop and phone widths, using the persona switcher.
-
-One command to check everything before a demo
-- `make demo-check` (or a script if make is unavailable) that: starts services,
-  resets the demo data, runs all tests, hits /health/deps, and prints a clear
-  PASS/FAIL summary per demo story. If anything fails, it prints which story broke.
-- Run this before every demo. Never demo on a red result.
-
-## Definition of done (every phase)
-Tests pass (including any demo story tests the phase makes possible), new
-endpoints log correctly, migrations apply from scratch, README
-updated, committed, and explained to me. From Phase 8 on: every screen works at
-phone width and on a laptop, because demos happen on both.
+## How to work with me
+- I'm learning. Explain what you built and why in plain language, including new concepts.
+- Work on one LAUNCH.md stage (or one approved backlog item) per session, on its own branch.
+- Write tests as you build. Never finish with failing tests.
+- At the end: tick LAUNCH.md boxes, update PROGRESS.md, commit, summarise, stop for my OK.
+- Ask before adding any dependency, changing the schema in a breaking way, or deleting data.
+- Never commit secrets. .env is gitignored; .env.example documents every variable.
+- Keep it simple. Prefer deleting code to adding abstraction.
