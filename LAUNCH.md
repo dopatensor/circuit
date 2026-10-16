@@ -10,9 +10,9 @@ Stack: FastAPI on Cloud Run (asia-south1) · Cloud Run Jobs + Scheduler · Supab
 ---
 
 ## Stage 0 — Snapshot (read-only, no code changes)
-- [ ] Mark every item in Stages 1–8 as Done / Partial / Missing with evidence (file or test)
-- [ ] List all [YOU] items I need to do, in order
-- [ ] Estimate effort per stage (S/M/L)
+- [x] Mark every item in Stages 1–8 as Done / Partial / Missing with evidence (file or test)
+- [x] List all [YOU] items I need to do, in order
+- [x] Estimate effort per stage (S/M/L)
 
 ## Stage 1 — Environments and config
 - [ ] Three environments: dev (local), staging, production
