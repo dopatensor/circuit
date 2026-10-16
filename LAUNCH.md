@@ -5,7 +5,7 @@ How to use this file:
 - Each stage ends with: tests pass, commit, tick the boxes below, update PROGRESS.md, explain in plain language, stop.
 - Items marked [YOU] need the human (accounts, money, approvals). Claude Code lists them, never fakes them.
 
-Stack: FastAPI on Cloud Run (asia-south1) · Cloud Run Jobs + Scheduler · Supabase (Postgres + PostGIS + pgvector, Auth, Storage, Realtime) · Redis · Neo4j AuraDB · React PWA on Vercel · GitHub Actions. Full details in PRODUCTION.md; later work in BACKLOG.md.
+Stack: FastAPI on Cloud Run (asia-south1) · Cloud Run Jobs + Scheduler · Supabase (Postgres + PostGIS + pgvector, Auth, Storage, Realtime) · Redis · React PWA on Vercel · GitHub Actions. Full details in PRODUCTION.md; later work in BACKLOG.md.
 
 ---
 
@@ -21,9 +21,9 @@ Stack: FastAPI on Cloud Run (asia-south1) · Cloud Run Jobs + Scheduler · Supab
 - [ ] One typed settings module; app refuses to start if a required variable is missing
 - [ ] .env.example complete and documented; no secrets in repo or git history
 - [ ] DEMO_AUTH and demo seed data only in dev (test proves production refuses them)
-- [ ] [YOU] Redis (Upstash or Memorystore) and Neo4j AuraDB instances for staging and production
+- [ ] [YOU] Redis (Upstash or Memorystore) for staging and production
 - [ ] Redis: cache + rate limits behind cache/ interface, Postgres fallback when down (tested)
-- [ ] Neo4j: sync job from Postgres, warm paths + circuit cycles in Cypher behind graph/ interface, SQL/networkx fallback, parity tests
+- [ ] Graph queries (warm paths, circuits) behind graph/ interface using recursive SQL + networkx
 
 ## Stage 2 — Auth and security
 - [ ] Supabase Auth: Google sign-in + email OTP; FastAPI verifies JWT via JWKS
