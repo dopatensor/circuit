@@ -1,27 +1,9 @@
 # Circuit — Backlog
 
-Everything agreed but not yet done, in priority order. Pull items into a LAUNCH.md
-stage or a new phase; don't build from here directly. Tick items when merged.
+Work AFTER LAUNCH.md is done. Everything needed before the pilot lives in LAUNCH.md,
+not here. Pull an item into a new numbered stage before building it; tick it when merged.
 
-Priority: P0 = before pilot · P1 = during pilot · P2 = after pilot · Later = only when data says so.
-
----
-
-## P0 — before the pilot (also covered by LAUNCH.md)
-
-- [ ] Consolidate specs: CLAUDE.md, PRODUCTION.md, DESIGN.md, LAUNCH.md agree; PROGRESS.md status table
-- [ ] Supabase migration: Auth (Google + email OTP), RLS on all tables, Storage, Realtime
-- [ ] Redis: match + dashboard cache with TTL and invalidation, rate limits, Postgres fallback
-- [ ] graph/ interface: warm paths and circuit cycles via recursive SQL + networkx, tested on known graphs
-- [ ] Access control: super_admin role, organisations + partner scoping, founder-only stats, counts < 5 hidden
-- [ ] Landing page, sign-up → onboarding → first match in < 2 minutes
-- [ ] Exchange circuits polished: loop card, live status, completion moment, mark done, ratings, notifications
-- [ ] Account settings: profile, notifications, privacy, export, delete
-- [ ] Email notifications (intros, applications, circuits) with preferences and unsubscribe
-- [ ] Report and block; moderation queue; admin panel
-- [ ] Legal pages + consent + under-18 defaults
-- [ ] CI/CD, environments, monitoring, backups (see PRODUCTION.md)
-- [ ] Fresh-eyes test with 5 real users
+Priority: P1 = during pilot · P2 = after pilot · Later = only when data says so.
 
 ## P1 — during the pilot
 
