@@ -50,15 +50,15 @@ Frontend (/frontend)
   OpenAPI spec (openapi-typescript) so no API calls are hand-written
 - Recharts for dashboard charts
 
-Infra
-- docker compose for Postgres locally
-- Deployable to Railway or Render (one backend service, one static frontend,
-  managed Postgres with PostGIS + pgvector)
+Infra (production details in PRODUCTION.md, which overrides anything here)
+- docker compose locally: Postgres (PostGIS + pgvector), Redis, Neo4j
+- Production: FastAPI on Google Cloud Run (asia-south1); Cloud Run Jobs +
+  Cloud Scheduler for background work; Supabase (Postgres, Auth, Storage,
+  Realtime); Redis (Upstash or Memorystore); Neo4j AuraDB; frontend on Vercel
 
-Note: Neo4j (graph) and Redis (cache) are part of our target architecture but are
-deliberately left out of this MVP. Postgres handles graph queries (recursive SQL),
-caching (a match_results table) and jobs at MVP scale. Keep the code behind clear
-interfaces (graph/, cache/) so Neo4j and Redis can be added later without rewrites.
+Redis and Neo4j are IN scope for the pilot, each behind an interface (cache/,
+graph/). Neither is ever the source of truth: Postgres is. If either is down, the
+app falls back (Postgres reads; recursive SQL / networkx) and logs a warning.
 
 ## Features (all must be demoable)
 F1. Smart onboarding: user pastes a bio or describes their startup; the LLM suggests
@@ -89,6 +89,13 @@ F8. Partner dashboard: gap map (per capability: active needs vs active offers, a
 F9. Demo mode: a persona switcher in the header (dev/demo only) to instantly log in
     as a prepared student, founder, mentor or partner admin. A one-command
     "reset demo" that restores the seed data to a known state before every demo.
+F11. Jobs and applications: a jobs list (filter by role, skill, distance, paid or
+    unpaid, internship or full-time) and a job page showing the startup, role,
+    required capabilities and the student's skill match. Students apply with one
+    click (profile + short note); they see their applications and status
+    (applied | viewed | shortlisted | rejected). Founders of claimed startups see
+    applicants ranked by skill match and update status. Applications to UNCLAIMED
+    startups are saved as "interest" and shown to the founder when they claim.
 F10. Logging and events: one JSON log line per request (request_id, method, path,
     status, duration_ms, user_id); an append-only events table for every product
     action. Never log names, emails, phone numbers or tokens.
@@ -101,6 +108,12 @@ F10. Logging and events: one JSON log line per request (request_id, method, path
   location (geography point), hiring, open_roles (jsonb), tech_stack (jsonb),
   claimed_by_member_id, source (seed | crawler | user), view_count, created_at
 - startup_members: startup_id, member_id, title
+- jobs: id, startup_id, title, description, type (internship | full_time | part_time),
+  paid (bool), stipend_range, location (geography point), remote (bool), active,
+  created_at  (replaces startups.open_roles as the source of truth for roles)
+- job_capabilities: job_id, capability_id, required (bool)
+- applications: id, job_id, student_id, note, status (applied | viewed |
+  shortlisted | rejected), created_at, updated_at; one application per student per job
 - capabilities (40-80, seeded), traits (20-30, seeded)
 - needs: owner_type (member | startup), owner_id, capability_id, text,
   embedding vector(384), active
@@ -131,8 +144,11 @@ GIST indexes on locations, HNSW indexes on embeddings.
   script reporting how often the scorer agrees.
 
 ## Auth
-- JWT verification against a configurable JWKS URL (provider chosen later: Clerk or
-  Supabase), claims: sub, role, verification_level, exp.
+- Supabase Auth (Google sign-in first, email OTP backup; no passwords stored by us).
+  FastAPI verifies Supabase JWTs via JWKS. Our members table (linked by auth user
+  id) is the source of truth for role, verification_level and partner scope.
+- Row-level security on every table; all writes go through FastAPI; the service
+  role key exists only in the backend.
 - DEMO_AUTH mode issues tokens for seeded personas (powers the persona switcher).
   The app must refuse to start with DEMO_AUTH=true when ENV=production unless
   DEMO_PUBLIC=true is explicitly set for a demo deployment with only fake data.
@@ -164,7 +180,8 @@ GIST indexes on locations, HNSW indexes on embeddings.
 2. Auth + profiles: JWKS + DEMO_AUTH, personas, members/startups CRUD, needs/offers,
    smart onboarding endpoint (F1), verification levels (F7).
 3. Geo + claim: nearby and bbox endpoints, student skill-to-startup scoring, view and
-   interest tracking, claim flow (F2 backend, F3).
+   interest tracking, claim flow, jobs and applications endpoints (F2 backend, F3,
+   F11 backend).
 4. Matching: embeddings, scoring, candidates, ranking, reasons, bridge badges, job,
    eval script (F4).
 5. Intros + events: warm paths, intro requests with capacity, outcome rating, events
@@ -176,7 +193,8 @@ GIST indexes on locations, HNSW indexes on embeddings.
 8. Frontend shell: Vite app, Tailwind, generated API client, layout, persona
    switcher (F9), login state, verification badges.
 9. Map view: MapLibre map, filters, pins, popups, interest button, startup page with
-   claim flow (F2, F3 UI).
+   claim flow, jobs list, job page, apply button, "My applications", founder
+   applicants view (F2, F3, F11 UI).
 10. Network app: onboarding flow with chips (F1 UI), matches list with reasons and
     Bridge badges, warm intro flow, circuits loop card with accept/decline.
 11. Dashboard UI: gap chart, map heat layer, stats, acceptance split (F8 UI).
@@ -184,67 +202,58 @@ GIST indexes on locations, HNSW indexes on embeddings.
     stories, reset-demo verified, README with setup for Mac and WSL, deployment
     config for Railway or Render, all tests passing.
 
+## Testing (required; the demo depends on it)
+Write tests as you build each phase, not at the end. Tests run against a real
+Postgres (with PostGIS + pgvector) started by docker compose, using a separate test
+database that is created fresh and seeded for each test run. Use the fake embedding
+provider and never call the LLM in tests (mock it).
+
+Unit tests (fast, no database)
+- Scoring: complementarity in both directions, bridge flag, load penalty, weights
+  read from config, score always between 0 and 1.
+- Reasons: every reason string is non-empty and mentions a real shared capability
+  or trait.
+- Circuits: on a hand-built graph with known answers, the cycle finder returns
+  exactly the expected 3-person loops (no duplicates), and the solver never puts a
+  person in more circuits than their capacity.
+- Auth: expired token rejected, wrong signature rejected, level checks enforced,
+  app refuses to start with DEMO_AUTH=true and ENV=production (unless DEMO_PUBLIC).
+- Logging: log lines contain request_id and never contain names, emails or tokens.
+
+API tests (httpx against the running app)
+- Every endpoint: one success case and at least one failure case (wrong level,
+  missing auth, bad input) with the correct status code.
+- Geo: nearby results sorted by distance; nothing outside the radius returned.
+- Intros: capacity limit refuses the request after the limit is reached.
+- Events: every product action writes exactly one event row.
+
+Demo story tests (tests/demo/) — THE MOST IMPORTANT TESTS
+One test per seed story. Each runs the real flow end to end on freshly reset seed
+data and asserts what the audience will see:
+1. Bridge: the deep-tech marketer appears in the biotech startup's top 5 matches,
+   is_bridge is true, and the reason mentions a shared trait.
+2. Circuit: after "Run round now", a circuit containing Asha, Priya and Arjun is
+   proposed, with the correct giver -> receiver -> capability for each leg.
+3. Student: the lower-tier-college student's top startup is the planned nearby
+   hiring startup, within the radius, matched on skills; the student applies to
+   its internship, and the founder sees them as the top-ranked applicant.
+4. Warm intro: the warm path between the two planned members goes through the
+   planned mentor.
+5. Gap: regulatory help is in the top 3 gaps on the dashboard for the seed city.
+Also: reset-demo run twice in a row produces identical results (idempotent).
+
+Frontend tests (from Phase 8)
+- Playwright end-to-end tests that click through the five stories in a real browser
+  at laptop and phone widths, using the persona switcher.
+
+One command to check everything before a demo
+- `make demo-check` (or a script if make is unavailable) that: starts services,
+  resets the demo data, runs all tests, hits /health/deps, and prints a clear
+  PASS/FAIL summary per demo story. If anything fails, it prints which story broke.
+- Run this before every demo. Never demo on a red result.
+
 ## Definition of done (every phase)
-Tests pass, new endpoints log correctly, migrations apply from scratch, README
+Tests pass (including any demo story tests the phase makes possible), new
+endpoints log correctly, migrations apply from scratch, README
 updated, committed, and explained to me. From Phase 8 on: every screen works at
 phone width and on a laptop, because demos happen on both.
-
-## Spec additions (agreed 2026-10-07)
-
-F11. Jobs and applications: hiring startups post jobs (internships and full-time,
-    paid and unpaid, with required capabilities). Students browse and filter jobs,
-    see their skill match, apply once per job with a short note, and track status.
-    Founders see applicants ranked by skill match and update their status.
-    Applications to unclaimed startups are saved and appear when the founder claims.
-- Phase 1: jobs, job_capabilities and applications tables and indexes. Seed jobs for
-  hiring startups, including the specific internship used in demo story 3.
-- Phase 3: jobs list with filters (role, capability, distance, type, paid), job detail
-  with the student's skill match, apply (one per student per job), "my applications"
-  with status, founder's applicant list ranked by skill match, status updates, saved
-  interest for unclaimed startups shown on claim. Events for view, apply and status
-  change. API tests incl. failure cases (applying twice, a founder from another
-  startup changing status, a student without the right level).
-- Phase 4: the student's top match is the story 3 internship, using the same scoring
-  as startup matching.
-- Phase 9: jobs list, job page, apply with a short note, "My applications" with status
-  badges, founder applicants view, job pins or counts in the map popup.
-- Phase 12: DEMO.md story 3 includes applying and shortlisting.
-
-## Spec additions (agreed 2026-10-09)
-
-F12. GitHub proof of work (built in redesign phase R2; see DESIGN.md section 6).
-- Students connect GitHub via OAuth: read-only, public data only, the minimum scope
-  (no scopes requested). The account comes from GitHub's own answer for the token;
-  a typed username is never accepted as verified.
-- A background job fetches the profile after connecting and refreshes it weekly.
-  Results are stored in our database; GitHub is never called on page views. Rate
-  limits and API errors are handled gracefully (keep the last good import, retry
-  after GitHub's reset time or within the hour, ask to reconnect if access was
-  removed).
-- Extract: original (non-fork) repos with the student's commits, languages, merged
-  pull requests to repos the student doesn't own, recent activity, READMEs and
-  homepage links. Stars and follower counts are ignored (not even stored).
-- Languages and frameworks map onto our capability list, shown as "Verified by
-  GitHub" capability chips.
-- The student picks which repos to feature on their profile, can hide any (hidden
-  repos are not shown or used for verified skills), and can disconnect, which deletes
-  all imported data and revokes our access.
-- A capped "github_signal" component feeds the student match score (and the founders'
-  applicant ranking). It must never outweigh founder ratings or completed Circuit
-  projects: caps are founder ratings 0.06 > completed circuits 0.05 > GitHub 0.03.
-- Equivalent non-code proof: portfolio links, Behance/Dribbble links, case studies
-  and live sites, shown as "Added by you" and reaching the same cap as GitHub, so
-  non-coders aren't disadvantaged.
-- Tests: OAuth ownership check, typed usernames never marked verified, forks
-  excluded, disconnect deletes data, rate-limit handling. GitHub is mocked; tests
-  make no live API calls.
-
-## Testing
-- Write tests during each phase, not at the end. Never move to the next phase with
-  failing tests.
-- Keep `make demo-check` up to date from Phase 1 onward; it prints PASS or FAIL per
-  demo story.
-- Frontend (Phases 8–11): every call goes through the generated OpenAPI client (no
-  hand-written fetch); every screen has loading, empty and error states and works at
-  phone and laptop width; the persona switcher reaches every demo story in a few
-  clicks; Playwright tests cover each demo story through the UI at both widths.
