@@ -12,13 +12,13 @@ here; use BACKLOG.md for everything after launch.
 |---|---|---|
 | Frontend | React + TypeScript + Vite PWA on Vercel | App at `<domain>`, previews per PR |
 | API | FastAPI (Python 3.12) on Cloud Run, asia-south1 | Stateless, autoscaling, min instances in prod |
-| Background jobs | Cloud Run Jobs + Cloud Scheduler | Matching, circuit rounds, Neo4j sync, crawler, cleanup |
+| Background jobs | Cloud Run Jobs + Cloud Scheduler | Matching, circuit rounds, crawler, cleanup |
 | Database | Supabase Postgres + PostGIS + pgvector | Source of truth. Connect via pooler |
 | Auth | Supabase Auth | Google sign-in + email OTP. JWT verified in FastAPI via JWKS |
 | Files | Supabase Storage | `avatars` (public), `crawl-raw` (private) |
 | Realtime | Supabase Realtime | Inbox, notifications, circuit status. RLS-scoped |
 | Cache + rate limits | Redis (Upstash or Memorystore) | Disposable; Postgres fallback |
-| Graph | Neo4j AuraDB | Warm paths, circuits. Rebuilt from Postgres; SQL/networkx fallback |
+| Graph | Recursive SQL + networkx (graph/ interface) | Neo4j only if a BACKLOG.md trigger is hit |
 | Timers | pg_cron | Expiring intros and circuit proposals |
 | Secrets | Google Secret Manager | Never in repo, never in frontend |
 | Images | Artifact Registry | Built by CI |
@@ -30,7 +30,7 @@ here; use BACKLOG.md for everything after launch.
 | LLM | Anthropic API, claude-haiku-4-5-20251001 | Onboarding extraction, crawler. Monthly cap |
 
 Request path: browser → Vercel (static) → `api.<domain>` (Cloud Run) → Redis cache →
-Postgres (Supabase) / Neo4j. Heavy work never runs inside a user request.
+Postgres (Supabase). Heavy work never runs inside a user request.
 
 ---
 
@@ -40,7 +40,7 @@ Postgres (Supabase) / Neo4j. Heavy work never runs inside a user request.
 |---|---|---|---|
 | Where | Laptop (docker compose) | Cloud Run + Vercel preview | Cloud Run + Vercel prod |
 | Supabase | Local Postgres or free project | Free project | Pro project |
-| Redis / Neo4j | Local containers | Free/small tiers | Paid tiers |
+| Redis | Local container | Free/small tier | Paid tier |
 | Data | Seed + demo stories | Seed + anonymised copies | Real users only |
 | DEMO_AUTH | Allowed | Allowed (marked) | Impossible (app refuses to start) |
 | Deploy | Manual | Auto on merge to main | Manual approval after staging passes |
@@ -87,7 +87,7 @@ Aggregates hide counts under 5. Heatmaps use neighbourhood-sized cells, never ex
 - Retention: events (permanent, pseudonymous), request logs (30 days), crawl raw pages
   (90 days), unverified accounts (purged after 30 days).
 - Processors listed in the privacy policy: Supabase, Google Cloud, Vercel, Anthropic,
-  email provider, Sentry, Redis host, Neo4j host.
+  email provider, Sentry, Redis host.
 - Crawler: company data only, robots.txt respected, takedown form, claimed profiles never
   overwritten.
 
@@ -96,11 +96,11 @@ Aggregates hide counts under 5. Heatmaps use neighbourhood-sized cells, never ex
 - Supabase Pro: daily backups + point-in-time recovery on production.
 - Restore drill: restore production backup to staging once before launch, then quarterly.
 - Migrations: Alembic, reversible, expand-then-contract, tested on a staging copy.
-- Redis and Neo4j are rebuildable: `make rebuild-cache`, `make rebuild-graph`.
+- Redis is rebuildable from Postgres: `make rebuild-cache`.
 
 ## 7. Reliability
 
-- `/health` (process up) and `/health/deps` (Postgres, Redis, Neo4j, Supabase Auth).
+- `/health` (process up) and `/health/deps` (Postgres, Redis, Supabase Auth).
 - Timeouts + retries with backoff on every external call; graceful fallbacks.
 - Jobs are idempotent, have retry limits, and alert on failure.
 - Cloud Run min instances ≥ 1 in production for the API.
@@ -131,7 +131,7 @@ Aggregates hide counts under 5. Heatmaps use neighbourhood-sized cells, never ex
 
 ## 11. Cost guardrails (check current pricing)
 
-- Fixed early costs: Supabase Pro, Neo4j AuraDB paid tier, domain, Vercel (if Pro).
+- Fixed early costs: Supabase Pro, domain, Vercel (if Pro).
 - Usage costs: Cloud Run, Redis, Anthropic API, email, Firecrawl (optional).
 - Budget alerts on every paid service from day one. Apply for startup credits (Google for Startups).
 
