@@ -1,5 +1,319 @@
 # Circuit — progress
 
+**Specs:** [CLAUDE.md](CLAUDE.md), [PRODUCTION.md](PRODUCTION.md), [LAUNCH.md](LAUNCH.md) and
+[BACKLOG.md](BACKLOG.md) as of `d1be589` (2026-10-16: four environments, PRODUCTION.md
+§2a domain-free URLs). They replace every earlier spec (the old phase plan, "Spec
+additions", the R1–R7 redesign plan). [DESIGN.md](DESIGN.md) still holds the visual
+rules. [CODE_AUDIT.md](CODE_AUDIT.md) (2026-10-13) holds the measurements this snapshot
+leans on.
+
+## Where we are (2026-10-16)
+
+- **LAUNCH.md Stage 0 (snapshot) is done**, re-run against `d1be589`. No code was
+  changed. Next: Stages 1 + 2 on branch `stage-1-2`, after your OK and the account
+  values listed in section 4.
+- Branch for this session: `claude/vigilant-goodall-8twjnd`.
+- Baseline (code unchanged since `d28e9f4`): backend `pytest` passes (exit 0), `ruff`
+  clean, `tsc -b` clean. Last recorded elsewhere (2026-10-09, not re-run today): 84
+  Playwright tests passed, `make demo-check` 5/5, `make eval` 100% on 53 pairs, 140.5 KB
+  first-load JS.
+
+---
+
+## Stage 0 — 1. Every LAUNCH.md item
+
+Done = meets the item as written. Partial = some of it exists. Missing = nothing yet.
+
+### Stage 1 — Environments and config · effort **L** (deploying demo + staging is most of it)
+| Item | Status | Evidence |
+|---|---|---|
+| Four environments: dev, demo, staging, production | Missing | `config.py:22` allows only `development \| test \| production`; no deploy config anywhere |
+| [YOU] Supabase projects: demo, staging, production | Missing | – |
+| [YOU] GCP, Vercel, GitHub org secrets | Missing | no `.github/` |
+| Typed settings; refuse to start if a required variable is missing | Partial | `config.py` is typed (pydantic-settings), but every setting has a default (`DATABASE_URL` falls back to localhost), so nothing is ever "missing" |
+| No hard-coded domains; all URLs from §2a variables (grep test in CI) | Partial | no Circuit domain appears anywhere (only `localhost` dev defaults in `config.py:24,84`, `vite.config.ts:10`; third-party GitHub and OpenFreeMap URLs). But the §2a variables don't exist: there is `CORS_ORIGINS` (not `CORS_ALLOWED_ORIGINS`/`CORS_PREVIEW_REGEX`), `GITHUB_REDIRECT_URL` is its own full URL, and `APP_URL`, `API_URL`, `EMAIL_FROM`, `SUPPORT_EMAIL`, `SUPABASE_URL` are missing. No grep test |
+| Staging and demo working on default URLs, incl. sign-in and CORS | Missing | nothing deployed; no backend Dockerfile |
+| Environment banner; noindex outside production | Missing | no banner; `public/robots.txt` allows everything; no `noindex` meta |
+| Demo: `make reset-demo ENV=demo`, nightly reset job, deploys from tags | Partial | `make reset-demo` exists (`Makefile`, `cli.py` `reset-demo`, refuses in production unless `DEMO_PUBLIC`); no `ENV=` parameter, no nightly job, no tag deploys |
+| `make smoke URL=...` | Missing | no smoke script |
+| `.env.example` complete; no secrets in repo or history | Partial | 10 settings and 3 `VITE_*` variables undocumented (CODE_AUDIT §1.3); no per-environment notes. History scan: no keys found; `.env.example` is the only env file ever committed |
+| DEMO_AUTH and demo data only in dev and demo; tests prove staging and production refuse | Partial | production refuses unless `DEMO_PUBLIC=true` (`config.py:104`, `test_config.py:7,12`); staging doesn't exist as a value, so nothing refuses it |
+| [YOU] Redis for demo, staging and production | Missing | – |
+| Redis cache + rate limits behind `cache/`, Postgres fallback (tested) | Missing | `app/cache/__init__.py` has the interface and only a Postgres implementation; `compose.yaml` has no Redis |
+| Graph queries behind `graph/` with recursive SQL + networkx | **Done** | `app/graph/__init__.py` (`PostgresGraph.paths` recursive SQL, `can_help`), `circuits/engine.py` (networkx + CP-SAT); `test_circuits_engine.py`, `test_intros.py` |
+
+### Stage 2 — Auth and security · effort **L**
+| Item | Status | Evidence |
+|---|---|---|
+| Supabase Auth (Google + email OTP); FastAPI verifies JWT via JWKS | Partial | backend verifies any JWKS provider with pinned algorithms (`auth.py:86-140`, `test_auth.py`); audience check only if `JWT_AUDIENCE` is set. No sign-in in the frontend (`App.tsx` routes signed-out users to the demo persona list) |
+| members linked to auth users; role, verification, partner scope in our DB | Partial | linked by `members.auth_subject` (migration `f1fc0737c263`); role and level read from our DB (`auth.py:178-186`). No `organisation_id`, no organisations table |
+| RLS on every table; service role key only in backend | Missing | no RLS in any migration. Note: Supabase exposes `public` tables through its REST API with the public key, so this is a blocker, not polish |
+| Authorization tests on every endpoint (IDOR, role, partner scoping) | Partial | IDOR tests on needs, offers, applications, intros, circuits, proof (CODE_AUDIT §3.4). No partner scoping exists to test; partner admin = platform admin (`auth.py:203`) |
+| Rate limits on writes | Partial | only intros (weekly send cap + receiver capacity, `intros.py`, `config.py` `intro_requests_per_week`). None on applications, onboarding LLM, claims, demo login. Messages and connections don't exist yet |
+| Security headers (Vercel + API) | Missing | none in `main.py`; no `vercel.json` |
+| CORS limited per environment | Partial | `CORS_ORIGINS` setting (`main.py`), but `allow_methods`/`allow_headers` are `*` |
+| Input validation, request size limits, upload checks | Partial | Pydantic limits in `schemas.py`; no request body size limit; no uploads exist yet |
+| No personal data in logs (test); super-admin actions audit-logged | Partial | `test_logging.py:26` (query strings never logged). Admin actions write events (`api/admin.py:27`), but there is no `super_admin` role and no `audit_log` table |
+| Dependabot + secret scanning | Missing | no `.github/` |
+
+### Stage 3 — Product basics · effort **L**
+| Item | Status | Evidence |
+|---|---|---|
+| Landing page | Partial | `screens/Welcome.tsx`: headline + demo personas; no sections, CTAs or footer |
+| Sign-up → role → onboarding → location → consent (under-18 hidden) | Partial | onboarding with LLM chips exists (`Onboarding.tsx`, `api/onboarding.py`) and `POST /api/members/me` creates a profile; no sign-up screen, no consent, no `is_minor` |
+| Landing → first match in < 2 minutes (measured) | Missing | – |
+| Loading, empty, error, offline states | Partial | per-screen states exist (ds `SkeletonRows`, `EmptyState`, `ErrorBlock`); offline in `api/client.ts` + PWA cache. No React error boundary |
+| Account settings: profile, notifications, privacy, export, delete | Partial | edit profile (`/me/profile`), privacy toggle for college (`Me.tsx:187`); `DELETE /api/members/me` exists without a button; no export, no notification settings |
+| Circuits polished: loop card, live status, completion, mark done, rating | Partial | loop card, accept/decline, rate → completed (`api/circuits.py:212-243`, `Circuits.tsx`). No live status (Realtime), no completion moment; "mark done" and "rate" are one action |
+| Notifications in-app and email | Missing | no notifications table |
+| [YOU] Email provider (staging test sender; DNS once the domain exists) | Missing | no email code at all; claim codes are returned in the API response outside production instead (`claims.py:54`) |
+| Report and block | Missing | – |
+| Help/FAQ, support contact, 404, 500 pages | Missing | unknown routes redirect to Home (`App.tsx`) |
+
+### Stage 4 — Admin and trust · effort **M**
+| Item | Status | Evidence |
+|---|---|---|
+| Super-admin panel | Partial | only "Run round now" inside the partner dashboard (`Dashboard.tsx:400`); `PUT /api/admin/members/{id}/verification` and `POST /api/admin/matches/recompute` have no UI; no takedowns, reports or crawled-data review |
+| Partner dashboard scoped; counts under 5 hidden | Partial | dashboard exists (`dashboard.py`, `screens/Dashboard.tsx`) but is platform-wide and shows small counts. Heat layer uses ~1 km cells (`dashboard.py:4`), which fits "coarse cells" |
+| Moderation queue + audit log | Missing | – |
+
+### Stage 5 — Legal and privacy · effort **M** (+ lawyer time)
+| Item | Status | Evidence |
+|---|---|---|
+| Privacy policy, terms, cookie notice | Missing | – |
+| [YOU] Lawyer review | Missing | – |
+| Consent stored with version + timestamp | Missing | no `consents` table |
+| Data requests + breach checklist in RUNBOOK.md | Partial | deletion exists (`DELETE /api/members/me`, also disconnects GitHub); no export, no RUNBOOK.md |
+| Processor list | Missing | – |
+| Retention rules + cleanup job | Missing | – |
+
+### Stage 6 — Deploy pipeline · effort **M–L**
+| Item | Status | Evidence |
+|---|---|---|
+| [YOU] Buy domain, then follow §2a switch (config only); HTTPS + HSTS | Missing | – (once the §2a variables exist, no code change will be needed) |
+| GitHub Actions on PR | Missing | no `.github/`; checks exist locally (`make lint`, `make test`, `npm run size`) |
+| On merge: build, migrate, deploy staging, smoke tests | Missing | no backend Dockerfile (only `db/Dockerfile`) |
+| Production deploy with manual approval; tagged releases | Missing | – |
+| Workload Identity Federation | Missing | – |
+| Migrations reversible, backwards-compatible, tested on staging copy | Partial | all 7 revisions have `downgrade`; `test_migrations.py:34` upgrades from scratch and downgrades to base. No staging copy yet |
+| Rollback documented and tried | Missing | – |
+
+### Stage 7 — Reliability and monitoring · effort **M**
+| Item | Status | Evidence |
+|---|---|---|
+| Health + readiness; min instances | Partial | `/health`, `/health/deps` (Postgres + extensions, 503 when down; `test_health.py`). No Redis or Supabase Auth check |
+| Timeouts, retries, fallbacks on every external call | Partial | Anthropic 20 s + manual fallback (`onboarding.py`), GitHub 10 s + rate-limit handling (`github/client.py`), JWKS 5 s. No database `statement_timeout`; email and crawler not built |
+| Jobs idempotent, retry limits, failure alerts | Partial | `refresh_matches`, `expire_stale`, `refresh_github` are idempotent; `circuit_round` is not (no per-week guard, no lock); jobs run in APScheduler inside the API (`scheduler.py`); no alerts |
+| Supabase pooler; pool sizes | Missing | `db.py` sets only a connect timeout |
+| [YOU] Sentry account; Sentry front + back | Missing | – |
+| Uptime monitoring + alerts | Missing | – |
+| Backups + PITR; restore tested | Missing | – |
+| Budget alerts | Missing | – |
+
+### Stage 8 — Frontend quality and performance · effort **M**
+| Item | Status | Evidence |
+|---|---|---|
+| PWA: manifest, icons, offline shell, update prompt, install prompt (incl. iOS) | **Done** | `vite.config.ts:18-37`, `pwa/UpdateBar.tsx`, `pwa/InstallPrompt.tsx` (iOS path), `public/pwa-*.png`, `e2e/pwa.spec.ts` (one known flake) |
+| SEO; private pages not indexed | Partial | `<title>` and description in `index.html`; `robots.txt` allows everything; no OG image, sitemap or `noindex` |
+| Initial JS < 250 KB; Lighthouse 90+ | Partial | 140.5 KB (`scripts/check-size.mjs`); `scripts/lighthouse.mjs` exists but has never been run |
+| WCAG AA; axe in CI | Missing | no axe |
+| Privacy-friendly analytics | Missing | server-side `events` exist; no funnels |
+| Load test (~1,000 users) | Missing | – |
+
+### Stage 9 — Repo cleanup · effort **M**
+Partial: measured in CODE_AUDIT.md (dead code, duplication, bundle); nothing deleted yet.
+No RUNBOOK.md; `make check` doesn't exist (`make demo-check` does). Docs list: all present
+except RUNBOOK.md; CODE_AUDIT.md would be deleted or archived here.
+
+### Stage 10 — Go live · effort **S** for code, most of it is yours
+All Missing (no RUNBOOK.md, no staging, no pilot).
+
+---
+
+## Stage 0 — 2. Code that conflicts with CLAUDE.md and PRODUCTION.md
+
+Keep = leave as is. Refactor = change it in place. Delete = remove it.
+
+### Infrastructure and jobs
+| # | Code | Conflict | Recommendation |
+|---|---|---|---|
+| 1 | APScheduler: `app/scheduler.py`, `main.py:40`, `SCHEDULER_ENABLED`, `apscheduler` in `pyproject.toml` | Jobs must run as Cloud Run Jobs + Cloud Scheduler; in-process jobs run once per API instance | **Refactor, then delete APScheduler.** Keep the four job functions; add `python -m app.cli job <name>` entry points; drop the dependency |
+| 2 | `expire_stale` job | PRODUCTION.md lists pg_cron for expiry timers | **Keep as a Cloud Run Job** (one scheduling system); amend PRODUCTION.md, or move to pg_cron if you prefer. Your call |
+| 3 | GitHub import in FastAPI `BackgroundTasks` (`api/proof.py:106`) | Heavy work in the API process; Cloud Run throttles CPU after the response | **Refactor**: set `next_fetch_at = now` and let the GitHub job pick it up (or start a job execution) |
+| 4 | `POST /api/matches/refresh`, `POST /api/admin/matches/recompute`, `POST /api/admin/circuits/run` compute inside the request (CP-SAT up to 10 s) | "Heavy work never runs inside a user request" | **Refactor**: mark dirty / trigger a job; return 202 and show "updating" |
+| 5 | `cache/` has only `PostgresMatchCache`; `compose.yaml` has no Redis | Redis cache + rate limits required | **Keep the interface, add** a Redis implementation with Postgres fallback; add Redis to compose |
+| 6 | Neo4j: only a docstring in `graph/__init__.py` ("a future Neo4j implementation") | none; matches the BACKLOG trigger | **Keep** |
+| 7 | Railway/Render comments: `__main__.py:13`, initial migration line 35 | wrong hosting names | **Refactor** (wording only). No Railway/Render config files exist |
+| 8 | `CREATE EXTENSION` in the initial migration | Supabase manages extensions (in its `extensions` schema) | **Refactor** when Stage 1 tests against Supabase |
+| 9 | `db.py` engine: no pool size, no `statement_timeout`, prepared statements on | Supabase pooler (transaction mode) breaks prepared statements | **Refactor** (settings for pool, timeout, `prepare_threshold=None` on the pooled URL) |
+| 10 | fastembed downloads its ~130 MB model on first use | first request after a deploy pays for it | **Refactor**: download at image build |
+| 11 | Postgres 16 in `db/Dockerfile` | CLAUDE.md says 16; Supabase sets the major version per project | **Keep**; confirm the Supabase version in Stage 1 and match local to it |
+| 11a | URL settings: `CORS_ORIGINS` (`config.py:24`), `GITHUB_REDIRECT_URL` as its own full URL (`config.py:84`), frontend `VITE_API_URL` only | §2a names `APP_URL`, `API_URL`, `CORS_ALLOWED_ORIGINS`, `CORS_PREVIEW_REGEX`, `EMAIL_FROM`, `SUPPORT_EMAIL`, `SUPABASE_URL`, `VITE_APP_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | **Refactor**: rename `CORS_ORIGINS`, derive the GitHub callback from `APP_URL`, add the rest; grep test for hard-coded domains |
+| 11b | `public/robots.txt` allows everything; no banner | demo and staging must be noindex and show a banner | **Refactor**: robots + `noindex` from `ENV` at build time; banner component |
+| 11c | Claim codes shown in the API response outside production (`claims.py:54`) | §2 email modes: dev logs to console, demo shows in UI, staging uses the provider's test sender | **Refactor** behind an email interface with those three modes (provider in Stage 3) |
+| 11d | `make reset-demo` only for the local database; no nightly reset | demo resets nightly and on demand; deploys from release tags | **Refactor**: `make reset-demo ENV=demo` + a Cloud Run Job on a schedule |
+
+### Auth and access
+| # | Code | Conflict | Recommendation |
+|---|---|---|---|
+| 12 | "Clerk or Supabase" in `auth.py:5`, `config.py` comments, `.env.example`, `README.md:124` | provider is Supabase | **Refactor** wording; keep the JWKS code (it already fits Supabase) |
+| 13 | `members.auth_subject` | spec names it `auth_user_id` | **Refactor** (rename in a migration; schema change, ask first) |
+| 14 | Level 1 on profile creation reads a `verification_level` claim (`api/members.py:67`) | Supabase tokens don't carry it; real users would start at level 0 | **Refactor**: derive level 1 from Supabase's verified-email claim |
+| 15 | `require_admin()` = partner_admin at level 3 (`auth.py:203`); roles enum has no `super_admin` | super_admin is separate; partner admins are scoped | **Refactor**: add `super_admin`, `require_role`, move admin endpoints to it |
+| 16 | No organisations, no `organisation_id`; dashboard is platform-wide, small counts shown (`dashboard.py`) | F8 scoping + counts under 5 hidden | **Refactor** (migration + scoping filter + suppression) |
+| 17 | `ENV` values `development \| test \| production` (`config.py:22`); `DEMO_PUBLIC` lets production run DEMO_AUTH (`config.py:104`); `cli.py:82`, `claims.py:54`, `demo_check.py:257` test "not production or DEMO_PUBLIC" | `ENV` is `dev \| demo \| staging \| production`; DEMO_AUTH refused in staging and production, no exception; `DEMO_PUBLIC=true` belongs to demo only | **Refactor**: new ENV values; demo-only features check `ENV in (dev, demo)`; keep `DEMO_PUBLIC` as the demo's explicit flag (refuse it outside demo). Tests set `ENV=test` today (`tests/conftest.py:6`): switch them to `dev` |
+| 18 | Demo HS256 persona tokens (`auth.py:92-106`), `/api/auth/demo/*` | allowed in dev/demo only | **Keep**, gated by the new ENV values |
+| 19 | Frontend: `auth.tsx` and `Welcome.tsx` only know demo personas | Supabase sign-in needed | **Refactor**: real sign-in + landing; persona switcher only in dev/demo builds |
+| 20 | No RLS | RLS on every table | **Add** (migration) |
+| 21 | No rate limiter | Redis rate limits | **Add** via `cache/` (Redis, Postgres fallback) |
+
+### Data model
+| # | Code | Conflict | Recommendation |
+|---|---|---|---|
+| 22 | `startups.open_roles` (jsonb, 14 uses in `app/`) | not in the new model; jobs replace it | **Delete** after the map popup and seed read jobs instead (schema change, ask first) |
+| 23 | `members.show_college` | spec has `profile_visibility` and `is_minor` | **Refactor** into `profile_visibility`; add `is_minor` |
+| 24 | Missing tables: organisations, notifications, reports, blocks, audit_log, consents; missing `startups.confidence` | in the data model | **Add** in the stages that use them |
+| 25 | 3 of 32 foreign keys have no index: `circuit_legs.capability_id`, `startup_claims.member_id`, `startups.claimed_by_member_id` | "indexes on every foreign key" | **Add** (one migration) |
+| 26 | `startup_claims` table (not in the spec list) | needed by F3 | **Keep**; add it to CLAUDE.md's model |
+| 27 | GitHub and portfolio proof (`app/github/`, `proof.py`, `github_*`/`proof_items` tables, `proof_bonus` in scoring, `Proof.tsx`) | CLAUDE.md lists GitHub proof of work as "planned next" | **Keep**: built and tested (R2). Mark the BACKLOG item done |
+
+### Architecture and patterns
+| # | Code | Conflict | Recommendation |
+|---|---|---|---|
+| 28 | No `services/`; business logic in routers (`api/jobs.py` applicants and listing, `api/matches.py` `_describe`, `api/circuits.py` consent machine, `api/intros.py`, `api/startups.py` claims) | "routers are thin; logic lives in services/" | **Refactor** into `app/services/`, one module per commit (CODE_AUDIT C9) |
+| 29 | 74 inline `useQuery`/`useMutation` calls; `Home.useNextStep` (192 lines) | "data logic lives in hooks" | **Refactor** (per-domain hooks + key factory) |
+| 30 | Two error shapes, no global handler; four pagination styles | "one error format, one pagination style" | **Refactor** (CODE_AUDIT C4, C7) |
+| 31 | `circuit_round` not once-per-round, no lock | jobs must be idempotent | **Refactor** (advisory lock + round_key guard) |
+| 32 | `components/ui.tsx`, `components/Sheet.tsx`, old colour aliases | "one way to do each thing"; "prefer deleting" | **Delete** after moving 14 files to `components/ds` |
+| 33 | Redundant endpoints (per-item needs/offers/skills/traits, `bbox`) | "one way to do each thing" | **Delete** (CODE_AUDIT A4–A5; API removal, ask first) |
+| 34 | `app/seed/catalog.py` imported by production code; `api/auth.py` imports demo stories | demo code in the production import path | **Refactor**: move catalog to `app/catalog.py`, lazy-load personas |
+
+### Testing
+| # | Code | Conflict | Recommendation |
+|---|---|---|---|
+| 35 | Story checks in `app/demo_check.py` + `make demo-check` | spec: `tests/demo/` and `make check` printing PASS/FAIL | **Refactor**: move the checks into pytest under `tests/demo/`, add `make check`, keep `demo-check` as an alias |
+| 36 | Shared test database seeded once per session, tests must run serially (`tests/conftest.py`) | "fresh seeded test database" | **Keep for now**; refactor to a template database later (not urgent) |
+| 37 | No axe checks | axe required | **Add** (new dev dependency, ask first) |
+
+### Docs
+| # | Code | Conflict | Recommendation |
+|---|---|---|---|
+| 38 | README.md describes Clerk, Railway/Render and the old phases | out of date | **Refactor** in Stage 1 |
+| 39 | CODE_AUDIT.md says "there is no PRODUCTION.md" | out of date | **Keep** as reference until Stage 9 |
+
+### Where the new docs still disagree with each other
+- **Demo logins:** now consistent (dev and demo only) across all three files. Resolved.
+- **Dev sign-in.** PRODUCTION.md §2 gives dev "DEMO_AUTH personas + Supabase" but "Local Postgres", so dev has no Supabase project for real sign-in. Options: dev points its auth at the staging Supabase project, or uses the Supabase CLI locally (another tool). Needs your call.
+- **`make smoke` sends a test email**, but demo has email disabled. Smoke on demo should skip that step.
+- **Expiry timers.** PRODUCTION.md uses pg_cron for expiry. CLAUDE.md and the other jobs use Cloud Scheduler.
+- **GitHub proof of work.** CLAUDE.md lists it as "planned next" and BACKLOG P1 lists it, but it is built. PWA, design system and navigation are also built yet still listed in BACKLOG P1.
+- **Stage 2 rate limits.** They cover messages and connections, which aren't built yet.
+
+---
+
+## Stage 0 — 3. Code health verdict
+
+**Continue and refactor. Don't rebuild any module.**
+
+- **Backend 7/10.** It's small (about 8,000 lines without the seed), with 96% real line
+  coverage. The pure scoring and circuit code is 97–99% covered and the eval agrees 100%.
+  The constraints and locks for applying, intros and claims are correct.
+- **Frontend 6.5/10.** It has a design system, a typed generated client (no `any`) and a
+  141 KB first load. It also keeps an old UI layer, and logic sits inside screens.
+- **Tests 7/10.** Playwright covers every story at both widths. Nothing tests two
+  requests at once, the scheduler is at 48% coverage, and there are no frontend unit tests.
+- **Production readiness 4/10.** The gaps are production mechanics, not code quality.
+
+Why refactor rather than rebuild:
+- **The differentiator is done and verified.** Matching, bridge reasons, circuits,
+  warm intros and jobs are the hard parts. They are pure functions with tests, and
+  rebuilding them would only re-create what already exists.
+- **Every gap is additive.** Supabase sign-in, RLS, super_admin and organisations,
+  Redis, Cloud Run Jobs, CI, notifications and legal pages all add to the code. None
+  of them requires throwing working code away.
+- **The interfaces are already in place.** `graph/`, `cache/` and `EmbeddingProvider`
+  were built for exactly the Redis and job changes Stage 1 needs.
+
+The closest things to a rebuild are small:
+
+| Module | Rewrite size | What it means |
+|---|---|---|
+| `scheduler.py` | about 120 lines | becomes job entry points |
+| `auth.tsx` + `Welcome.tsx` | new | sign-in is new code; the demo login stays |
+| `matching/service.py` `candidates()` | split | needs a split and a per-member recompute, not new logic |
+| Dashboard | extend | gets scoping on top |
+
+---
+
+## Stage 0 — 4. Your [YOU] tasks, in order
+
+### Needed before Stages 1 + 2 can be finished
+1. **Approve dependencies.** Backend: `redis` (Python client). Backend dev only:
+   `fakeredis` (tests run without a Redis server). Frontend: `@supabase/supabase-js`
+   (sign-in only for now). Rate limiting, security headers and JWKS need nothing new.
+2. **Answer the decisions** below.
+3. **Turn on 2FA** for GitHub, then the **GitHub org**: Dependabot, secret scanning,
+   branch protection on `main`.
+4. **Create a GCP project** in asia-south1. Turn on billing, Cloud Run, Artifact Registry
+   and Secret Manager. Set a budget alert. Apply for Google for Startups credits.
+5. **Create Supabase projects**: demo (free) and staging (free). Production (Pro) can
+   wait until Stage 6. In each: turn on email OTP and Google sign-in (needs a Google
+   OAuth client from the GCP console). Leave Site URL for me to give you once the
+   default URLs exist.
+6. **Create Redis** (Upstash free tier) for demo and staging.
+7. **Create the Vercel projects** for demo and staging, linked to the repo.
+8. **Pick an email provider** (Resend or Postmark) and create a test/sandbox API key
+   for staging. `make smoke` sends one test email.
+9. **Give me deploy access** for this session (see "Account values" below), or run the
+   deploy commands I prepare on your own machine.
+
+### Later stages
+10. Supabase production project (Pro) and production Redis (paid tier): Stage 6.
+11. Buy the domain, then the §2a switch checklist: Stage 6.
+12. Email domain DNS (SPF, DKIM, DMARC) once the domain exists: Stages 3 and 6.
+13. GitHub OAuth App per environment (proof of work), callbacks on `APP_URL`.
+14. Anthropic API key per environment with a monthly cap (optional; manual pickers work without it).
+15. Sentry account and an uptime monitor that alerts your phone: Stage 7.
+16. Lawyer reviews the privacy policy, terms and cookie notice: Stage 5.
+17. Fresh-eyes test with 5 real users on staging: Stage 10.
+18. Onboard the pilot college: Stage 10.
+
+### Account values I will ask you for (never guessed)
+For **each of demo and staging**:
+- Supabase: project URL, anon (publishable) key, service role key (backend only),
+  database connection strings (pooler and direct).
+- Redis: connection URL.
+- Vercel: project name (the `*.vercel.app` URL follows from it).
+- Email (staging only): provider API key and test sender address.
+
+Once only:
+- GCP project ID; whether demo and staging share one project (cheaper, simpler) or get one each.
+- Deploy access from this cloud session. My container has no Google or Vercel login. The
+  options are: (a) you add a deploy service-account key and a Vercel token as secrets in
+  this environment's settings, which I would replace with keyless GitHub deploys in Stage 6;
+  or (b) I write the deploy commands and you run them on your laptop. (a) lets me finish
+  "deploy and run `make smoke`" myself; (b) keeps keys off this machine.
+
+### Decisions I need before Stages 1 + 2
+- **Dev sign-in:** dev uses the staging Supabase project for real sign-in (my
+  recommendation, nothing to install), or the Supabase CLI locally.
+- **Expiry timers:** pg_cron (as in PRODUCTION.md) or a Cloud Run Job, so there is one
+  scheduling system (my recommendation).
+- **What an organisation is** (Stage 2 needs it for partner scoping and its tests): a
+  college, an incubator or a program, and how members join one (invite link, email
+  domain, an admin adds them).
+- **Schema changes to approve:** rename `auth_subject` → `auth_user_id`; add
+  `super_admin`, `organisations` and `organisation_id`. (Dropping `startups.open_roles` and
+  replacing `show_college` can wait for later stages.)
+- **API removals to approve:** the redundant endpoints in item 33 (not needed for Stages 1–2).
+
+---
+
+# History (written under earlier specs; kept for reference)
+
+The notes below describe work done under the old CLAUDE.md phase plan and the R1–R7
+redesign plan. Those specs are replaced; the code they describe is what Stage 0 assessed.
+
 Snapshot for picking the work up in a new session. The spec is [CLAUDE.md](CLAUDE.md)
 (including the "Spec additions" and "Testing" sections at the end). **The frontend
 must also follow [DESIGN.md](DESIGN.md)**, the user's design and PWA brief for Phases
